@@ -14,12 +14,13 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'Special Summon a "Goku" monster from the Deck',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Goku - 900000002 (placeholder)
+# Goku - 900000002
+# Normal Monster, Warrior, LIGHT, Level 7, ATK 2500 / DEF 2300
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000002, 4, 0, GOKU_SETCODE, 33, 1800, 1200, 4, 1, 1, 0))
+    (900000002, 4, 0, GOKU_SETCODE, 17, 2500, 2300, 7, 1, 16, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     (900000002, 'Goku',
-     'Placeholder card for the "Goku" archetype.',
+     'A brave warrior belonging to a nearly extinct lineage of fighters. Possessor of a pure heart and an unbreakable will, he travels the universe in search of worthy opponents to surpass his own limits. It is said that when his fury awakens, a golden glow envelops him, releasing a power capable of shaking the foundations of the cosmos. His appetite for battle is surpassed only by his nobility.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
 # Goku Super Saiyan - 900000003 (placeholder)
