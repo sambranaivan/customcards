@@ -15,6 +15,7 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | Estado | Nombre | ID | Script | Arquetipo | Creado por | Insert script |
 |---|---|---|---|---|---|---|
 | [ ] | Goku | `900000002` | `script/unofficial/c900000002.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `001_kid_goku_insert_card.py` |
-| [ ] | Goku Super Saiyan Mode | `900000003` | `script/unofficial/c900000003.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `001_kid_goku_insert_card.py` |
+| [ ] | Goku Super Saiyan | `900000003` | `script/unofficial/c900000003.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `001_kid_goku_insert_card.py` |
 | [ ] | Full Moon | `900000005` | `script/unofficial/c900000005.lua` | — (sin arquetipo) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
 | [ ] | Golden Oozaru | `900000006` | `script/unofficial/c900000006.lua` | Goku (`0x1d0`) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
+| [ ] | Kamehameha | `900000008` | `script/unofficial/c900000008.lua` | — (sin arquetipo) | `003_teenage_goku_insert_card.py` | `003_teenage_goku_insert_card.py` |

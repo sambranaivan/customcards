@@ -1,4 +1,4 @@
---Goku Super Saiyan Mode
+--Goku Super Saiyan
 local s,id=GetID()
 function s.initial_effect(c)
 	--must be special summoned

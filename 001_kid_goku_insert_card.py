@@ -10,7 +10,7 @@ c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
     (900000001, 4, 0, GOKU_SETCODE, 33, 650, 250, 3, 1, 1, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     (900000001, 'Kid Goku',
-     'If your opponent controls a monster, you can Special Summon this card (from your hand). When this card is destroyed: You can Special Summon 1 "Goku" monster from your Deck, ignoring its Summoning conditions, except "Goku Super Saiyan Mode".',
+     'If your opponent controls a monster, you can Special Summon this card (from your hand). When this card is destroyed: You can Special Summon 1 "Goku" monster from your Deck, ignoring its Summoning conditions, except "Goku Super Saiyan".',
      'Special Summon a "Goku" monster from the Deck',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
@@ -22,11 +22,11 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'Placeholder card for the "Goku" archetype.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Goku Super Saiyan Mode - 900000003 (placeholder)
+# Goku Super Saiyan - 900000003 (placeholder)
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
     (900000003, 4, 0, GOKU_SETCODE, 33, 3000, 2500, 8, 1, 16, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-    (900000003, 'Goku Super Saiyan Mode',
+    (900000003, 'Goku Super Saiyan',
      'Cannot be Normal Summoned/Set. Must be Special Summoned by a card effect.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 

@@ -360,7 +360,7 @@ print(0x1d0)  # Resultado: 464
 
 ## Cartas Nombradas y Placeholders
 
-Cuando una carta hace referencia a otras cartas por nombre (ej: _"Special Summon 1 'Goku' from your Deck, except 'Goku Super Saiyan Mode'"_), **todas las cartas nombradas deben existir** en la base de datos para que el script funcione correctamente.
+Cuando una carta hace referencia a otras cartas por nombre (ej: _"Special Summon 1 'Goku' from your Deck, except 'Goku Super Saiyan'"_), **todas las cartas nombradas deben existir** en la base de datos para que el script funcione correctamente.
 
 ### Paso previo: Consultar `placeholders.md`
 
@@ -396,7 +396,7 @@ end
 ### Ejemplo: Placeholder con restricción de invocación
 
 ```lua
---Goku Super Saiyan Mode
+--Goku Super Saiyan
 local s,id=GetID()
 function s.initial_effect(c)
     c:EnableReviveLimit()
