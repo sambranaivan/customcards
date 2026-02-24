@@ -362,6 +362,16 @@ print(0x1d0)  # Resultado: 464
 
 Cuando una carta hace referencia a otras cartas por nombre (ej: _"Special Summon 1 'Goku' from your Deck, except 'Goku Super Saiyan Mode'"_), **todas las cartas nombradas deben existir** en la base de datos para que el script funcione correctamente.
 
+### Paso previo: Consultar `placeholders.md`
+
+**Antes de crear una carta nueva**, consulta el archivo `placeholders.md` en la raíz del proyecto. Si el nombre de la carta que vas a crear coincide con un placeholder existente (marcado con `[ ]`):
+
+1. **No crees un ID ni script nuevo.** Usa el ID y script Lua que ya existen para ese placeholder.
+2. **Edita el script Lua** existente (`script/unofficial/c{ID}.lua`) para añadir los efectos reales de la carta.
+3. **Actualiza los registros en la base de datos** (`datas` y `texts`) con los stats, tipo, atributo, nivel y descripción definitivos.
+4. **Actualiza el `_insert_card.py`** correspondiente (indicado en la columna "Insert script" de `placeholders.md`) para que refleje los datos definitivos, o crea un nuevo `_insert_card.py` con el número secuencial correspondiente si prefieres mantener el historial de cambios.
+5. **Marca el placeholder como completado** en `placeholders.md` cambiando `[ ]` por `[x]`.
+
 ### Cuándo crear placeholders
 
 - La carta principal referencia otra carta por nombre y esa carta **aún no existe**.
@@ -381,6 +391,7 @@ end
 ```
 
 4. Si el placeholder **no debe ser invocable normalmente** (ej: _"Must be Special Summoned by a card effect"_), usa `c:EnableReviveLimit()` en su script para imponer esa restricción.
+5. **Registra el placeholder en `placeholders.md`** añadiendo una fila nueva a la tabla con estado `[ ]`.
 
 ### Ejemplo: Placeholder con restricción de invocación
 
@@ -402,6 +413,20 @@ function s.spcon(e,c)
     return false
 end
 ```
+
+### Formato de `placeholders.md`
+
+El archivo contiene una tabla con las siguientes columnas:
+
+| Columna | Descripción |
+|---|---|
+| Estado | `[ ]` pendiente, `[x]` completado |
+| Nombre | Nombre de la carta placeholder |
+| ID | ID numérico asignado |
+| Script | Ruta al script Lua |
+| Arquetipo | Arquetipo al que pertenece y su setcode |
+| Creado por | `_insert_card.py` que lo generó originalmente |
+| Insert script | `_insert_card.py` donde están los datos de DB |
 
 ---
 
@@ -495,5 +520,6 @@ ProjectIgnis/
 │   └── field/
 │       └── {id}.png           ← Imágenes de campo
 ├── 001_kid_goku_insert_card.py ← Script de inserción replicable
+├── placeholders.md             ← Registro de cartas placeholder pendientes
 └── guide.md                    ← Esta guía
 ```
