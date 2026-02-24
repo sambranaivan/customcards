@@ -332,6 +332,150 @@ pics/100006000.jpg
 
 ---
 
+## Arquetipos Personalizados (Setcodes)
+
+Si tu carta pertenece a un arquetipo que **no existe** en el juego, debes crear un setcode nuevo.
+
+### Paso a paso
+
+1. **Abre** `script/archetype_setcode_constants.lua`.
+2. **Busca el último valor hexadecimal** asignado. Los arquetipos custom se añaden al final del archivo bajo el comentario `--Custom archetypes`.
+3. **Elige el siguiente valor disponible** (ej: si el último fue `0x1cf`, usa `0x1d0`).
+4. **Agrega la constante** con el formato `SET_NOMBRE = 0xVALOR`.
+
+```lua
+--Custom archetypes
+SET_GOKU                          = 0x1d0
+```
+
+5. En la columna `setcode` de la tabla `datas`, usa el valor decimal del setcode. Ejemplo: `0x1d0` = `464`.
+
+### Cómo determinar el valor decimal
+
+```python
+print(0x1d0)  # Resultado: 464
+```
+
+---
+
+## Cartas Nombradas y Placeholders
+
+Cuando una carta hace referencia a otras cartas por nombre (ej: _"Special Summon 1 'Goku' from your Deck, except 'Goku Super Saiyan Mode'"_), **todas las cartas nombradas deben existir** en la base de datos para que el script funcione correctamente.
+
+### Cuándo crear placeholders
+
+- La carta principal referencia otra carta por nombre y esa carta **aún no existe**.
+- Un efecto filtra por nombre (`IsCode`) o por arquetipo (`IsSetCard`) y necesita al menos una carta válida como objetivo.
+
+### Cómo crear un placeholder
+
+1. **Asigna un ID** consecutivo al de la carta principal (ej: principal `900000001`, placeholders `900000002`, `900000003`).
+2. **Inserta en la base de datos** con stats razonables y el mismo `setcode` del arquetipo.
+3. **Crea un script Lua mínimo** en `script/unofficial/c{ID}.lua`:
+
+```lua
+--Nombre del Placeholder
+local s,id=GetID()
+function s.initial_effect(c)
+end
+```
+
+4. Si el placeholder **no debe ser invocable normalmente** (ej: _"Must be Special Summoned by a card effect"_), usa `c:EnableReviveLimit()` en su script para imponer esa restricción.
+
+### Ejemplo: Placeholder con restricción de invocación
+
+```lua
+--Goku Super Saiyan Mode
+local s,id=GetID()
+function s.initial_effect(c)
+    c:EnableReviveLimit()
+    local e1=Effect.CreateEffect(c)
+    e1:SetType(EFFECT_TYPE_FIELD)
+    e1:SetCode(EFFECT_SPSUMMON_PROC)
+    e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+    e1:SetRange(LOCATION_HAND)
+    e1:SetCondition(s.spcon)
+    c:RegisterEffect(e1)
+end
+function s.spcon(e,c)
+    if c==nil then return true end
+    return false
+end
+```
+
+---
+
+## Scripts de Inserción Replicables
+
+Para mantener un registro de los inserts en la base de datos y poder replicarlos en otra instancia, se generan archivos Python con la convención:
+
+```
+{NRO}_{nombre_carta}_insert_card.py
+```
+
+### Convención de nombres
+
+| Parte | Descripción | Ejemplo |
+|---|---|---|
+| `{NRO}` | Número secuencial con ceros a la izquierda (3 dígitos) | `001` |
+| `{nombre_carta}` | Nombre de la carta en snake_case (minúsculas) | `kid_goku` |
+| Sufijo fijo | Siempre `_insert_card.py` | `_insert_card.py` |
+
+### Ejemplo de nombre
+
+```
+001_kid_goku_insert_card.py
+```
+
+### Contenido del archivo
+
+El script debe usar `INSERT OR REPLACE` con parámetros para ser idempotente (se puede ejecutar múltiples veces sin duplicar datos):
+
+```python
+import sqlite3
+
+conn = sqlite3.connect('expansions/cards-unofficial.cdb')
+c = conn.cursor()
+
+MY_SETCODE = 0x1d0  # 464
+
+# Carta principal - ID
+c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+    (900000001, 4, 0, MY_SETCODE, 33, 650, 250, 3, 1, 1, 0))
+c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    (900000001, 'Card Name', 'Effect description.', '', '', '', '', '',
+     '', '', '', '', '', '', '', '', '', '', ''))
+
+# Placeholders referenciados (si aplica)
+# ...
+
+conn.commit()
+conn.close()
+print('Cards inserted successfully!')
+```
+
+### Cómo replicar en otra instancia
+
+Ejecuta todos los scripts en orden desde la raíz del proyecto:
+
+```bash
+python 001_kid_goku_insert_card.py
+python 002_otra_carta_insert_card.py
+# ...
+```
+
+O ejecuta todos de una vez:
+
+```bash
+# PowerShell
+Get-ChildItem *_insert_card.py | Sort-Object Name | ForEach-Object { python $_.FullName }
+
+# Bash
+for f in $(ls *_insert_card.py | sort); do python "$f"; done
+```
+
+---
+
 ## Estructura de Archivos del Proyecto
 
 ```
@@ -343,11 +487,13 @@ ProjectIgnis/
 ├── script/
 │   ├── official/              ← Scripts de cartas oficiales
 │   │   └── c38033121.lua      ← Ejemplo: Dark Magician Girl
-│   └── unofficial/            ← Scripts de cartas custom
-│       └── c100006000.lua     ← Tu carta nueva va aquí
+│   ├── unofficial/            ← Scripts de cartas custom
+│   │   └── c900000001.lua     ← Tu carta nueva va aquí
+│   └── archetype_setcode_constants.lua ← Definición de arquetipos
 ├── pics/
 │   ├── {id}.jpg               ← Artwork de cartas
 │   └── field/
 │       └── {id}.png           ← Imágenes de campo
-└── guide.md                   ← Esta guía
+├── 001_kid_goku_insert_card.py ← Script de inserción replicable
+└── guide.md                    ← Esta guía
 ```
