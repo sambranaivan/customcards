@@ -1,0 +1,12 @@
+[2023-04-13 11:25:38] Failed to load WindBot Ignite config json: [json.exception.parse_error.101] parse error at line 194, column 15: syntax error while parsing array - unexpected ':'; expected ']'
+[2023-04-13 11:25:38] Failed to parse WindBot Ignite config json entry: [json.exception.type_error.304] cannot use at() with string
+[2023-04-13 11:25:41] Exception occurred in repo https://github.com/ProjectIgnis/DeltaPuppetOfStrings: indexer progress callback returned -1
+[2025-09-02 09:45:25] Exception occurred in repo https://github.com/ProjectIgnis/DeltaBagooska: the SSL certificate is invalid
+[2025-09-02 09:45:25] The repo https://github.com/ProjectIgnis/DeltaBagooska couldn't be cloned
+[2025-09-02 09:45:25] Error: the SSL certificate is invalid
+[2025-09-02 09:45:25] Warning occurred in repo https://github.com/ProjectIgnis/LFLists: the SSL certificate is invalid
+[2025-09-02 09:45:25] Warning occurred in repo https://github.com/ProjectIgnis/Puzzles: the SSL certificate is invalid
+[2026-02-24 10:19:34] Warning occurred in repo https://github.com/ProjectIgnis/Puzzles: the SSL certificate is invalid
+[2026-02-24 10:19:34] Exception occurred in repo https://github.com/ProjectIgnis/DeltaBagooska: the SSL certificate is invalid
+[2026-02-24 10:19:34] The repo https://github.com/ProjectIgnis/DeltaBagooska couldn't be cloned
+[2026-02-24 10:19:34] Error: the SSL certificate is invalid
