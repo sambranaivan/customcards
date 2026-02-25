@@ -23,13 +23,16 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'A brave warrior belonging to a nearly extinct lineage of fighters. Possessor of a pure heart and an unbreakable will, he travels the universe in search of worthy opponents to surpass his own limits. It is said that when his fury awakens, a golden glow envelops him, releasing a power capable of shaking the foundations of the cosmos. His appetite for battle is surpassed only by his nobility.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Goku Super Saiyan - 900000003 (placeholder)
+# Goku Super Saiyan - 900000003 (completado - datos definitivos en 005_goku_super_saiyan_insert_card.py)
+# Warrior / Effect, LIGHT, Level 8, ATK 3200 / DEF 3200
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000003, 4, 0, GOKU_SETCODE, 33, 3000, 2500, 8, 1, 16, 0))
+    (900000003, 4, 0, GOKU_SETCODE, 33, 3200, 3200, 8, 1, 16, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     (900000003, 'Goku Super Saiyan',
-     'Cannot be Normal Summoned/Set. Must be Special Summoned by a card effect.',
-     '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
+     'Once per turn, if a monster is destroyed: You can Special Summon this card from your hand or GY. If "Krillin" is destroyed: You can also Special Summon this card from your Deck. While "Krillin" is in your GY, this card\'s ATK becomes double its original ATK. Once per turn: You can destroy all Spell and Trap cards your opponent controls. This card cannot be destroyed by battle or card effects. If this card battles "Frieza - Namek Ultimate Form", it gains ATK equal to that monster\'s ATK + 1000. This card cannot attack directly.',
+     'Special Summon this card',
+     'Destroy all opponent Spells/Traps',
+     '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
 conn.commit()
 conn.close()

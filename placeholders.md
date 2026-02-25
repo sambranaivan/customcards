@@ -15,7 +15,9 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | Estado | Nombre | ID | Script | Arquetipo | Creado por | Insert script |
 |---|---|---|---|---|---|---|
 | [x] | Goku | `900000002` | `script/unofficial/c900000002.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `001_kid_goku_insert_card.py` |
-| [ ] | Goku Super Saiyan | `900000003` | `script/unofficial/c900000003.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `001_kid_goku_insert_card.py` |
+| [x] | Goku Super Saiyan | `900000003` | `script/unofficial/c900000003.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [ ] | Full Moon | `900000005` | `script/unofficial/c900000005.lua` | — (sin arquetipo) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
 | [ ] | Golden Oozaru | `900000006` | `script/unofficial/c900000006.lua` | Goku (`0x1d0`) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
 | [ ] | Kamehameha | `900000008` | `script/unofficial/c900000008.lua` | — (sin arquetipo) | `003_teenage_goku_insert_card.py` | `003_teenage_goku_insert_card.py` |
+| [ ] | Krillin | `900000011` | `script/unofficial/c900000011.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
+| [ ] | Frieza - Namek Ultimate Form | `900000012` | `script/unofficial/c900000012.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
