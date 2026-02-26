@@ -596,3 +596,5 @@ SET_ARTMEGIA                      = 0x1c7
 --Custom archetypes
 SET_GOKU                          = 0x1d0
 SET_VEGETA                        = 0x1d1
+SET_VEGETTO                       = 0x1d2
+SET_GOGETA                        = 0x1d3
