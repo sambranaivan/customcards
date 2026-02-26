@@ -3,27 +3,12 @@ import sqlite3
 conn = sqlite3.connect('expansions/cards-unofficial.cdb')
 c = conn.cursor()
 
-GOKU_SETCODE = 0x1d0  # 464
+GOKU_SETCODE = 0x1d0    # 464
+VEGETA_SETCODE = 0x1d1  # 465
 TYPE_FUSION_EFFECT = 97  # TYPE_MONSTER | TYPE_EFFECT | TYPE_FUSION (1+32+64)
+TYPE_EFFECT_MONSTER = 33 # TYPE_MONSTER | TYPE_EFFECT (1+32)
 
-# Goku Super Saiyan 2 - 900000013
-# Warrior / Effect / Fusion, LIGHT, Level 9, ATK 3700 / DEF 3500
-c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000013, 4, 0, GOKU_SETCODE, TYPE_FUSION_EFFECT, 3700, 3500, 9, 1, 16, 0))
-c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-    (900000013, 'Goku Super Saiyan 2',
-     '1 "Goku" Normal Monster + 1 or more Level 6 or higher Warrior monsters.\n'
-     'Must first be Special Summoned (from your Extra Deck) by Tributing 1 "Goku Super Saiyan" while your LP is lower than your opponent\'s.\n'
-     'Unaffected by monster effects.\n'
-     'This card can attack all monsters your opponent controls, once each.\n'
-     'If this card is destroyed by battle: You can add 1 "Goku" card from your Deck to your hand.\n'
-     'If this card is used as material for the Summon of "Super Saiyan 3 Goku", that monster can attack directly, and if it does, you can add 1 "Dragon Fist" from your Deck to your hand.',
-     'Add 1 "Goku" card from your Deck to your hand',
-     'Grant effects to "Super Saiyan 3 Goku"',
-     'Add 1 "Dragon Fist" from your Deck to your hand',
-     '', '', '', '', '', '', '', '', '', '', '', '', ''))
-
-# Super Saiyan 3 Goku - 900000014 (completado - datos definitivos en 007_goku_super_saiyan_3_insert_card.py)
+# Super Saiyan 3 Goku - 900000014 (completing placeholder)
 # Warrior / Effect / Fusion, LIGHT, Level 10, ATK 4000 / DEF 3700
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
     (900000014, 4, 0, GOKU_SETCODE, TYPE_FUSION_EFFECT, 4000, 3700, 10, 1, 16, 0))
@@ -39,15 +24,24 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'Add 1 "Vegeta" monster and 1 "Potara Earrings" to your hand',
      '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Dragon Fist - 900000015 (placeholder)
+# Vegeta - 900000016 (placeholder)
+# Warrior / Effect, LIGHT, Level 8, ATK 3000 / DEF 2800
+c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
+    (900000016, 4, 0, VEGETA_SETCODE, TYPE_EFFECT_MONSTER, 3000, 2800, 8, 1, 16, 0))
+c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
+    (900000016, 'Vegeta',
+     'Placeholder card for the "Vegeta" card group.',
+     '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
+
+# Potara Earrings - 900000017 (placeholder)
 # Normal Spell
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000015, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0))
+    (900000017, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
-    (900000015, 'Dragon Fist',
+    (900000017, 'Potara Earrings',
      'Placeholder card for the "Goku" card group.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
 conn.commit()
 conn.close()
-print('3 cards inserted: Goku Super Saiyan 2 (new), Super Saiyan 3 Goku (placeholder), Dragon Fist (placeholder)')
+print('3 cards inserted: Super Saiyan 3 Goku (completed), Vegeta (placeholder), Potara Earrings (placeholder)')

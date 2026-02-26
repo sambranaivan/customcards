@@ -21,5 +21,7 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [ ] | Kamehameha | `900000008` | `script/unofficial/c900000008.lua` | — (sin arquetipo) | `003_teenage_goku_insert_card.py` | `003_teenage_goku_insert_card.py` |
 | [ ] | Krillin | `900000011` | `script/unofficial/c900000011.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [ ] | Frieza - Namek Ultimate Form | `900000012` | `script/unofficial/c900000012.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
-| [ ] | Super Saiyan 3 Goku | `900000014` | `script/unofficial/c900000014.lua` | Goku (`0x1d0`) | `006_goku_super_saiyan_2_insert_card.py` | `006_goku_super_saiyan_2_insert_card.py` |
+| [x] | Super Saiyan 3 Goku | `900000014` | `script/unofficial/c900000014.lua` | Goku (`0x1d0`) | `006_goku_super_saiyan_2_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
 | [ ] | Dragon Fist | `900000015` | `script/unofficial/c900000015.lua` | — (sin arquetipo) | `006_goku_super_saiyan_2_insert_card.py` | `006_goku_super_saiyan_2_insert_card.py` |
+| [ ] | Vegeta | `900000016` | `script/unofficial/c900000016.lua` | Vegeta (`0x1d1`) | `007_goku_super_saiyan_3_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
+| [ ] | Potara Earrings | `900000017` | `script/unofficial/c900000017.lua` | — (sin arquetipo) | `007_goku_super_saiyan_3_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |

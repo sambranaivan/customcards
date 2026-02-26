@@ -595,3 +595,4 @@ SET_IMPRISONED_DEITY              = 0x1c6
 SET_ARTMEGIA                      = 0x1c7
 --Custom archetypes
 SET_GOKU                          = 0x1d0
+SET_VEGETA                        = 0x1d1
