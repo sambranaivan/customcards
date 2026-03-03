@@ -29,7 +29,7 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [ ] | Ultimate Gohan | `900000022` | `script/unofficial/c900000022.lua` | Gohan (`0x1d5`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
 | [ ] | Super Saiyan 3 Gotenks | `900000023` | `script/unofficial/c900000023.lua` | Gotenks (`0x1d6`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
 | [ ] | Gogeta | `900000024` | `script/unofficial/c900000024.lua` | Gogeta (`0x1d3`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
-| [ ] | Metamor | `900000026` | `script/unofficial/c900000026.lua` | — (sin arquetipo) | `013_super_saiyan_gogeta_insert_card.py` | `013_super_saiyan_gogeta_insert_card.py` |
+| [x] | Metamor | `900000026` | `script/unofficial/c900000026.lua` | — (sin arquetipo) | `013_super_saiyan_gogeta_insert_card.py` | `018_metamor_insert_card.py` |
 | [x] | Genkidama | `900000027` | `script/unofficial/c900000027.lua` | — (sin arquetipo) | `013_super_saiyan_gogeta_insert_card.py` | `015_genkidama_insert_card.py` |
 | [ ] | Trunks | `900000028` | `script/unofficial/c900000028.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
 | [ ] | Goten | `900000029` | `script/unofficial/c900000029.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
