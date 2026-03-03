@@ -598,3 +598,6 @@ SET_GOKU                          = 0x1d0
 SET_VEGETA                        = 0x1d1
 SET_VEGETTO                       = 0x1d2
 SET_GOGETA                        = 0x1d3
+SET_SAIYAN                        = 0x1d4
+SET_GOHAN                         = 0x1d5
+SET_GOTENKS                       = 0x1d6

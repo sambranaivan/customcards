@@ -33,14 +33,18 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'Placeholder card for the "Vegeta" card group.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Potara Earrings - 900000017 (placeholder)
-# Normal Spell
+# Potara Earrings - 900000017 (completado - datos definitivos en 009_potara_earrings_insert_card.py)
+# Quick-Play Spell
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000017, 4, 0, 0, 2, 0, 0, 0, 0, 0, 0))
+    (900000017, 4, 0, 0, 65538, 0, 0, 0, 0, 0, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     (900000017, 'Potara Earrings',
-     'Placeholder card for the "Goku" card group.',
-     '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
+     'You can activate this card from your hand during your opponent\'s turn. '
+     'Fusion Summon 1 Fusion Monster from your Extra Deck, by banishing Fusion Materials from your hand, field, or GY. '
+     'If "Vegito" is Special Summoned by this effect, it gains the following effect:\n'
+     '● Your opponent cannot target this card with card effects.',
+     'Fusion Summon using banished materials',
+     '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
 conn.commit()
 conn.close()

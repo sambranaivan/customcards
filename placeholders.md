@@ -24,4 +24,8 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [x] | Super Saiyan 3 Goku | `900000014` | `script/unofficial/c900000014.lua` | Goku (`0x1d0`) | `006_goku_super_saiyan_2_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
 | [ ] | Dragon Fist | `900000015` | `script/unofficial/c900000015.lua` | — (sin arquetipo) | `006_goku_super_saiyan_2_insert_card.py` | `006_goku_super_saiyan_2_insert_card.py` |
 | [ ] | Vegeta | `900000016` | `script/unofficial/c900000016.lua` | Vegeta (`0x1d1`) | `007_goku_super_saiyan_3_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
-| [ ] | Potara Earrings | `900000017` | `script/unofficial/c900000017.lua` | — (sin arquetipo) | `007_goku_super_saiyan_3_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
+| [x] | Potara Earrings | `900000017` | `script/unofficial/c900000017.lua` | — (sin arquetipo) | `007_goku_super_saiyan_3_insert_card.py` | `009_potara_earrings_insert_card.py` |
+| [x] | Vegetto | `900000019` | `script/unofficial/c900000019.lua` | Vegetto (`0x1d2`) | `009_potara_earrings_insert_card.py` | `010_vegetto_insert_card.py` |
+| [ ] | Ultimate Gohan | `900000022` | `script/unofficial/c900000022.lua` | Gohan (`0x1d5`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
+| [ ] | Super Saiyan 3 Gotenks | `900000023` | `script/unofficial/c900000023.lua` | Gotenks (`0x1d6`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
+| [ ] | Gogeta | `900000024` | `script/unofficial/c900000024.lua` | Gogeta (`0x1d3`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
