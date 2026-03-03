@@ -22,7 +22,7 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [ ] | Krillin | `900000011` | `script/unofficial/c900000011.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [ ] | Frieza - Namek Ultimate Form | `900000012` | `script/unofficial/c900000012.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [x] | Super Saiyan 3 Goku | `900000014` | `script/unofficial/c900000014.lua` | Goku (`0x1d0`) | `006_goku_super_saiyan_2_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
-| [ ] | Dragon Fist | `900000015` | `script/unofficial/c900000015.lua` | — (sin arquetipo) | `006_goku_super_saiyan_2_insert_card.py` | `006_goku_super_saiyan_2_insert_card.py` |
+| [x] | Dragon Fist | `900000015` | `script/unofficial/c900000015.lua` | — (sin arquetipo) | `006_goku_super_saiyan_2_insert_card.py` | `017_dragon_fist_insert_card.py` |
 | [ ] | Vegeta | `900000016` | `script/unofficial/c900000016.lua` | Vegeta (`0x1d1`) | `007_goku_super_saiyan_3_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
 | [x] | Potara Earrings | `900000017` | `script/unofficial/c900000017.lua` | — (sin arquetipo) | `007_goku_super_saiyan_3_insert_card.py` | `009_potara_earrings_insert_card.py` |
 | [x] | Vegetto | `900000019` | `script/unofficial/c900000019.lua` | Vegetto (`0x1d2`) | `009_potara_earrings_insert_card.py` | `010_vegetto_insert_card.py` |
@@ -34,3 +34,4 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [ ] | Trunks | `900000028` | `script/unofficial/c900000028.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
 | [ ] | Goten | `900000029` | `script/unofficial/c900000029.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
 | [ ] | Master Roshi | `900000030` | `script/unofficial/c900000030.lua` | — (sin arquetipo) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
+| [ ] | Kid Goku GT | `900000032` | `script/unofficial/c900000032.lua` | Goku (`0x1d0`) | `017_dragon_fist_insert_card.py` | `017_dragon_fist_insert_card.py` |
