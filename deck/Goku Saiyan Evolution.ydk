@@ -1,0 +1,145 @@
+#created by Cursor AI
+#
+#=== GOKU SAIYAN EVOLUTION ===
+#
+#== ESTRATEGIA GENERAL ==
+# Cadena evolutiva Saiyan: monstruos de bajo nivel (Kid Goku, Teenage Goku)
+# flotan hacia formas superiores (Goku Normal > Goku SS > SS2 > SS3).
+# Linea secundaria de Fusion con Vegeta para invocar Vegetto o Gogeta.
+#
+#== JUGADAS CLAVE ==
+# 1. Kid Goku se SS facil y al ser destruido trae cualquier "Goku" del Deck
+# 2. Teenage Goku busca Kamehameha y al morir revive un Goku del GY
+# 3. Goku Super Saiyan se SS solo cuando un monstruo es destruido
+#    (o del Deck si Krillin es destruido)
+# 4. Vegeta (Majin Buu Saga) al ir al GY busca Goku + Potara > Fusion Vegetto
+# 5. Goku SS > tributo a SS2 > banish para SS3 Goku como finisher
+#
+#== MAIN DECK (40) ==
+#
+#-- Monstruos (18) --
+# 3x Kid Goku (900000001) - Starter, SS facil, flota a Goku monsters
+# 3x Goku Normal (900000002) - Material de Fusion clave, buscable con Summoner's Art
+# 2x Goku Super Saiyan (900000003) - Boss principal, auto-revive, inmune a destruccion
+# 2x Teenage Goku (900000007) - Buscador de Kamehameha, floater
+# 1x Goku Kaio-ken X (900000010) - Equipo que multiplica ATK de Goku
+# 2x Krillin (900000011) - Al ser destruido activa Goku SS desde Deck
+# 2x Vegeta Majin Buu Saga (900000018) - Busca Goku + Potara al ir al GY
+# 1x Vegeta (900000016) - Material de Fusion para Vegetto/Gogeta
+# 1x Goku Oozaru (900000004) - Linea alternativa con Full Moon
+# 1x Honest (37742478) - Truco de batalla LIGHT devastador
+#
+#-- Magias (17) --
+# 3x Kamehameha (900000008) - Quick-Play remocion versatil + recuperacion
+# 2x Potara Earrings (900000017) - Quick-Play Fusion Summon de Vegetto
+# 2x Instant Transmission (900000031) - Busca 3 monstruos, SS 1 ignorando condiciones
+# 1x Dragon Fist (900000015) - Win condition a 100 LP, imnegable
+# 1x Genkidama (900000027) - Proteccion continua + win condition alternativa
+# 2x Summoner's Art (79816536) - Busca Goku Normal (LV5+ Normal)
+# 1x Reinforcement of the Army (32807846) - Busca Kid Goku/Teenage Goku/Krillin
+# 1x Foolish Burial (81439173) - Manda Goku SS o Vegeta MBS al GY
+# 1x Monster Reborn (83764718) - Revive piezas clave
+# 1x Dark Hole (53129443) - Limpia campo, activa Goku SS
+# 1x Ancient Rules (10667321) - SS Goku Normal de la mano sin tributo
+# 1x Called by the Grave (24224830) - Contrarresta handtraps
+#
+#-- Trampas (5) --
+# 2x Metamor (900000026) - Fusion Dance para Gogeta
+# 1x Solemn Judgment (41420027) - Negacion universal
+# 1x Solemn Strike (40605147) - Niega invocaciones/efectos de monstruo
+# 1x Torrential Tribute (53582587) - Destruccion masiva que activa Goku SS
+#
+#main
+900000001
+900000001
+900000001
+900000002
+900000002
+900000002
+900000003
+900000003
+900000007
+900000007
+900000010
+900000011
+900000011
+900000018
+900000018
+900000016
+900000004
+37742478
+900000008
+900000008
+900000008
+900000017
+900000017
+900000031
+900000031
+900000015
+900000027
+79816536
+79816536
+32807846
+81439173
+83764718
+53129443
+10667321
+24224830
+900000026
+900000026
+41420027
+40605147
+53582587
+#
+#== EXTRA DECK (10) ==
+# 1x Goku Super Saiyan 2 (900000013) - ATK 3700, tributa Goku SS, ataca a todos
+# 1x Super Saiyan 3 Goku (900000014) - ATK 4000, banish SS+SS2, inmune a S/T
+# 2x Vegetto (900000019) - ATK 5000, Fusion via Potara, indestructible
+# 1x Vegetto Super Saiyan (900000020) - ATK 5000, Fusion Normal Goku+Vegeta
+# 1x Saiyan Supremacy (900000021) - ATK combinado de materiales, Mega Fusion
+# 1x SS3 Gotenks (900000023) - ATK 3500, material para Saiyan Supremacy
+# 1x Gogeta (900000024) - ATK 5000, via Metamor
+# 2x Super Saiyan Gogeta (900000025) - ATK 3500, via Metamor, efecto temporal
+#
+#extra
+900000013
+900000014
+900000019
+900000019
+900000020
+900000021
+900000023
+900000024
+900000025
+900000025
+#
+#== SIDE DECK (15) ==
+# 1x Raigeki (12580477) - Board wipe alternativo
+# 1x Harpie's Feather Duster (18144506) - Destruye todas las S/T del oponente
+# 2x Twin Twisters (43898403) - Remocion de S/T + descarte util
+# 1x Solemn Warning (84749824) - Negacion extra
+# 1x Bottomless Trap Hole (29401950) - Remocion de monstruos SS
+# 1x Book of Moon (14087893) - Disruption versatil
+# 2x Forbidden Lance (27243130) - Proteccion contra S/T enemigas
+# 1x Upstart Goblin (70368879) - Thin del deck
+# 2x Pot of Duality (98645731) - Consistencia en partidas lentas
+# 1x The Warrior Returning Alive (95281259) - Recupera Warriors del GY
+# 1x Kid Goku GT (900000032) - Alternativa para Dragon Fist
+# 1x Golden Oozaru (900000006) - Linea Oozaru extendida
+#
+!side
+12580477
+18144506
+43898403
+43898403
+84749824
+29401950
+14087893
+27243130
+27243130
+70368879
+98645731
+98645731
+95281259
+900000032
+900000006
