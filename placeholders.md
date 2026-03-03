@@ -18,7 +18,7 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [x] | Goku Super Saiyan | `900000003` | `script/unofficial/c900000003.lua` | Goku (`0x1d0`) | `001_kid_goku_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [ ] | Full Moon | `900000005` | `script/unofficial/c900000005.lua` | — (sin arquetipo) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
 | [ ] | Golden Oozaru | `900000006` | `script/unofficial/c900000006.lua` | Goku (`0x1d0`) | `002_goku_oozaru_insert_card.py` | `002_goku_oozaru_insert_card.py` |
-| [ ] | Kamehameha | `900000008` | `script/unofficial/c900000008.lua` | — (sin arquetipo) | `003_teenage_goku_insert_card.py` | `003_teenage_goku_insert_card.py` |
+| [x] | Kamehameha | `900000008` | `script/unofficial/c900000008.lua` | — (sin arquetipo) | `003_teenage_goku_insert_card.py` | `014_kamehameha_insert_card.py` |
 | [ ] | Krillin | `900000011` | `script/unofficial/c900000011.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [ ] | Frieza - Namek Ultimate Form | `900000012` | `script/unofficial/c900000012.lua` | — (sin arquetipo) | `005_goku_super_saiyan_insert_card.py` | `005_goku_super_saiyan_insert_card.py` |
 | [x] | Super Saiyan 3 Goku | `900000014` | `script/unofficial/c900000014.lua` | Goku (`0x1d0`) | `006_goku_super_saiyan_2_insert_card.py` | `007_goku_super_saiyan_3_insert_card.py` |
@@ -31,3 +31,6 @@ Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando 
 | [ ] | Gogeta | `900000024` | `script/unofficial/c900000024.lua` | Gogeta (`0x1d3`) + Saiyan (`0x1d4`) | `012_saiyan_supremacy_insert_card.py` | `012_saiyan_supremacy_insert_card.py` |
 | [ ] | Metamor | `900000026` | `script/unofficial/c900000026.lua` | — (sin arquetipo) | `013_super_saiyan_gogeta_insert_card.py` | `013_super_saiyan_gogeta_insert_card.py` |
 | [ ] | Genkidama | `900000027` | `script/unofficial/c900000027.lua` | — (sin arquetipo) | `013_super_saiyan_gogeta_insert_card.py` | `013_super_saiyan_gogeta_insert_card.py` |
+| [ ] | Trunks | `900000028` | `script/unofficial/c900000028.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
+| [ ] | Goten | `900000029` | `script/unofficial/c900000029.lua` | Saiyan (`0x1d4`) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |
+| [ ] | Master Roshi | `900000030` | `script/unofficial/c900000030.lua` | — (sin arquetipo) | `014_kamehameha_insert_card.py` | `014_kamehameha_insert_card.py` |

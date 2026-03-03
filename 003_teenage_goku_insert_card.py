@@ -18,13 +18,14 @@ c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,
      'Special Summon 1 "Goku" monster from GY',
      '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
-# Kamehameha - 900000008 (placeholder)
-# Normal Spell
+# Kamehameha - 900000008
+# Quick-Play Spell (definitive data in 014_kamehameha_insert_card.py)
+TYPE_QUICKPLAY_SPELL = 65538  # TYPE_SPELL | TYPE_QUICKPLAY
 c.execute('INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)',
-    (900000008, 4, 0, 0, TYPE_NORMAL_SPELL, 0, 0, 0, 0, 0, 0))
+    (900000008, 4, 0, 0, TYPE_QUICKPLAY_SPELL, 0, 0, 0, 0, 0, 0))
 c.execute('INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',
     (900000008, 'Kamehameha',
-     'Placeholder Spell for the "Goku" card group.',
+     'Quick-Play Spell. See 014_kamehameha_insert_card.py for full description.',
      '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', ''))
 
 # Cleanup: remove old duplicate "Goku Super Saiyan" (900000009)
