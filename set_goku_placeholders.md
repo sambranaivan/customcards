@@ -1,6 +1,6 @@
-# Placeholders Pendientes
+# Set Goku — Placeholders Pendientes
 
-Registro de cartas placeholder creadas como dependencia de otras cartas. Cuando vayas a crear una carta nueva, **consulta esta lista primero**: si el nombre coincide con un placeholder existente, edita su script Lua y registros en la base de datos en lugar de crear archivos nuevos.
+Registro de cartas placeholder del **Set Goku** (IDs `900000001`–`900000033`). Cuando vayas a crear una carta nueva de este set, **consulta esta lista primero**: si el nombre coincide con un placeholder existente, edita su script Lua y registros en la base de datos en lugar de crear archivos nuevos.
 
 ## Convenciones
 
