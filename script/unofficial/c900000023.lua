@@ -5,8 +5,8 @@ function s.initial_effect(c)
 	Fusion.AddProcMix(c,true,true,s.matfilter1,s.matfilter2)
 end
 function s.matfilter1(c,fc,sumtype,tp)
-	return c:IsCode(900000025)
+	return c:IsSetCard(0x1d6) and c:IsType(TYPE_MONSTER)
 end
 function s.matfilter2(c,fc,sumtype,tp)
-	return c:IsCode(900000026)
+	return c:IsSetCard(0x1d6) and c:IsType(TYPE_MONSTER)
 end
