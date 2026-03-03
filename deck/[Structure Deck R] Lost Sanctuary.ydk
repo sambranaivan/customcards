@@ -1,4 +1,231 @@
 #created by pyrQ
+#
+#=======================================================================
+# ANALISIS ESTRATEGICO: [Structure Deck R] Lost Sanctuary
+# Arquetipo: The Agents / Sanctuary in the Sky (Fairy LIGHT Control)
+#=======================================================================
+#
+#--- NUCLEO DEL DECK (43 Main / 5 Extra / 0 Side) ---
+#
+# MONSTRUOS (23):
+#   Boss: Majesty Hyperion, Master Hyperion, Archlord Kristya, Vanity's Ruler
+#   Agents: Earth, Neptune, Venus, Uranus, Jupiter, Saturn, Mars, Mercury
+#   Engine: Mystical Shine Ball x2, Eva, Cupid Volley
+#   Hand Traps: Herald of Orange Light, Nibiru, Artifact Lancea, Emit-ter
+#   Utilidad: Zeradias, Spirit Sculptor, Barrier Statue, Soul of Purity
+#
+# MAGIAS (12):
+#   Sanctuary: The Sanctuary in the Sky, Sanctum of Parshath, Sacred Waters,
+#              Chorus in the Sky, Demise of the Land
+#   Draw/Busqueda: Cards from the Sky, Pot of Desires, Light of Redemption
+#   Remocion: Raigeki, Harpie's Feather Duster
+#   Utilidad: Creature Swap, Reasoning
+#
+# TRAMPAS (8):
+#   Fallen Sanctuary, Divine Punishment, Miraculous Descent,
+#   Balance of Judgment, Compulsory Evacuation Device,
+#   Ring of Destruction, Typhoon
+#
+# EXTRA DECK (5):
+#   Synchro: Masterflare Hyperion (Lv10), Pluto (Lv5 Tuner)
+#   Xyz: Herald of Pure Light (Rank 2)
+#   Link: Celestial Knightlord Parshath (Link-3), Protector of Agents Moon (Link-2)
+#
+#=======================================================================
+# ESTRATEGIA 1: ESTABLECER "THE SANCTUARY IN THE SKY" (PRIORIDAD MAXIMA)
+#=======================================================================
+# El deck DEPENDE de tener Sanctuary activo. Hay 8 formas de conseguirlo:
+#  - The Sanctuary in the Sky: directamente desde mano.
+#  - Zeradias: descartarlo para buscar Sanctuary del deck.
+#  - The Sacred Waters in the Sky: activa Sanctuary directamente del deck
+#    O busca un monstruo que lo mencione (Earth, Neptune, Uranus, etc).
+#  - Fallen Sanctuary: al activarse, setea Sanctuary o carta que lo mencione
+#    del deck. Ademas su nombre CUENTA como Sanctuary en campo/GY.
+#  - The Sanctum of Parshath: su nombre CUENTA como Sanctuary en campo/GY,
+#    y da +300 ATK/DEF a todas las Fairy. Protege Magias/Trampas seteadas.
+#  - Demise of the Land: activa un Field Spell del deck cuando el rival
+#    hace Special Summon. Ideal contra decks combo.
+#  - Pluto (Extra): al ser desterrado del GY, busca Sanctuary del deck/GY.
+#  - Neptune: si es desterrado, busca Sanctuary del deck.
+# CONSEJO: Prioriza Fallen Sanctuary o Sacred Waters turno 1. Ambas
+# generan ventaja adicional ademas de poner Sanctuary.
+#
+#=======================================================================
+# ESTRATEGIA 2: COMBO DE APERTURA - VENUS ENGINE
+#=======================================================================
+# Venus (Lv3) es el mejor Normal Summon del deck:
+#  1. Normal Summon Venus, pagar 500 LP x2 = invocar 2 Mystical Shine Ball.
+#  2. Usar Venus + 1 Shine Ball para Link Summon: Protector of Agents - Moon.
+#     - Moon envia Sanctuary/carta relacionada del deck al GY,
+#       O si Sanctuary ya esta activo, busca Earth del deck/GY.
+#  3. Si buscaste Earth, Normal Summon Earth (con efecto de Moon en zona Link):
+#     Earth busca otro Agent del deck (Neptune, Uranus, Jupiter).
+#  4. Usa Earth (Tuner Lv2) + el Shine Ball restante (Lv2) para:
+#     - Xyz: Herald of Pure Light (Rank 2) -> recicla monstruos del GY.
+#     - O guardalos para mas plays.
+#  5. Alternativa: Venus + 2 Shine Balls = material para Celestial Knightlord
+#     Parshath (Link-3), que busca cualquier carta del arquetipo.
+#
+#=======================================================================
+# ESTRATEGIA 3: SYNCHRO PLAYS - PLUTO Y MASTERFLARE
+#=======================================================================
+# Tuners disponibles: Earth (Lv2), Herald of Orange Light (Lv2), Emit-ter (Lv2)
+#
+# PLUTO (Synchro Lv5, Tuner):
+#  - Earth/Herald/Emit-ter (Lv2) + Venus (Lv3) = Pluto
+#  - Pluto voltea monstruos boca abajo (Quick Effect con Sanctuary).
+#  - Si es desterrado del GY: busca Sanctuary.
+#
+# MASTERFLARE HYPERION (Synchro Lv10):
+#  - Pluto (Tuner Lv5) + Uranus (Lv5) = Masterflare Hyperion
+#  - Pluto (Tuner Lv5) + cualquier Lv5 no-Tuner.
+#  - Masterflare envia un Agent del deck al GY y copia sus efectos.
+#    Enviar Saturn: puede infligir dano = diferencia de LP.
+#    Enviar Mars: se vuelve inmune a Magias.
+#  - Quick Effect: destierra 1 Fairy de mano/GY -> destierra 1 carta en campo.
+#    ESTA ES TU INTERRUPCION PRINCIPAL EN TURNO DEL RIVAL.
+#
+#=======================================================================
+# ESTRATEGIA 4: LOCKDOWN / FLOODGATES
+#=======================================================================
+# El deck tiene varias formas de bloquear al rival:
+#  - Archlord Kristya: ni tu ni el rival pueden hacer Special Summon.
+#    Se invoca gratis si tienes EXACTAMENTE 4 Fairy en GY y recupera 1.
+#    Si seria enviado al GY, va al tope del deck (recurrible).
+#  - Vanity's Ruler: el rival NO puede hacer Special Summon.
+#    Requiere Tribute Summon (no se puede Special Summon).
+#  - Barrier Statue of the Heavens: solo se pueden SS monstruos LIGHT.
+#    Excelente turno 1 si el rival no juega LIGHT.
+#  - Divine Punishment: Counter Trap OMNI-NEGATE mientras Sanctuary este activo.
+#    Niega Magias, Trampas y efectos de monstruo. MUY poderoso.
+# COMBO: Turno 1 ideal = Sanctuary + Barrier Statue/Kristya + Divine Punishment
+# seteado. El rival tendra muy pocas opciones.
+#
+#=======================================================================
+# ESTRATEGIA 5: BOSS MONSTERS - HYPERION PACKAGE
+#=======================================================================
+# Majesty Hyperion (Lv8 DARK 2100/2700):
+#  - Se invoca desterrando 1 Agent de mano/campo/GY (1 vez por turno).
+#  - Refleja dano de batalla de tus Fairy al rival.
+#  - Destierra 1 Fairy de mano/GY -> destierra 1 carta del GY de cualquiera.
+#    Con Sanctuary: 2 veces por turno. Excelente control de GY rival.
+#
+# Master Hyperion (Lv8 LIGHT 2700/2100):
+#  - Se invoca desterrando 1 Agent de mano/campo/GY.
+#  - Destierra 1 Fairy LIGHT del GY -> destruye 1 carta en campo.
+#    Con Sanctuary: 2 destrucciones por turno. REMOCION MASIVA.
+#  - Earth puede buscarlo directamente si Sanctuary esta activo.
+#
+# COMBO HYPERION: Neptune descarta de mano -> SS un Agent o Hyperion del GY.
+# Luego Majesty/Master Hyperion se invocan desterrando ese Agent.
+# En un turno puedes tener ambos Hyperion + remocion multiple.
+#
+#=======================================================================
+# ESTRATEGIA 6: HAND TRAPS Y DISRUPCIONES
+#=======================================================================
+# Herald of Orange Light: descarta esta + 1 Fairy de mano -> niega efecto
+#   de monstruo y lo destruye. Si descartas Eva con el, Eva busca 2
+#   Fairy Lv2 o menor del deck (Earth, Shine Ball, Cupid, otro Herald).
+#   COMBO CLAVE: Herald + Eva = negar + buscar 2 monstruos.
+#
+# Nibiru, the Primal Being: si el rival invoca 5+ monstruos en su turno,
+#   tributa todo el campo y se invoca. Devastador contra combos largos.
+#
+# Artifact Lancea: tributa de mano en turno rival -> nadie puede desterrar
+#   por el resto del turno. Critico contra decks que destierran mucho.
+#
+# Ret-time Reviver Emit-ter: desde mano/GY voltea 1 monstruo de cada campo
+#   boca abajo y se invoca. Disrupcion + cuerpo Tuner para Synchro.
+#
+#=======================================================================
+# ESTRATEGIA 7: RECUPERACION DE RECURSOS
+#=======================================================================
+# Eva: al ir al GY, destierra 2 Fairy LIGHT -> busca 2 Fairy Lv2 o menor.
+#   Alimenta el GY para Hyperion y busca hand traps/tuners.
+#
+# The Chorus in the Sky: paga 1000 LP -> recupera 1 Fairy del GY a mano.
+#   Si Sanctuary esta activo/GY: tambien recupera 1 carta desterrada
+#   de Sanctuary o que lo mencione. Doble recuperacion.
+#
+# Light of Redemption: paga 800 LP -> agrega 1 LIGHT desterrado a mano.
+#   Recupera los monstruos que desterraste para invocar Hyperion.
+#
+# Miraculous Descent: invoca 1 Fairy desterrada. Funciona con el ciclo
+#   de destierro del deck (Hyperion destierra, Descent los revive).
+#
+# Herald of Pure Light (Xyz): recupera monstruo del GY a mano.
+#
+# Spirit Sculptor: tributa 1 monstruo -> busca otro cuyo ATK+DEF total
+#   sea igual. Tributa Shine Ball (500+500=1000) -> busca Barrier Statue
+#   (1000+1000=2000)... no, debe ser el mismo total. Tributa Venus
+#   (1600+0=1600) -> busca Spirit Sculptor (1600+2100=3700)... no.
+#   Util para convertir monstruos pequenos en piezas especificas.
+#
+#=======================================================================
+# ESTRATEGIA 8: COMBOS AVANZADOS TURNO 1
+#=======================================================================
+# Mano ideal: Venus + Sacred Waters/Fallen Sanctuary + Herald of Orange Light
+#
+# Linea de juego:
+#  1. Activar Sacred Waters -> activar Sanctuary del deck, ganar LP.
+#  2. Normal Summon Venus -> SS 2 Shine Ball del deck (pagar 1000 LP).
+#  3. Venus + Shine Ball = Link-2 Protector Moon.
+#     Moon busca Earth (porque Sanctuary esta activo).
+#  4. Normal Summon Earth (en zona de Moon) -> busca Neptune.
+#  5. Descartar Neptune -> SS un Agent del GY (Venus por ejemplo).
+#     Neptune desterrado -> busca otro Sanctuary si necesitas.
+#  6. Earth (Tuner Lv2) + Venus (Lv3) = Synchro Pluto (Lv5).
+#  7. Pluto puede voltear monstruos rival boca abajo (Quick Effect).
+#  8. En mano tienes Herald of Orange Light como interrupcion.
+#  9. Campo final: Moon (Link-2) + Pluto (Synchro) + Shine Ball +
+#     Sanctuary activo + Herald en mano = 2-3 interrupciones.
+#
+# Alternativa si abres Kristya-ready (4 Fairy en GY tras combos):
+#  - Invocar Kristya -> bloquear Special Summons + recuperar 1 Fairy.
+#
+#=======================================================================
+# ESTRATEGIA 9: MATCHUP Y SIDE DECK (SUGERENCIAS)
+#=======================================================================
+# Fortalezas del deck:
+#  - Busqueda consistente de Sanctuary (8 formas).
+#  - Interrupciones variadas (Divine Punishment, Herald, Nibiru).
+#  - Floodgates potentes (Kristya, Vanity's Ruler, Barrier Statue).
+#  - Buena recuperacion de recursos (Chorus, Light of Redemption, etc).
+#
+# Debilidades:
+#  - Depende mucho de Sanctuary. Si lo destruyen sin backup, se debilita.
+#  - Vulnerable a Kaijus (ignoran Kristya/Vanity's Ruler).
+#  - Barrier Statue es fragil (1000 ATK, facil de remover).
+#  - Pot of Desires puede desterrar piezas clave face-down.
+#
+# Sugerencias para Side Deck:
+#  - Más copias de Artifact Lancea vs decks de destierro.
+#  - Called by the Grave vs hand traps rivales.
+#  - Solemn Judgment como negacion adicional.
+#  - Dark Ruler No More / Forbidden Droplet vs boards establecidos.
+#  - Cosmic Cyclone vs Field Spells rivales.
+#
+#=======================================================================
+# ESTRATEGIA 10: INTERACCIONES CLAVE A RECORDAR
+#=======================================================================
+# - Fallen Sanctuary y Sanctum of Parshath CUENTAN como "The Sanctuary
+#   in the Sky" en campo/GY. Esto activa TODOS los efectos del deck
+#   que requieren Sanctuary sin necesidad del Field Spell real.
+# - Eva + Herald of Orange Light es la interaccion mas fuerte del deck.
+#   Siempre que puedas, guarda ambos en mano juntos.
+# - Master Hyperion destruye, Majesty Hyperion destierra del GY.
+#   Usa Master vs cartas en campo, Majesty vs GY problematico rival.
+# - Masterflare Hyperion puede copiar a Saturn -> burn = dif. de LP.
+#   Si tu LP son altos (gracias a Sanctuary evitando dano), puede
+#   ser un OTK sorpresivo.
+# - Neptune se puede descartar en turno del rival para SS Hyperion
+#   del GY como interrupcion (el Hyperion puede usar su efecto).
+# - Reasoning es poderoso porque el deck tiene niveles muy variados
+#   (1,2,3,4,5,6,8,11). El rival casi nunca acertara.
+# - Creature Swap: entrega un Shine Ball (500 ATK) al rival y toma
+#   su mejor monstruo. Devastador con Venus.
+#
+#=======================================================================
 #main
 91434602
 38529357
