@@ -246,12 +246,6 @@
         "masterRules": [ 3, 4, 5 ]
     },
     {
-        "name": "Lost Sanctuary",
-        "deck": "Lost Sanctuary",
-        "difficulty": 2,
-        "masterRules": [ 3, 4, 5 ]
-    },
-    {
         "name": "[Healing JAM]",
         "deck": "[HealingJAM]",
         "difficulty": 2,
