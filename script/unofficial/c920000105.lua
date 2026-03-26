@@ -1,0 +1,6 @@
+-- Gyarados
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Si es invocado de forma especial por el efecto de "Magikarp": entra con los bonuses heredados y no puede ser objetivo de efectos del oponente hasta el final de ese turno. Puede ser invocado por tributo normal usando 2 monstruos. **Ability — Moxie (pasivo):** Cada vez que esta carta destruye un monstruo del oponente en batalla: gana 300 ATK permanentemente. Si destruye 2 monstruos en el mismo turno: gana 300 ATK adicionales *(Moxie escala — cuanto más destruye, más fuerte se vuelve)*. **Flail *(Quick Effect)*:** Una vez por turno, durante cualquier Battle Phase: esta carta gana ATK igual a la diferencia entre 8000 y los LP actuales de su controlador, hasta el final del turno. Si los LP del controlador son 4000 o menos cuando se activa: este efecto no puede ser negado. *(Flail — más debilitado está el lanzador, más fuerte golpea. A 1000 LP, Flail da +7000 ATK)* **Hyper Beam *(Signature — STAB de su tipo secundario Volador)*:** Una vez por turno: destruye 1 monstruo que controle el oponente con ATK menor o igual al ATK actual de esta carta. Si "Wrath of the Sea" está activa: en su lugar, destruye hasta 2 monstruos con esas condiciones. Luego, esta carta no puede atacar durante el próximo turno del oponente *(el recoil de Hyper Beam — necesita recargarse)*.
+end

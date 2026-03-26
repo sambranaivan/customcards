@@ -1,0 +1,6 @@
+-- Regice
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | WATER | Aqua | ATK 1700 / DEF 3200 Arquetipo: [Trío Regi] / [Hielo] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Glaciación Eterna": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • El oponente tiene al menos 3 cartas en mano. • El oponente activó 2 o más efectos en el turno anterior. Cuando es invocado por esta condición: el oponente no puede activar efectos de cartas en mano hasta el final de su próximo turno. ① ABILITY — Ice Body (Continuo): Al inicio de tu Standby Phase: ganas 400 LP si esta carta estuvo en campo durante el turno anterior completo. ② Ventisca (Blizzard — STAB): Una vez por turno: el oponente no puede cambiar posición de batalla de sus monstruos hasta el final de su próximo turno. ✦ SINERGIA: Si Regirock o Registeel están en tu campo o GY, además niega el primer efecto de monstruo del oponente este turno (sin coste). ③ Cuerpo de Hielo (Clear Body — Continuo): Los efectos del oponente no pueden reducir el ATK o DEF de esta carta.
+end

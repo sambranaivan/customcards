@@ -1,0 +1,6 @@
+-- Latios
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | LIGHT | Dragon | ATK 2700 / DEF 2100 Arquetipo: [Eon] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Velocidad Psíquica": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Controlas al menos 1 monstruo en tu campo. • Tienes al menos 3 monstruos Dragon o LIGHT en tu GY. Cuando es invocado por esta condición: descarta 1 carta al azar de la mano del oponente por cada monstruo Dragon en tu GY (máximo 2). ① ABILITY — Levitación (Continuo): Si Latias está en tu campo: esta carta no puede ser seleccionada como objetivo de efectos del oponente durante su turno. Si Latias NO está en campo: esta carta no puede ser destruida en batalla por monstruos con ATK menor al suyo. ② Gema del Alma (Luster Purge — STAB): Una vez por turno: descarta 1 carta al azar de la mano del oponente. Si tiene 4+ cartas en mano, descarta 2. ③ Eon Compartido (Bond — Trigger): Cuando "Latias" es enviada al GY o banished desde el campo: puedes Invocar de Forma Especial esta carta desde tu mano o deck ignorando sus condiciones de invocación. ✦ Solo aplica si Latias está en el deck.
+end

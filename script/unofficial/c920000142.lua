@@ -1,0 +1,6 @@
+-- Regirock
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | EARTH | Rock | ATK 2000 / DEF 3000 Arquetipo: [Trío Regi] / [Roca] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Sellado en la Roca": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Hay al menos 6 cartas entre ambos GY combinados. • El oponente controla al menos 1 monstruo con DEF igual o superior a 2000. Cuando es invocado por esta condición: esta carta no puede ser destruida ni seleccionada como objetivo hasta el final de este turno. ① ABILITY — Sturdy (Continuo): Si el ATK del monstruo atacante es menor a la DEF de esta carta en posición defensiva, no es destruida en batalla y el oponente recibe la diferencia como daño. ② Golpe de Roca (Stone Edge — STAB): Una vez por turno, cuando esta carta sea atacada: inflige daño de batalla al oponente aunque esta carta no sea destruida. ✦ SINERGIA: Si Regice o Registeel están en tu campo o GY, el daño se duplica. ③ Cuerpo Rocoso (Clear Body — Continuo): Los efectos del oponente no pueden reducir el ATK o DEF de esta carta.
+end

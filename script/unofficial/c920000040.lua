@@ -1,0 +1,6 @@
+-- Jolteon (Pikachu)
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Esta carta no puede ser invocada normalmente. Puede ser invocada especialmente desde la mano tributando 1 monstruo [Eléctrico] de nivel 4 o menor que controles. *(Jolteon es la evolución de velocidad — reemplaza a quien ya cumplió su rol)* **Ability — Volt Absorb (pasivo):** Una vez por turno, si el oponente activa un efecto LIGHT/Thunder que te causaría daño de LP: niega ese efecto y ganas los LP que hubieses perdido. *(La electricidad del rival es combustible para Jolteon — lo que debería dañarlo, lo cura)* **Thunder Fang *(Quick Effect)*:** Una vez por turno, durante la Battle Phase del oponente: esta carta puede atacar a 1 monstruo del oponente con la mitad de su ATK, antes de que ese monstruo declare su ataque. Si destruye al monstruo por este efecto: el oponente no puede declarar ataques adicionales con ese monstruo ni activar efectos de monstruo durante el resto de este turno. *(Jolteon siempre golpea primero — su velocidad es legendaria incluso dentro de los tipos Eléctrico)* **Pin Missile:** Una vez por turno: inflige 300 de daño al LP del oponente por cada monstruo LIGHT que controles. *(Escala con el campo eléctrico — cada aliado LIGHT en campo amplifica la descarga)*
+end

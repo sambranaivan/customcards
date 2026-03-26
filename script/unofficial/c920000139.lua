@@ -1,0 +1,6 @@
+-- Lugia
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 10 | WATER | Winged Beast | ATK 2100 / DEF 3300 Arquetipo: [Guardianes Sagrados] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Despertar de las Profundidades": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las tres condiciones siguientes: • El oponente controla 2 o más monstruos. • Tienes 2000 LP o menos O el oponente tiene 5 o más cartas en mano. • No has invocado ningún otro monstruo este turno. Cuando es invocado por esta condición: el oponente descarta 2 cartas al azar. Esta carta no puede ser destruida por efectos ni seleccionada como objetivo hasta el final de este turno. ① ABILITY — Multiscale (Continuo): La primera vez por turno que esta carta sea objetivo de un efecto del oponente: ese efecto es negado. ② Tempestad Plateada (Aeroblast — STAB Firma): Una vez por duel: destruye todos los monstruos del oponente. Por cada uno destruido, inflige 300 de daño a los LP del oponente. ③ Velo de Tormenta (Whirlpool — Trigger): Al ser Invocado de Forma Especial: el oponente descarta 2 cartas al azar. ✦ SINERGIA: Si Ho-Oh está en tu campo o GY cuando Lugia es invocado, el oponente descarta 3 cartas en su lugar.
+end

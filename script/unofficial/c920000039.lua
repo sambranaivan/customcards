@@ -1,0 +1,6 @@
+-- Electabuzz
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Esta carta no puede ser invocada normalmente. Puede ser invocada especialmente desde la mano si controlas 1 monstruo LIGHT/Thunder en el campo. *(Electabuzz aparece donde hay electricidad — no necesita preparación gradual)* **Ability — Vital Spirit (pasivo):** Esta carta no puede ser cambiada a posición de defensa boca abajo por efectos del oponente. Si un efecto intenta hacerlo, niégalo. *(Vital Spirit mantiene a Electabuzz siempre alerta — no puede ser dormido ni inmovilizado)* **Thunderpunch *(Signature — STAB)*:** Una vez por turno, al atacar un monstruo del oponente: inflige daño de batalla al LP del oponente de forma normal, ignorando la DEF del monstruo atacado. Si "Thunderstorm Arena" está activa, además inflige 400 de daño adicional al LP del oponente después del Damage Step. *(El puño eléctrico penetra cualquier defensa — el impacto llega directamente)* **Screech:** Una vez por turno *(Quick Effect)*: cuando el oponente declara un ataque con 1 monstruo, ese monstruo pierde 500 ATK y DEF hasta el final del turno. *(El grito ensordecedor de Electabuzz desconcentra al rival en el momento crítico)*
+end

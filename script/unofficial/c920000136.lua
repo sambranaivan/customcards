@@ -1,0 +1,6 @@
+-- Raikou
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | LIGHT | Thunder | ATK 2600 / DEF 1900 Arquetipo: [Bestias Legendarias] / [Eléctrico] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Rayo desde las Ruinas": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Al menos 2 monstruos fueron destruidos en batalla o por efecto durante el turno anterior (tuyo o del oponente). • El oponente tiene 3 o menos cartas en mano. Cuando es invocado por esta condición: puede atacar directamente este turno. Si lo hace, inflige daño adicional igual al número de monstruos en tu GY × 100 (máximo 800). ① ABILITY — Inner Focus (Continuo): Esta carta no puede ser seleccionada como objetivo por efectos que requieran descarte del oponente. ② Tormenta Sagrada (Thunder — STAB): Una vez por turno: inflige 700 de daño a los LP del oponente. ✦ SINERGIA: Si Entei o Suicune están en tu campo o GY, el daño es 1000 en su lugar. ③ Velocidad del Rayo (Extreme Speed — Trigger): Cuando esta carta es Invocada de Forma Especial: puede atacar directamente este turno (solo una vez).
+end

@@ -1,0 +1,6 @@
+-- Zapdos
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | LIGHT | Thunder | ATK 2500 / DEF 2100 Arquetipo: [Aves Legendarias] / [Eléctrico] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Tormenta Eléctrica": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Controlas al menos 1 monstruo de Raza Thunder o Atributo LIGHT. • El oponente ha activado al menos 1 efecto de monstruo en este duel. Cuando es invocado por esta condición: inflige 600 de daño a los LP del oponente por cada monstruo Thunder o LIGHT que controles (máximo 1800). ① ABILITY — Pressure (Continuo): Mientras esta carta esté boca arriba, los efectos del oponente que cuesten descartar cartas cuestan 1 carta adicional. ② Tormenta Eléctrica (Thunderbolt — STAB): Una vez por turno: inflige 800 de daño a los LP del oponente. Si el oponente tiene un monstruo con 2000+ ATK en campo, el daño es 1200. ✦ SINERGIA: Si Articuno o Moltres están en tu campo o GY, añade 400 de daño adicional al total. ③ Carga Estática (Thunder Wave — Quick Effect): Durante la Battle Phase del oponente (una vez por turno): reduce el ATK de 1 monstruo atacante en 800 hasta el final del turno.
+end

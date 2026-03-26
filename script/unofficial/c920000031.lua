@@ -1,0 +1,6 @@
+-- Poliwrath
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Esta carta no puede ser invocada normalmente. Puede ser invocada especialmente desde la mano si controlas 1 monstruo WATER en el campo y no controlas otros monstruos de Raza Warrior. *(Poliwrath emerge directamente — su fuerza no necesita preparación gradual)* **Ability — Damp (pasivo):** Mientras esta carta esté boca arriba: el oponente no puede activar efectos que destruyan múltiples cartas simultáneamente. *(Damp en los juegos evita explosiones — en YGO bloquea la destrucción masiva)* **Circle Throw *(Signature — STAB)*:** Una vez por turno: cuando esta carta ataca un monstruo del oponente y no es destruida en esa batalla, regresa ese monstruo atacado a la mano del oponente al final del Damage Step. Si el oponente tiene monstruos en el deck: puede invocar especialmente 1 monstruo desde su deck en posición de defensa para reemplazarlo. *(Circle Throw fuerza el cambio — saca al monstruo activo y obliga al oponente a traer otro desde el deck)* **Submission:** Una vez por turno *(Quick Effect)*: cuando el oponente declara un ataque con un monstruo de ATK mayor que la DEF de esta carta: reduce el ATK de ese monstruo en 600 hasta el final del turno. *(Submission agota al rival — usa la fuerza del oponente contra él mismo)*
+end

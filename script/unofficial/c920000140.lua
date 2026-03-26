@@ -1,0 +1,6 @@
+-- Ho-Oh
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 10 | FIRE | Winged Beast | ATK 2800 / DEF 2200 Arquetipo: [Guardianes Sagrados] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Gracia del Fénix Arcoíris": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Al menos 1 monstruo de tu lado del campo fue destruido este turno. • Tienes 3 o más monstruos FIRE en tu GY. Cuando es invocado por esta condición: recuperas 1000 LP. Si los LP recuperados te llevan a 4000 o más, inflige 800 de daño al oponente. ① ABILITY — Regenerador (Continuo): Al inicio de tu Standby Phase, si tienes menos de 4000 LP: ganas 500 LP. ② Fuego Sagrado (Sacred Fire — STAB): Una vez por turno: inflige 1000 de daño al LP del oponente. Si tienes 4000 o más LP, el daño es 1500 en su lugar. ③ Resurrección del Fénix (Phoenix Rising — Trigger): Cuando esta carta es destruida y enviada al GY: Invoca de Forma Especial 1 monstruo [Fuego] o [Guardianes Sagrados] desde tu mano ignorando sus condiciones de invocación. ✦ SINERGIA: Si el monstruo invocado es "Lugia", Lugia ignora su coste de descarte completamente.
+end

@@ -1,0 +1,6 @@
+-- Suicune (aliado)
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | WATER | Beast | ATK 2000 / DEF 2800 Arquetipo: [Bestias Legendarias] / [Agua] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Pureza del Norte": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Hay al menos 1 Spell/Trap continua activa en el campo (tuya o del oponente). • Tienes 3 o más cartas WATER o [Agua] en tu GY. Cuando es invocado por esta condición: puedes destruir hasta 2 Spell/Trap continuas en el campo (tuyas o del oponente, a tu elección). Por cada una destruida, roba 1 carta. ① ABILITY — Inner Focus (Continuo): Esta carta no puede ser seleccionada como objetivo por efectos de Spell Cards del oponente. ② Agua Pura (Hydro Pump — STAB): Una vez por turno: reduce el ATK de 1 monstruo del oponente en 700. ✦ SINERGIA: Si Raikou o Entei están en tu campo o GY, también niegas los efectos de ese monstruo hasta el final del turno. ③ Pureza del Lago (Rain Dance — Trigger): Cuando esta carta es Invocada de Forma Especial: roba 1 carta. Mientras esté en campo, los monstruos [Bestias Legendarias] que controles no pueden ser destruidos por efectos del oponente.
+end

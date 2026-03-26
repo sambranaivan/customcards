@@ -1,0 +1,6 @@
+-- Registeel
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | LIGHT | Machine | ATK 1800 / DEF 2900 Arquetipo: [Trío Regi] / [Acero] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Metal Inmortal": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Controlas al menos 1 monstruo en el campo (además de esta invocación). • El duel lleva al menos 4 turnos transcurridos (turno 4 o posterior). Cuando es invocado por esta condición: gana 200 ATK por cada turno transcurrido a partir del turno 4 (máximo +800 ATK al invocar). ① ABILITY — Clear Body (Continuo): Los efectos del oponente no pueden reducir el ATK o DEF de esta carta ni destruirla por efectos. ② Puño Meteoro (Meteor Mash — STAB): Una vez por turno, cuando esta carta ataca: gana 200 ATK permanentemente (máximo +800 total). Este bonus persiste aunque cambie de posición. ③ Amnesia de Metal (Iron Defense — Quick Effect): Durante el turno del oponente (una vez por turno): el ATK de 1 monstruo del oponente se convierte en 0 hasta el final del turno. ✦ SINERGIA: Si Regirock o Regice están en tu campo o GY, ese monstruo tampoco puede activar efectos este turno.
+end

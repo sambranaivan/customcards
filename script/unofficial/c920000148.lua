@@ -1,0 +1,6 @@
+-- Latias
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | LIGHT | Dragon | ATK 2200 / DEF 2700 Arquetipo: [Eon] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Velocidad Invisible": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Tienes al menos 4 cartas en mano. • No controlas ningún monstruo de Raza Dragon actualmente. Cuando es invocada por esta condición: esta carta no puede ser seleccionada como objetivo de efectos del oponente hasta el final del próximo turno del oponente. ① ABILITY — Levitación (Continuo): Esta carta no puede ser seleccionada como objetivo de efectos destructivos mientras el oponente tenga 3 o más cartas en mano. ② Gema del Alma (Mist Ball — STAB): Una vez por turno: reduce el ATK de 1 monstruo del oponente en 600 permanentemente. ③ Eon Compartido (Bond — Trigger): Cuando "Latios" es enviado al GY o banished desde el campo: puedes Invocar de Forma Especial esta carta desde tu mano o deck ignorando sus condiciones de invocación. ✦ Solo aplica si Latios está en el deck.
+end

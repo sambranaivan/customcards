@@ -1,0 +1,6 @@
+-- Groudon
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 10 | EARTH | Rock | ATK 3100 / DEF 2100 Arquetipo: [Pokémon del Clima] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Surgimiento Continental": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • El oponente tiene 3 o más Spell/Trap en su campo o GY combinados. • Hay al menos 4 monstruos en el GY del oponente. Cuando es invocado por esta condición: destruye todas las Spell/Trap continuas y de campo activas del oponente. ① ABILITY — Sequía (Drought — Continuo): Mientras esté en campo: los efectos del oponente que recuperen LP son negados. ✦ SINERGIA: Si Kyogre está en tu campo o GY, el oponente pierde 200 LP al inicio de cada Standby Phase. ② Fisura (Fissure): Una vez por turno: destruye 1 monstruo del oponente en posición defensiva. No puede ser respondido por Trap Cards. ③ Terremoto (Earthquake — STAB Firma): Una vez por duel: destruye todas las Spell/Trap del oponente. Por cada una destruida, inflige 300 de daño a los LP del oponente.
+end

@@ -1,0 +1,6 @@
+-- Entei
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | FIRE | Beast | ATK 2900 / DEF 1700 Arquetipo: [Bestias Legendarias] / [Fuego] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Erupción Primordial": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • El oponente tiene 5000 LP o menos (ha recibido daño real este duel). • Tienes al menos 2 monstruos FIRE o de tipo [Fuego] en tu GY. Cuando es invocado por esta condición: destruye 1 monstruo boca abajo del oponente sin revelar su efecto ni activarlo. ① ABILITY — Inner Focus (Continuo): Esta carta no puede ser seleccionada como objetivo por efectos de Trap Cards del oponente. ② Erupción Sagrada (Sacred Fire — STAB): Una vez por turno: destruye 1 monstruo del oponente con ATK igual o menor al de esta carta. Inflige daño de batalla como si los ATK hubieran chocado. ③ Rugido del Volcán (Roar — Quick Effect): Durante el turno del oponente (una vez por turno): si el oponente Invoca de Forma Especial un monstruo, reduce su ATK en 600. ✦ SINERGIA: Si Raikou o Suicune están en tu campo o GY, la reducción es 1000 en su lugar.
+end

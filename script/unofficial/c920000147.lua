@@ -1,0 +1,6 @@
+-- Rayquaza
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 10 | WIND | Dragon | ATK 3200 / DEF 2100 Arquetipo: [Pokémon del Clima] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Árbitro del Cielo": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Ambos jugadores controlan al menos 1 monstruo con 2000 o más ATK. • Al menos 1 monstruo fue destruido en batalla este turno. Cuando es invocado por esta condición: niega los efectos de todos los monstruos actualmente en campo hasta el final de este turno (excepto los de esta carta). ① ABILITY — Air Lock (Continuo): Los efectos continuos del oponente que recuperen LP, reduzcan daño o nieguen ataques son suprimidos mientras esta carta esté en campo. ② Hiperrayo (Hyper Voice): Una vez por turno: esta carta puede atacar a todos los monstruos del oponente una vez cada uno en una sola Battle Phase. ✦ SINERGIA: Si Kyogre y Groudon están en tu campo o GY, añade 400 de daño adicional por cada monstruo atacado. ③ Draco Meteoro (Draco Meteor — STAB Firma): Una vez por duel: inflige 2000 de daño a los LP del oponente. Esta carta no puede activar efectos el turno siguiente.
+end

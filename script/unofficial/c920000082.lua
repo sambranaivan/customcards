@@ -1,0 +1,6 @@
+-- Moltres
+local s,id=GetID()
+function s.initial_effect(c)
+    -- TODO: Programar efecto
+    -- Nivel 9 | FIRE | Winged Beast | ATK 2300 / DEF 2200 Arquetipo: [Aves Legendarias] / [Fuego] No puede ser invocado por tributo ni por efectos de cartas que lo busquen desde el deck en el turno en que es añadido a la mano. CONDICIÓN DE INVOCACIÓN — "Resurgir de las Cenizas": Puedes Invocar de Forma Especial esta carta desde tu mano si se cumplen las dos condiciones siguientes: • Tienes al menos 3 monstruos en tu GY. • Al menos 1 monstruo fue destruido en batalla o por efecto este turno (tuyo o del oponente). Cuando es invocado por esta condición: inflige 400 de daño al oponente por cada monstruo FIRE en tu GY (máximo 1600). ① ABILITY — Flame Body (Continuo): Si un monstruo del oponente ataca a esta carta: al final del Damage Step, inflige 500 de daño a los LP del oponente. ② Ala de Fuego (Fire Spin — STAB): Una vez por turno: destruye 1 monstruo del oponente con 2000 o menos ATK; si lo destruyes, inflige 400 de daño a los LP del oponente. ③ Renacimiento de las Llamas (Recover — Trigger): Cuando esta carta es destruida y enviada al GY: Invoca de Forma Especial 1 monstruo [Fuego] o [Aves Legendarias] diferente desde tu mano. ✦ SINERGIA: Si Zapdos y Articuno están en tu campo, puedes invocar desde el deck ignorando condiciones de invocación (una vez por duel).
+end
