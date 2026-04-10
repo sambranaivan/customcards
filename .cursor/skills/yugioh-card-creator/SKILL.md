@@ -73,7 +73,17 @@ conn.close()
 
 **Critical:** `texts` table has 19 columns (id, name, desc, str1-str16). Count carefully.
 
-### Step 4: Create the Lua Script
+### Step 4: Create the Lua Script (with Effect Reference Lookup)
+
+Before writing the Lua effect, search for similar official effects in `expansions/cards.cdb` using the draft effect text as a query.
+
+Reference query example:
+
+```python
+python -c "import sqlite3; conn=sqlite3.connect('expansions/cards.cdb'); c=conn.cursor(); q='%Special Summon 1 monster from your GY%'; c.execute('SELECT id,name,desc FROM texts WHERE desc LIKE ? LIMIT 10', (q,)); [print(r[0], '|', r[1]) for r in c.fetchall()]; conn.close()"
+```
+
+Use the returned cards to identify reusable wording, conditions, and timing patterns, then adapt those patterns in your custom Lua script.
 
 File: `script/unofficial/c{ID}.lua`
 
@@ -89,6 +99,8 @@ s.listed_series={0x1d0}      -- Referenced archetypes
 
 See [reference.md](reference.md) for effect types, codes, and patterns.
 See [examples.md](examples.md) for complete card implementations.
+
+**Important:** `expansions/cards.cdb` is **reference-only**. Always insert/update custom entries in `expansions/cards-unofficial.cdb`.
 
 ### Step 5: Create Placeholders for Referenced Cards
 
