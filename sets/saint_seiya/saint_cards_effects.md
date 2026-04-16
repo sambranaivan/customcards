@@ -91,8 +91,7 @@ You can only use each effect of "Saint - Ikki de Fenix" once per turn.
 ```text
 If you control a "Saint" monster: You can Special Summon this card from your hand.
 You can only Special Summon "Saint - Jabu de Unicornio" once per turn this way.
-Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
-Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+If this card is Special Summoned: You can add 1 "Cloth" card from your GY to your hand, then discard 1 card.
 If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 You can only use each effect of "Saint - Jabu de Unicornio" once per turn.
 ```
@@ -106,8 +105,7 @@ You can only use each effect of "Saint - Jabu de Unicornio" once per turn.
 
 ```text
 Once per turn: You can discard 1 "Cloth" card; inflict 800 damage to your opponent, and if you do, this card can attack directly this turn.
-Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
-Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+If this card is sent to the GY: You can send 1 "Cloth" card from your Deck to the GY.
 If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 You can only use each effect of "Saint - Ichi de Hidra" once per turn.
 ```
@@ -121,8 +119,7 @@ You can only use each effect of "Saint - Ichi de Hidra" once per turn.
 
 ```text
 If this card is Normal or Special Summoned: You can add 1 Level 5 or higher "Saint" monster from your Deck to your hand.
-Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
-Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+If this card is in your GY: You can target 1 "Cloth" card in your GY; add it to your hand, then banish this card.
 If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 You can only use each effect of "Saint - Geki de Oso" once per turn.
 ```
@@ -136,8 +133,7 @@ You can only use each effect of "Saint - Geki de Oso" once per turn.
 
 ```text
 If a "Saint" monster(s) you control is destroyed by battle: You can Special Summon this card from your hand or GY.
-Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
-Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+If this card is Special Summoned: You can target 1 "Saint" monster in your GY; add it to your hand.
 If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 You can only use each effect of "Saint - Ban de Leonet" once per turn.
 ```
@@ -151,8 +147,7 @@ You can only use each effect of "Saint - Ban de Leonet" once per turn.
 
 ```text
 If this card is sent to the GY as Link Material or Tributed: You can draw 1 card, then discard 1 card.
-Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
-Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+Once per turn: You can target 1 "Cloth" card in your GY; shuffle it into the Deck, then draw 1 card.
 If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 You can only use each effect of "Saint - Nachi de Lobo" once per turn.
 ```
@@ -166,7 +161,7 @@ You can only use each effect of "Saint - Nachi de Lobo" once per turn.
 
 ```text
 If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; add them to your hand.
-During your Main Phase: You can discard this card; add 1 "Santuario de Athena" from your Deck to your hand.
+During your Main Phase: You can discard this card; add 1 "Santuario de Athena - Reforged" from your Deck to your hand.
 You can only use each effect of "Mu de Aries - El Reparador de Cloths" once per turn.
 ```
 
@@ -193,6 +188,7 @@ You can only use each effect of "Kiki - El Mensajero del Escultor de Armaduras" 
 - **ATK/DEF**: 2200 / 1400
 
 ```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
 For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
 (Quick Effect): You can return this card to the hand; Special Summon 1 Level 4 or lower "Saint" monster from your hand or GY.
 You can only use this effect of "Silver Saint - Marin de Aguila" once per turn.
@@ -206,6 +202,7 @@ You can only use this effect of "Silver Saint - Marin de Aguila" once per turn.
 - **ATK/DEF**: 2400 / 1200
 
 ```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
 For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
 When this card declares an attack: You can negate the effects of all face-up monsters your opponent currently controls until the end of this Battle Phase.
 ```
@@ -218,6 +215,7 @@ When this card declares an attack: You can negate the effects of all face-up mon
 - **ATK/DEF**: 2300 / 1800
 
 ```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
 For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
 Opponent's monsters in this card's column are changed to Defense Position, also their effects are negated, and they cannot change their battle positions.
 ```
@@ -230,6 +228,7 @@ Opponent's monsters in this card's column are changed to Defense Position, also 
 - **ATK/DEF**: 2000 / 2500
 
 ```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
 For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
 Your opponent cannot target "Saint" monsters you control with card effects, except this one.
 Once per turn, if this card would be destroyed by battle or card effect, it is not destroyed.
@@ -243,9 +242,162 @@ Once per turn, if this card would be destroyed by battle or card effect, it is n
 - **ATK/DEF**: 2700 / 2000
 
 ```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
 For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
 (Quick Effect): You can send 1 "Cloth" card you control to the GY; negate the effects of all monsters your opponent currently controls until the end of this turn.
 You can only use this effect of "Silver Saint - Orphee de Lira" once per turn.
+```
+
+### Silver Saint - Hound Asterion
+- **Card Type**: Synchro Monster
+- **Attribute**: LIGHT
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2400 / 2000
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn: You can reveal 1 random card in your opponent's hand, then apply this effect based on its type.
+● Monster: Negate the effects of 1 face-up monster your opponent controls until the end of this turn.
+● Spell/Trap: Set 1 Spell/Trap your opponent controls face-down.
+```
+
+### Silver Saint - Whale Moses
+- **Card Type**: Synchro Monster
+- **Attribute**: WATER
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2500 / 2200
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn (Quick Effect): You can target 1 face-up monster your opponent controls; return it to the hand.
+Also, for the rest of this turn, your opponent cannot Special Summon monsters with the same original name as that returned monster.
+```
+
+### Silver Saint - Centaurus Babel
+- **Card Type**: Synchro Monster
+- **Attribute**: WIND
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2300 / 2100
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+When your opponent activates a Spell/Trap Card or effect (Quick Effect): You can send 1 "Cloth" card from your hand or face-up field to the GY; negate that activation, and if you do, destroy that card.
+You can only use this effect of "Silver Saint - Centaurus Babel" once per turn.
+```
+
+### Silver Saint - Crow Jamian
+- **Card Type**: Synchro Monster
+- **Attribute**: DARK
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2400 / 1800
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn: You can target 1 monster your opponent controls; it loses 800 ATK, also it cannot attack or activate its effects this turn.
+If that monster leaves the field this turn, inflict 400 damage to your opponent.
+```
+
+### Silver Saint - Cerberus Dante
+- **Card Type**: Synchro Monster
+- **Attribute**: DARK
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2500 / 2300
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn: You can target up to 2 cards in either GY; banish them.
+If a card(s) is banished by this effect, your opponent cannot activate cards or effects with the same original name as those banished cards for the rest of this turn.
+```
+
+### Silver Saint - Auriga Capella
+- **Card Type**: Synchro Monster
+- **Attribute**: LIGHT
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2600 / 1900
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn (Quick Effect): You can target 1 Spell/Trap your opponent controls; destroy it, then if you control a face-up "Cloth" card, this card gains 400 ATK until the end of this turn.
+```
+
+### Silver Saint - Canis Major Sirius
+- **Card Type**: Synchro Monster
+- **Attribute**: EARTH
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2500 / 2100
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+When this card battles an opponent's monster, at the start of the Damage Step: You can make that opponent's monster lose 1000 ATK/DEF until the end of this turn.
+Once per turn, when your opponent activates a monster effect in the Battle Phase (Quick Effect): You can negate that effect.
+```
+
+### Silver Saint - Musca Dio
+- **Card Type**: Synchro Monster
+- **Attribute**: DARK
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2200 / 2200
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn: You can target 1 face-up monster your opponent controls; place 1 Fly Counter on it.
+Monsters with a Fly Counter have their effects negated, also they cannot be used as material for a Special Summon from the Extra Deck.
+```
+
+### Silver Saint - Heracles Algethi
+- **Card Type**: Synchro Monster
+- **Attribute**: EARTH
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2700 / 2000
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn (Quick Effect): You can target 1 face-up monster your opponent controls; its ATK becomes 0 until the end of this turn, also this card can make a second attack during each Battle Phase this turn.
+```
+
+### Silver Saint - Sagitta Ptolemy
+- **Card Type**: Synchro Monster
+- **Attribute**: LIGHT
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2300 / 1700
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+Once per turn: You can target 1 face-up monster your opponent controls; inflict damage to your opponent equal to half that monster's current ATK, and if you do, that target cannot activate its effects this turn.
+```
+
+### Silver Saint - Cepheus Daidalos
+- **Card Type**: Synchro Monster
+- **Attribute**: LIGHT
+- **Type**: Warrior
+- **Level**: 8
+- **ATK/DEF**: 2400 / 2400
+
+```text
+1 Tuner + 1+ non-Tuner "Saint" monsters
+For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.
+If this card is Synchro Summoned: You can Special Summon 1 Level 4 or lower "Saint" monster from your GY, but negate its effects.
+Once per turn (Quick Effect): You can target 1 face-up monster on the field; it cannot be destroyed by battle this turn, also it cannot activate its effects this turn.
 ```
 
 ## Gold Saints
@@ -272,6 +424,7 @@ This card gains the effects of "Saint" monsters currently equipped with their co
 - **ATK/DEF**: 2100 / 2600
 
 ```text
+2 Level 8 "Saint" monsters
 You can detach 1 material; add 1 "Cloth" card from your GY to your hand, or if that card was a "Gold Cloth", you can equip it to a monster you control instead.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Mu de Aries" once per turn.
@@ -285,6 +438,7 @@ You can only use each effect of "Gold Saint - Mu de Aries" once per turn.
 - **ATK/DEF**: 2800 / 2000
 
 ```text
+2 Level 8 "Saint" monsters
 Once per turn: You can detach any number of materials from this card; destroy up to that many monsters your opponent controls.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Aiolia de Leo" once per turn.
@@ -298,6 +452,7 @@ You can only use each effect of "Gold Saint - Aiolia de Leo" once per turn.
 - **ATK/DEF**: 2800 / 2800
 
 ```text
+2 Level 8 "Saint" monsters
 While this card has a "Gold Cloth" card as material, your opponent cannot activate card effects in the GY, also they cannot banish cards.
 Once per turn: You can detach 1 material from this card; negate the effects of all face-up cards currently on the field until the end of this turn.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
@@ -312,6 +467,7 @@ You can only use each effect of "Gold Saint - Shaka de Virgo" once per turn.
 - **ATK/DEF**: 3000 / 2500
 
 ```text
+2 Level 8 "Saint" monsters
 (Quick Effect): You can detach 2 materials from this card; destroy all cards in 1 column, and if you do, inflict 1000 damage to your opponent.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Saga de Geminis" once per turn.
@@ -325,6 +481,7 @@ You can only use each effect of "Gold Saint - Saga de Geminis" once per turn.
 - **ATK/DEF**: 2400 / 2400
 
 ```text
+3 Level 4 "Saint" monsters
 This card gains these effects based on the number of materials attached to it.
 ● 1+: Cannot be destroyed by battle.
 ● 2+: Once per turn: You can detach 1 material from this card; destroy 1 Spell/Trap on the field.
@@ -341,6 +498,7 @@ You can only use each effect of "Gold Saint - Dohko de Libra - Maestro de los Ci
 - **ATK/DEF**: 2500 / 2800
 
 ```text
+3 Level 4 "Saint" monsters
 Once per turn, when an opponent's monster declares an attack: You can detach 1 material from this card; negate that attack, and if you do, destroy that monster, then inflict 1000 damage to your opponent.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Aldebaran de Tauro" once per turn.
@@ -354,6 +512,7 @@ You can only use each effect of "Gold Saint - Aldebaran de Tauro" once per turn.
 - **ATK/DEF**: 2300 / 2200
 
 ```text
+3 Level 4 "Saint" monsters
 Once per turn: You can detach 1 material from this card, then target up to 2 monsters in your opponent's GY; banish them, and if you do, this card gains 300 ATK for each card banished by this effect.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Mascara de Muerte de Cancer" once per turn.
@@ -367,6 +526,7 @@ You can only use each effect of "Gold Saint - Mascara de Muerte de Cancer" once 
 - **ATK/DEF**: 2400 / 2000
 
 ```text
+3 Level 4 "Saint" monsters
 Once per turn: You can detach 1 material from this card, then target 1 face-up monster on the field; place 1 "Scarlet Needle Counter" on it.
 Monsters with 3 or more "Scarlet Needle Counters" are sent to the GY.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
@@ -381,6 +541,7 @@ You can only use each effect of "Gold Saint - Milo de Escorpio" once per turn.
 - **ATK/DEF**: 2500 / 2100
 
 ```text
+3 Level 4 "Saint" monsters
 Once per turn: You can detach 1 material from this card, then target 1 card on the field; send it to the GY.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Shura de Capricornio" once per turn.
@@ -394,6 +555,7 @@ You can only use each effect of "Gold Saint - Shura de Capricornio" once per tur
 - **ATK/DEF**: 2200 / 2600
 
 ```text
+3 Level 4 "Saint" monsters
 Once per turn: You can detach 1 material from this card; your opponent cannot declare attacks during their next Battle Phase.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Afrodita de Piscis" once per turn.
@@ -407,6 +569,7 @@ You can only use each effect of "Gold Saint - Afrodita de Piscis" once per turn.
 - **ATK/DEF**: 2900 / 2300
 
 ```text
+2 Level 8 "Saint" monsters
 Once per turn: You can detach 1 material from this card; this card gains ATK equal to the combined original ATK of all "Bronze Saint" monsters in your GY, until the End Phase.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Aiolos de Sagitario" once per turn.
@@ -420,6 +583,7 @@ You can only use each effect of "Gold Saint - Aiolos de Sagitario" once per turn
 - **ATK/DEF**: 2700 / 2600
 
 ```text
+2 Level 8 "Saint" monsters
 Once per turn: You can detach 1 material from this card, then target 2 cards your opponent controls; while this card is face-up on the field, those cards cannot be activated, cannot change their battle positions, and cannot attack.
 Once per turn: You can target 1 "Cloth" card in your GY; attach it to this card as material.
 You can only use each effect of "Gold Saint - Camus de Acuario" once per turn.
@@ -528,6 +692,32 @@ If this face-up Equip Card in its owner's Spell & Trap Zone is sent to the GY: Y
 You can only use 1 effect of "Bronze Cloth - Oso" per turn, and only once that turn.
 ```
 
+### Bronze Cloth - Leonet
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Saint" monster.
+You can discard this card; add 1 Level 4 "Saint" monster from your Deck to your hand.
+The equipped monster gains 600 ATK.
+If the equipped monster is "Saint - Ban de Leonet", once per turn: You can target 1 "Saint" monster in your GY; add it to your hand, then discard 1 card.
+If this face-up Equip Card in its owner's Spell & Trap Zone is sent to the GY: You can target 1 "Saint" monster you control; during your next Standby Phase, equip this card to that target, but banish it when it leaves the field.
+You can only use 1 effect of "Bronze Cloth - Leonet" per turn, and only once that turn.
+```
+
+### Bronze Cloth - Lobo
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Saint" monster.
+You can discard this card; add 1 Level 4 "Saint" monster from your Deck to your hand.
+The equipped monster gains 300 ATK/DEF.
+Once per turn: You can target 1 "Cloth" card in your GY; shuffle it into the Deck, then the equipped monster gains 300 ATK until the end of this turn.
+If the equipped monster is "Saint - Nachi de Lobo", you gain this effect.
+● Once per turn: You can draw 1 card, then discard 1 card.
+If this face-up Equip Card in its owner's Spell & Trap Zone is sent to the GY: You can target 1 "Saint" monster you control; during your next Standby Phase, equip this card to that target, but banish it when it leaves the field.
+You can only use 1 effect of "Bronze Cloth - Lobo" per turn, and only once that turn.
+```
+
 ## Silver Cloth (Equip Spells)
 
 ### Silver Cloth - Aguila
@@ -565,6 +755,116 @@ If the equipped monster is "Silver Saint - Algol de Perseo", at the start of you
 Equip only to a "Silver Saint" monster.
 Your opponent must pay 300 LP to activate a monster effect.
 If the equipped monster is "Silver Saint - Orphee de Lira", once per turn: You can target 1 monster your opponent controls; take control of it until the End Phase, but negate its effects.
+```
+
+### Silver Cloth - Lagarto
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+The equipped monster cannot be targeted by your opponent's card effects.
+If the equipped monster is "Silver Saint - Misty de Lagarto", once per turn, if it would be destroyed by battle or card effect, you can send 1 "Cloth" card from your hand or field to the GY instead.
+```
+
+### Silver Cloth - Hound
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+Once per turn: You can reveal 1 random card in your opponent's hand.
+If this card is equipped to "Silver Saint - Hound Asterion", you can apply this effect after revealing a card by this card's effect.
+● Draw 1 card, then discard 1 card.
+```
+
+### Silver Cloth - Whale
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+If a card(s) would be returned from the field to the hand by your "Silver Saint" monster effect, you can send 1 "Cloth" card from your hand to the GY; return it to the Deck instead.
+If this card is equipped to "Silver Saint - Whale Moses", once per turn, if a monster(s) is returned to the hand: Inflict 500 damage to your opponent.
+```
+
+### Silver Cloth - Centaurus
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+The equipped monster gains 500 ATK.
+If this card is equipped to "Silver Saint - Centaurus Babel", once per turn, when your opponent activates a Spell/Trap Card or effect: You can pay 500 LP; negate that activation, and if you do, destroy that card.
+```
+
+### Silver Cloth - Crow
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+Monsters your opponent controls lose 300 ATK.
+If this card is equipped to "Silver Saint - Crow Jamian", once per turn: You can target 1 face-up monster your opponent controls; take control of it until the End Phase, but it cannot attack directly.
+```
+
+### Silver Cloth - Cerberus
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+Once per turn: You can target 1 card in either GY; banish it.
+If this card is equipped to "Silver Saint - Cerberus Dante", while you control this equipped card, cards in your opponent's GY cannot be banished except by card effects.
+```
+
+### Silver Cloth - Auriga
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+The equipped monster gains 600 ATK.
+If this card is equipped to "Silver Saint - Auriga Capella", once per turn: You can target 1 face-up Spell/Trap your opponent controls; negate its effects until the end of this turn.
+```
+
+### Silver Cloth - Canis Major
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+When an opponent's monster activates its effect in the Battle Phase: The equipped monster gains 500 ATK until the end of this turn.
+If this card is equipped to "Silver Saint - Canis Major Sirius", once per turn (Quick Effect): You can target 1 monster your opponent controls; it loses 800 ATK until the end of this turn.
+```
+
+### Silver Cloth - Musca
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+Once per turn: You can place 1 Fly Counter on 1 face-up monster on the field.
+Monsters with Fly Counters lose 500 ATK/DEF.
+If this card is equipped to "Silver Saint - Musca Dio", monsters with Fly Counters also cannot activate their effects.
+```
+
+### Silver Cloth - Heracles
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+The equipped monster gains 700 ATK.
+If this card is equipped to "Silver Saint - Heracles Algethi", once per turn: You can target 1 face-up monster your opponent controls; change it to Defense Position, and if you do, it cannot change its battle position this turn.
+```
+
+### Silver Cloth - Sagitta
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+If the equipped monster battles an opponent's monster, after damage calculation: Inflict 400 damage to your opponent.
+If this card is equipped to "Silver Saint - Sagitta Ptolemy", once per turn: You can target 1 face-up monster your opponent controls; it cannot attack this turn.
+```
+
+### Silver Cloth - Cepheus
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Silver Saint" monster.
+Once per turn: You can target 1 "Saint" monster in your GY; add it to your hand, then discard 1 card.
+If this card is equipped to "Silver Saint - Cepheus Daidalos", once per turn, when a "Saint" monster is Special Summoned to your field: You can target 1 card your opponent controls; return it to the hand.
 ```
 
 ## Gold Cloth (Equip Spells)
@@ -688,12 +988,12 @@ All "Saint" monsters on the field gain 300 ATK/DEF.
 Once per turn, if a "Saint" monster you control would be destroyed, you can send 1 "Cloth" Equip Card equipped to it to the GY instead.
 ```
 
-### Santuario de Athena (Field Spell - v2)
+### Santuario de Athena - Reforged (Field Spell)
 - **Card Type**: Field Spell
 
 ```text
 All "Saint" monsters on the field gain 300 ATK/DEF.
-You can only use each of the following effects of "Santuario de Athena" once per turn.
+You can only use each of the following effects of "Santuario de Athena - Reforged" once per turn.
 ● When this card is activated: You can add 1 Level 4 or lower "Saint" monster from your Deck to your hand.
 ● If a "Saint" monster you control would be destroyed by battle or card effect, you can send 1 "Cloth" card equipped to it to the GY instead.
 ● If 1 or more "Cloth" cards were sent to your GY this turn: You can apply this effect; during the Standby Phase of your next turn, add 1 of those cards from your GY to your hand.
@@ -736,8 +1036,8 @@ You can only use this GY effect of "Orden de Asesinato del Santuario" once per t
 - **Card Type**: Normal Spell
 
 ```text
-Target 1 "Bronze Saint" monster you control; equip 1 "Gold Cloth" Equip Spell from your Deck or GY to that target.
-Immediately after this effect resolves, Special Summon 1 Rank 4 "Gold Saint" Xyz Monster from your Extra Deck, by using that target as material. (This is treated as an Xyz Summon. Transfer its materials to the Summoned monster.)
+Target 1 "Silver Saint" monster you control; equip 1 "Gold Cloth" Equip Spell from your Deck or GY to that target.
+Immediately after this effect resolves, Special Summon 1 Rank 8 "Gold Saint" Xyz Monster from your Extra Deck, by using that target as material. (This is treated as an Xyz Summon. Transfer its materials to the Summoned monster.)
 Also, for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
 If this card is in your GY: You can banish this card, then target 1 "Gold Saint" Xyz Monster you control; attach 1 "Cloth" card from your GY to it as material.
 You can only use this GY effect of "Herencia de Oro" once per turn.
