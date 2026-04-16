@@ -1061,97 +1061,7 @@ If you control no "Saint" monsters, while this card is in your GY: You can banis
 You can only use this effect of "Legado del Maestro" once per turn.
 ```
 
-## New Support Cards (v4)
-
-### Juramento de Bronce
-- **Card Type**: Normal Spell
-
-```text
-Add 1 "Bronze Saint" monster from your Deck to your hand, then you can send 1 "Cloth" card from your Deck to the GY.
-Also, for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
-You can only activate 1 "Juramento de Bronce" per turn.
-```
-
-### Entrenamiento en Jamir
-- **Card Type**: Continuous Spell
-
-```text
-Once per turn: You can target 1 "Cloth" card in your GY; add it to your hand, then discard 1 card.
-If a "Saint" monster(s) you control would be destroyed by battle or card effect, you can send 1 face-up "Cloth" card you control to the GY instead.
-You can only use this effect of "Entrenamiento en Jamir" once per turn.
-```
-
-### Cadena de Relevo del Santuario
-- **Card Type**: Quick-Play Spell
-
-```text
-Target 1 "Bronze Saint" monster you control; Special Summon 1 Level 4 "Saint" monster from your hand or GY, but negate its effects, then immediately after this effect resolves, Synchro Summon 1 "Silver Saint" Synchro Monster using only "Saint" monsters you control.
-Also, for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
-You can only activate 1 "Cadena de Relevo del Santuario" per turn.
-```
-
-### Conclave de Plata
-- **Card Type**: Continuous Spell
-
-```text
-"Silver Saint" monsters you control gain 300 ATK/DEF.
-Once per turn, when your opponent activates a card or effect while you control a "Silver Saint" monster: You can send 1 "Cloth" card from your hand or face-up field to the GY; negate that activation, unless your opponent sends 1 card from their hand to the GY.
-You can only use this effect of "Conclave de Plata" once per turn.
-```
-
-### Decreto del Patriarca
-- **Card Type**: Counter Trap
-
-```text
-When your opponent activates a card or effect, while you control a "Saint" monster: Send 1 face-up "Cloth" card you control to the GY; negate the activation, and if you do, destroy that card.
-You can only activate 1 "Decreto del Patriarca" per turn.
-```
-
-### Muro de Cosmos
-- **Card Type**: Normal Trap
-
-```text
-If you control a "Saint" monster: Target up to 2 cards on the field; negate their effects until the end of this turn, then if you control a "Gold Saint" monster, destroy 1 of those targets.
-You can only activate 1 "Muro de Cosmos" per turn.
-```
-
-### Resonancia de Armaduras
-- **Card Type**: Quick-Play Spell
-
-```text
-Target 1 "Saint" monster you control; equip up to 2 "Cloth" cards with different names from your GY to that target, but return those cards to the Deck during the End Phase.
-Also, for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
-You can only activate 1 "Resonancia de Armaduras" per turn.
-```
-
-### Pasaje al Septimo Sentido
-- **Card Type**: Normal Spell
-
-```text
-Target 1 face-up "Silver Saint" Synchro Monster you control; Special Summon 1 Rank 8 "Gold Saint" Xyz Monster from your Extra Deck, by using that target as material. (This is treated as an Xyz Summon. Transfer its materials to the Summoned monster.)
-You cannot Special Summon from the Extra Deck the turn you activate this card, except "Saint" monsters.
-You can only activate 1 "Pasaje al Septimo Sentido" per turn.
-```
-
-### Legado de Jamir
-- **Card Type**: Normal Spell
-
-```text
-Target up to 2 "Cloth" cards in your GY; shuffle them into the Deck, then draw 1 card.
-If you control a "Saint" monster equipped with a "Cloth" card, you can draw 1 additional card, then discard 1 card.
-You can only activate 1 "Legado de Jamir" per turn.
-```
-
-### Santuario en Emergencia
-- **Card Type**: Normal Trap
-
-```text
-If your opponent controls a monster and you control no monsters: Special Summon 1 "Bronze Saint" monster from your Deck, then you can equip 1 "Cloth" card from your GY to that monster.
-For the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
-You can only activate 1 "Santuario en Emergencia" per turn.
-```
-
-## New Support Cards (v5 - adjusted from notes)
+## New Support Cards (v5.1 - reviewed)
 
 ### Llamado de Athena
 - **Card Type**: Normal Spell
@@ -1185,6 +1095,7 @@ You can only activate 1 "Meditacion en Star Hill" per turn.
 ```text
 Discard 1 "Cloth" card; draw 2 cards.
 If this card is in your GY: You can banish this card; add 1 Level 4 or lower "Saint" monster from your GY to your hand.
+You can only activate 1 "Reparacion en Jamir" per turn.
 You can only use this effect of "Reparacion en Jamir" once per turn.
 ```
 
@@ -1264,7 +1175,7 @@ You can only use this effect of "Shaina - Cobra Paralizante" once per turn.
 
 ```text
 (Quick Effect): You can discard this card; this turn, each time your opponent Special Summons a monster(s) from the Extra Deck, immediately draw 1 card (max. 2 draws).
-You can only activate 1 "Mitsumasa Kido - Legado de la Fundacion" per turn.
+You can only use this effect of "Mitsumasa Kido - Legado de la Fundacion" once per turn.
 ```
 
 ### Caballero de Acero - Sho de la Armadura de Aire
@@ -1320,7 +1231,7 @@ You can only activate 1 "El Veredicto del Patriarca" per turn.
 - **Card Type**: Counter Trap
 
 ```text
-If your LP are lower than your opponent's: When your opponent activates a card or effect: Banish 1 "Silver Saint" or "Gold Saint" monster from your GY; negate the activation, and if you do, Special Summon 1 "Bronze Saint" monster from your GY, then you can equip 1 "Cloth" card from your Deck to that monster.
+If your LP are lower than your opponent's: When your opponent activates a card or effect: Banish 1 "Silver Saint" or "Gold Saint" monster from your GY; negate the activation, and if you do, Special Summon 1 "Bronze Saint" monster from your GY, then you can equip 1 "Cloth" card from your Deck to that monster, but negate its effects.
 You can only activate 1 "El Milagro de los Caballeros" per turn.
 ```
 
