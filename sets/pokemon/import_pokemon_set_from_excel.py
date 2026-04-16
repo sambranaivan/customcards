@@ -3,6 +3,7 @@ import re
 import sqlite3
 import unicodedata
 from collections import OrderedDict
+from pathlib import Path
 from typing import Dict, Iterable, List, Tuple
 
 try:
@@ -15,6 +16,9 @@ MONSTER_ID_BASE = 920000000
 SPELL_ID_BASE = 921000000
 TRAP_ID_BASE = 922000000
 SETCODE_BASE = 0x3000
+
+SCRIPT_DIR = Path(__file__).resolve().parent
+REPO_ROOT = SCRIPT_DIR.parents[1]
 
 ATTRIBUTE_MAP = {
     "EARTH": 0x1,
@@ -316,12 +320,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Importa set Pokemon desde Excel a una base .cdb")
     parser.add_argument(
         "--excel",
-        default="Pokemon_YGO_Todas_Las_Cartas.xlsx",
+        default=str(SCRIPT_DIR / "Pokemon_YGO_Todas_Las_Cartas.xlsx"),
         help="Ruta al archivo Excel fuente",
     )
     parser.add_argument(
         "--db",
-        default="expansions/cards-unofficial.cdb",
+        default=str(REPO_ROOT / "expansions" / "cards-unofficial.cdb"),
         help="Ruta a la base .cdb destino",
     )
     args = parser.parse_args()

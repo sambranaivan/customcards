@@ -1,7 +1,11 @@
-import os
+from pathlib import Path
 
 try:
-    with open('pokemon_setcodes.txt', 'r', encoding='utf-8') as f:
+    script_dir = Path(__file__).resolve().parent
+    repo_root = script_dir.parents[1]
+
+    setcodes_path = script_dir / "pokemon_setcodes.txt"
+    with open(setcodes_path, "r", encoding="utf-8") as f:
         lines = f.readlines()
         
     out_lines = []
@@ -16,16 +20,16 @@ try:
     content = "".join(out_lines)
     
     # Append to Main strings.conf
-    main_conf = 'config/strings.conf'
-    if os.path.exists(main_conf):
-        with open(main_conf, 'a', encoding='utf-8') as f:
+    main_conf = repo_root / "config" / "strings.conf"
+    if main_conf.exists():
+        with open(main_conf, "a", encoding="utf-8") as f:
             f.write("\n# Pokemon Archetypes\n")
             f.write(content)
             
     # Append to Spanish strings.conf
-    es_conf = 'config/languages/Español/strings.conf'
-    if os.path.exists(es_conf):
-        with open(es_conf, 'a', encoding='utf-8') as f:
+    es_conf = repo_root / "config" / "languages" / "Español" / "strings.conf"
+    if es_conf.exists():
+        with open(es_conf, "a", encoding="utf-8") as f:
             f.write("\n# Pokemon Archetypes\n")
             f.write(content)
             
