@@ -15,6 +15,7 @@ Este documento compila las cartas nombradas en `archetype_scale_poseidon.md` con
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 If this card is Normal or Special Summoned: You can add 1 "Pillar" card or 1 "Poseidon, God of the Seas" from your Deck to your hand.
 Once per turn: You can send 1 "Pillar" card from your Deck to the GY, then target 1 monster your opponent controls; move that target to an adjacent Main Monster Zone.
+If "Pillar of the North Atlantic" is in your field, cards in this card's column cannot be destroyed by card effects.
 You can only use each effect of "Marine General - Kanon de Dragon de Mar" once per turn.
 ```
 
@@ -113,6 +114,7 @@ You can only use each effect of "Marine General - Kasa de Lymnades" once per tur
 Equip only to a "Marine General" monster.
 The equipped monster gains 500 ATK.
 Once per turn, when your opponent would activate a card or effect in the equipped monster's column: They must pay 1000 LP to activate it.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, cards and effects activated in the equipped monster's column are negated.
 ```
 
 ### Scale - Sirena
@@ -121,8 +123,7 @@ Once per turn, when your opponent would activate a card or effect in the equippe
 ```text
 Equip only to a "Marine General" monster.
 If the equipped monster is a "Marine General", your opponent cannot Set cards in the equipped monster's column.
-If this face-up card in the Spell & Trap Zone is sent to the GY: You can target 1 "Marine General" monster you control; equip this card to that target.
-You can only use this effect of "Scale - Sirena" once per turn.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, your opponent cannot Set cards in the equipped monster's column, also cards in that column cannot be targeted by your opponent's card effects.
 ```
 
 ### Scale - Crisaor
@@ -132,6 +133,45 @@ You can only use this effect of "Scale - Sirena" once per turn.
 Equip only to a "Marine General" monster.
 The equipped monster can inflict piercing battle damage.
 If the equipped monster inflicts battle damage to your opponent: Destroy all Spells/Traps in that monster's column.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, the equipped monster gains 800 ATK, also if it inflicts battle damage to your opponent this turn, destroy all Spells/Traps your opponent controls in its column.
+```
+
+### Scale - Kraken
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Marine General" monster.
+Once per turn (Quick Effect): You can target 1 face-up monster in the equipped monster's column; change it to face-down Defense Position.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, when your opponent activates a monster effect in the equipped monster's column, negate that effect.
+```
+
+### Scale - Escila
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Marine General" monster.
+The equipped monster gains 400 ATK.
+If the equipped monster destroys an opponent's monster by battle: It can make a second attack in a row.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, if the equipped monster destroys an opponent's monster by battle, it can make up to 2 additional attacks on monsters during this Battle Phase.
+```
+
+### Scale - Hipocampo
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Marine General" monster.
+Once per turn (Quick Effect): You can target 1 card in the equipped monster's column; return it to the hand.
+Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, cards in the equipped monster's column cannot be destroyed by card effects.
+```
+
+### Scale - Lymnades
+- **Card Type**: Equip Spell
+
+```text
+Equip only to a "Marine General" monster.
+Once per turn: You can reveal 1 random card in your opponent's hand.
+If the equipped monster is "Marine General - Kasa de Lymnades", this card gains this effect.
+● Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, 1 activated effect your opponent controls that targets a "Marine General" monster you control becomes "Your opponent discards 1 random card".
 ```
 
 ## The Seven Pillars
