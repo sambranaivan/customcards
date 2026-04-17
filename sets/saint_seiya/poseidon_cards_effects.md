@@ -14,7 +14,7 @@ Este documento compila las cartas nombradas en `archetype_scale_poseidon.md` con
 ```text
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 If this card is Normal or Special Summoned: You can add 1 "Pillar" card or 1 "Poseidon, God of the Seas" from your Deck to your hand.
-Once per turn: You can send 1 "Pillar" card from your Deck to the GY, then target 1 card your opponent controls; move that target to another of its controller's appropriate zones in this card's column.
+Once per turn: You can send 1 "Pillar" card from your Deck to the GY, then target 1 monster your opponent controls; move that target to an adjacent Main Monster Zone.
 You can only use each effect of "Marine General - Kanon de Dragon de Mar" once per turn.
 ```
 
@@ -99,7 +99,7 @@ You can only use each effect of "Marine General - Baian de Hipocampo" once per t
 
 ```text
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
-If this card is Summoned: You can target 1 monster in your opponent's field or GY; this card's name becomes that target's name, also replace this effect with that target's original effects.
+If this card is Summoned: You can target 1 face-up monster your opponent controls; until the end of this turn, this card's name becomes that target's name, also it gains that target's original effects.
 If "Pillar of the Antarctic Ocean" is in your field, the activation and effect of this card's previous effect cannot be negated.
 You can only use each effect of "Marine General - Kasa de Lymnades" once per turn.
 ```
@@ -151,7 +151,7 @@ You can only activate 1 "Pillar of the North Pacific" per turn.
 
 ```text
 When this card is activated: You can add 1 "Marine General" monster or 1 "Scale" card from your Deck to your hand.
-Cards in your opponent's GY cannot activate their effects that apply to this card's column.
+Your opponent cannot activate cards or effects in the GY while they have a card in this card's column.
 You can only control 1 "Pillar of the South Pacific".
 You can only activate 1 "Pillar of the South Pacific" per turn.
 ```
@@ -240,7 +240,7 @@ If this face-up card would be Tributed or change control, you can send 1 of your
 
 ## Support Monsters
 
-### Thetys de Sirena Menor
+### Thetys de Sirena Menor (Tech Handtrap)
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Aqua
@@ -252,7 +252,7 @@ If your opponent activates a card or effect in a column where you control no car
 You can only use this effect of "Thetys de Sirena Menor" once per turn.
 ```
 
-### Thetys, Guide of the Submarine Sanctuary
+### Thetys, Guide of the Submarine Sanctuary (Main Engine)
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Aqua
@@ -293,7 +293,6 @@ If a "Pillar" card(s) you control would be destroyed by your opponent's card eff
 
 ```text
 Choose 1 column; destroy all cards in that column.
-If you control "Poseidon, God of the Seas" or "Poseidon, God of the Seas - Divine Version", you can choose up to 3 columns instead.
 You can only activate 1 "The Great Central Pillar" per turn.
 ```
 
@@ -301,7 +300,7 @@ You can only activate 1 "The Great Central Pillar" per turn.
 - **Card Type**: Normal Spell
 
 ```text
-Send up to 4 "Pillar" cards with different names from your Deck to the GY, also for the rest of this turn after this card resolves, you cannot Special Summon monsters, except WATER monsters.
+Send 1 "Pillar" card from your Deck to the GY, or if you control a "Marine General" monster, you can send up to 2 "Pillar" cards with different names instead, also for the rest of this turn after this card resolves, you cannot Special Summon monsters, except WATER monsters.
 If this card is in your GY: You can banish this card; add 1 "Marine General" monster from your Deck to your hand.
 You can only activate 1 "Kanon's Ambition" per turn.
 You can only use this effect of "Kanon's Ambition" once per turn.
@@ -320,7 +319,7 @@ You can only activate 1 "Flood of the Sanctuary" per turn.
 
 ```text
 Add 1 "Marine General" monster or 1 "Pillar" card from your Deck to your hand.
-If you control "Submarine Sanctuary", you can add 1 "Marine General" monster and 1 "Pillar" card instead.
+If you control a "Marine General" monster, you can add 1 "Marine General" monster and 1 "Pillar" card instead.
 You can only activate 1 "Call of the Depths" per turn.
 ```
 
@@ -355,7 +354,7 @@ Once per turn, when your opponent activates a card or effect in a column where y
 - **Card Type**: Normal Trap
 
 ```text
-Send 1 "Marine General" monster you control to the GY; send up to 3 "Pillar" cards with different names from your Deck to the GY.
+Send 1 "Marine General" monster you control to the GY; send 1 "Pillar" card from your Deck to the GY, or if you control a "Pillar" card, you can send up to 2 "Pillar" cards with different names instead.
 If this card is in your GY: You can banish this card; add 1 "Poseidon, God of the Seas" monster from your Deck or GY to your hand.
 You can only use this effect of "The Broken Amphora" once per turn.
 ```
