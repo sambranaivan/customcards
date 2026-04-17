@@ -256,14 +256,14 @@ You can only activate 1 "Pillar of the Antarctic Ocean" per turn.
 - **ATK/DEF**: 3500 / 3500
 
 ```text
-Cannot be Normal Summoned/Set.
-Must be Special Summoned (from your hand) by Tributing 2 "Marine General" monsters in adjacent columns.
-If this card is Special Summoned: Return to the hand all cards your opponent controls that are not in the same column as a card you control.
-Once per turn (Quick Effect): You can choose 1 column; negate the effects of all face-up cards currently in that column until the end of this turn.
+Requires 3 Tributes to Normal Summon (cannot be Normal Set).
+If this card is Tribute Summoned: You can target up to 2 "Pillar" cards in your GY; add them to your hand.
+Once per turn: You can target 1 "Pillar" card in your GY; place it face-up in your Spell & Trap Zone.
+While this card is face-up on the field, negate your opponent's card effects activated in the same column as your "Pillar" cards.
 ```
 
-### Poseidon, God of the Seas - Divine Version
-- **Card Type**: Effect Monster
+### Poseidon, God of the Seas - Awakened
+- **Card Type**: Fusion Monster
 - **Attribute**: WATER
 - **Type**: Warrior
 - **Level**: 10
@@ -271,7 +271,7 @@ Once per turn (Quick Effect): You can choose 1 column; negate the effects of all
 
 ```text
 Cannot be Normal Summoned/Set.
-Must be Special Summoned (from your hand or GY) by banishing 7 "Pillar" cards with different names from your hand, field, and/or GY.
+Must first be Special Summoned (from your hand or GY) by banishing 7 "Pillar" cards with different names from your hand, field, and/or GY. (This is treated as a Fusion Summon.)
 Its Special Summon cannot be negated.
 Unaffected by other cards' effects.
 At the end of each Battle Phase, your opponent sends cards they control to the GY equal to the number of columns occupied by your "Marine General" cards.
@@ -329,10 +329,13 @@ If a "Pillar" card(s) you control would be destroyed by your opponent's card eff
 ```
 
 ### The Great Central Pillar
-- **Card Type**: Normal Spell
+- **Card Type**: Continuous Spell
 
 ```text
-Choose 1 column; destroy all cards in that column.
+When this card is activated: you can place 1 "Pillar" card from your Deck or GY face-up in your Spell & Trap Zone.
+Once per turn: You can move 1 other face-up "Pillar" card you control to another Spell & Trap Zone.
+"Pillar" cards you control cannot be targeted by your opponent's card effects.
+If this face-up card would be destroyed by a card effect, you can send 1 other face-up "Pillar" card you control to the GY instead.
 You can only activate 1 "The Great Central Pillar" per turn.
 ```
 
@@ -397,4 +400,103 @@ Once per turn, when your opponent activates a card or effect in a column where y
 Send 1 "Marine General" monster you control to the GY; send 1 "Pillar" card from your Deck to the GY, or if you control a "Pillar" card, you can send up to 2 "Pillar" cards with different names instead.
 If this card is in your GY: You can banish this card; add 1 "Poseidon, God of the Seas" monster from your Deck or GY to your hand.
 You can only use this effect of "The Broken Amphora" once per turn.
+```
+
+## Lore Support Cards (v2)
+
+### Cape Sounion - Prison of Tides
+- **Card Type**: Continuous Spell
+
+```text
+When this card is activated: You can send 1 "Pillar" card from your Deck to the GY.
+Once per turn: You can banish 1 WATER monster from your hand or GY; add 1 "Pillar" card from your GY to your hand.
+If "Marine General - Kanon de Dragon de Mar" would be destroyed by battle or card effect, you can banish 1 card from your hand instead.
+You can only activate 1 "Cape Sounion - Prison of Tides" per turn.
+```
+
+### Julian Solo, Chosen Vessel
+- **Card Type**: Effect Monster
+- **Attribute**: WATER
+- **Type**: Spellcaster
+- **Level**: 4
+- **ATK/DEF**: 1000 / 2000
+
+```text
+If this card is Normal or Special Summoned: You can add 1 "Poseidon, God of the Seas", 1 "Poseidon, God of the Seas - Awakened", or 1 "Pillar" card from your Deck to your hand.
+You can Tribute this card; Special Summon 1 "Marine General" monster from your hand or GY.
+If this card is sent to the GY: You can place 1 "Pillar" card from your hand face-up in your Spell & Trap Zone.
+You can only use each effect of "Julian Solo, Chosen Vessel" once per turn.
+```
+
+### The Will of Poseidon
+- **Card Type**: Quick-Play Spell
+
+```text
+Target 1 face-up "Marine General" monster you control; until the end of this turn, it is unaffected by your opponent's activated monster effects, also cards your opponent controls cannot be moved to a different column than that target's column.
+If you control "Julian Solo, Chosen Vessel", you can activate this card from your hand during your opponent's turn.
+You can only activate 1 "The Will of Poseidon" per turn.
+```
+
+### Gemini's Secret - Saga and Kanon
+- **Card Type**: Quick-Play Spell
+
+```text
+Reveal 1 "Marine General - Kanon de Dragon de Mar" in your hand, or control 1 face-up "Gold Saint - Saga de Geminis"; apply 1 of these effects.
+● Add 1 "Pillar" card from your Deck to your hand, then discard 1 card.
+● Target 1 monster on the field; move it to an adjacent Main Monster Zone.
+● Banish 1 "Pillar" card from your GY; draw 1 card.
+You can only activate 1 "Gemini's Secret - Saga and Kanon" per turn.
+```
+
+### Echoes of Sounion
+- **Card Type**: Normal Trap
+
+```text
+When your opponent activates a card or effect while you control "Marine General - Kanon de Dragon de Mar": Negate that activation, and if you do, move 1 monster your opponent controls to an adjacent Main Monster Zone.
+If this Set card is destroyed by your opponent's card effect: You can send 1 "Pillar" card from your Deck to the GY.
+You can only activate 1 "Echoes of Sounion" per turn.
+```
+
+### Oath of the Sea Emperor
+- **Card Type**: Counter Trap
+
+```text
+When your opponent activates a card or effect while you control a "Pillar" card and a "Marine General" monster: Banish 1 "Pillar" card from your GY; negate the activation, and if you do, destroy that card.
+If you control "Poseidon, God of the Seas" or "Poseidon, God of the Seas - Awakened", you can activate this card from your hand.
+You can only activate 1 "Oath of the Sea Emperor" per turn.
+```
+
+### The Song of Sorrento
+- **Card Type**: Continuous Spell
+
+```text
+Once per turn: You can target 1 face-up monster your opponent controls in the same column as your "Marine General" monster; negate its effects until the end of this turn.
+If "Marine General - Sorrento de Sirena" is on your field or in your GY, your opponent cannot activate cards or effects in response to the activation of your "Scale" cards.
+```
+
+### Pillar Resonance Network
+- **Card Type**: Normal Spell
+
+```text
+Target 1 "Pillar" card you control; place 1 "Pillar" card with a different name from your Deck face-up in your Spell & Trap Zone in an adjacent column.
+If you control 3 or more "Pillar" cards with different names, you can draw 1 card.
+You can only activate 1 "Pillar Resonance Network" per turn.
+```
+
+### Tide of Rebellion
+- **Card Type**: Normal Trap
+
+```text
+If your opponent controls more cards than you do: Special Summon 1 "Marine General" monster from your hand or GY, then you can equip 1 "Scale" card from your GY to that monster.
+For the rest of this turn after this card resolves, you cannot Special Summon monsters from the Extra Deck, except WATER monsters.
+You can only activate 1 "Tide of Rebellion" per turn.
+```
+
+### Divine Wave of the Main Breadwinner
+- **Card Type**: Quick-Play Spell
+
+```text
+Choose 1 occupied column; return all cards in that column to the hand.
+If you control "Poseidon, God of the Seas - Awakened", banish those cards instead.
+You can only activate 1 "Divine Wave of the Main Breadwinner" per turn.
 ```
