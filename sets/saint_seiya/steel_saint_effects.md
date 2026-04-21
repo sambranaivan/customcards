@@ -1,8 +1,8 @@
 # Steel Saints - Tactical Support Unit (PSCT)
 
-Este documento define el subarquetipo **Steel Saints** como soporte reactivo para el arquetipo `"Saint"` de Athena.
+Este documento define el subarquetipo **Steel Saints** como soporte reactivo para el arquetipo `"Saint"` de Athena. Todos los nombres estan unificados en ingles para el formato Saint Seiya.
 
-En lore, los Caballeros de Acero no reemplazan a los Saints clasicos: funcionan como unidad de apoyo tecnologico, cobertura defensiva e interrupcion puntual.
+En lore, los Steel Saints no reemplazan a los Saints clasicos: funcionan como unidad de apoyo tecnologico, cobertura defensiva e interrupcion puntual.
 
 ---
 
@@ -16,7 +16,7 @@ En lore, los Caballeros de Acero no reemplazan a los Saints clasicos: funcionan 
 
 ## Steel Saints (3)
 
-### Caballero de Acero - Sho de la Armadura de Aire
+### Steel Saint - Sho of Sky Armor
 - **Card Type**: Effect Monster
 - **Attribute**: WIND
 - **Type**: Machine
@@ -26,10 +26,10 @@ En lore, los Caballeros de Acero no reemplazan a los Saints clasicos: funcionan 
 ```text
 When your opponent activates a monster effect on the field, or when your opponent activates a face-up Spell/Trap Card or effect on the field (Quick Effect): You can discard this card; negate that effect, and if you do, destroy that card.
 If you control a "Saint" monster, you can activate this effect from your hand during either player's turn.
-You can only use this effect of "Caballero de Acero - Sho de la Armadura de Aire" once per turn.
+You can only use this effect of "Steel Saint - Sho of Sky Armor" once per turn.
 ```
 
-### Caballero de Acero - Daichi de la Armadura de Tierra
+### Steel Saint - Daichi of Land Armor
 - **Card Type**: Effect Monster
 - **Attribute**: EARTH
 - **Type**: Machine
@@ -40,10 +40,10 @@ You can only use this effect of "Caballero de Acero - Sho de la Armadura de Aire
 If a "Saint" monster(s) you control would be destroyed by battle or card effect (Quick Effect): You can discard this card; that monster(s) is not destroyed.
 Then, if you control a "Saint" monster, you can Special Summon this card from your hand.
 Also, for the rest of this turn after this effect resolves, you cannot Special Summon monsters from the Extra Deck, except "Saint" monsters.
-You can only use this effect of "Caballero de Acero - Daichi de la Armadura de Tierra" once per turn.
+You can only use this effect of "Steel Saint - Daichi of Land Armor" once per turn.
 ```
 
-### Caballero de Acero - Ushio de la Armadura Marina
+### Steel Saint - Ushio of Marine Armor
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Machine
@@ -52,29 +52,29 @@ You can only use this effect of "Caballero de Acero - Daichi de la Armadura de T
 
 ```text
 When your opponent activates a card or effect that targets a "Saint" monster you control, or when your opponent declares an attack while you control a "Saint" monster (Quick Effect): You can discard this card; negate that activation or attack, and if you do, return 1 face-up card your opponent controls to the hand.
-You can only use this effect of "Caballero de Acero - Ushio de la Armadura Marina" once per turn.
+You can only use this effect of "Steel Saint - Ushio of Marine Armor" once per turn.
 ```
 
 ---
 
 ## Optional Steel Support Cards
 
-### Sistema de Asistencia de Acero
+### Steel Assistance System
 - **Card Type**: Quick-Play Spell
 
 ```text
 Target 1 "Saint" monster you control; this turn, it cannot be destroyed by battle or card effects.
-Then, if you have a "Caballero de Acero" monster in your GY, you can Special Summon 1 "Caballero de Acero" monster with a different name from your hand.
-You can only activate 1 "Sistema de Asistencia de Acero" per turn.
+Then, if you have a "Steel Saint" monster in your GY, you can Special Summon 1 "Steel Saint" monster with a different name from your hand.
+You can only activate 1 "Steel Assistance System" per turn.
 ```
 
-### Protocolo de Intercepcion
+### Interception Protocol
 - **Card Type**: Counter Trap
 
 ```text
 When your opponent activates a card or effect that targets a "Saint" monster(s) you control: Negate the activation, and if you do, destroy that card.
-Then, if you control a "Caballero de Acero" monster, you can draw 1 card.
-You can only activate 1 "Protocolo de Intercepcion" per turn.
+Then, if you control a "Steel Saint" monster, you can draw 1 card.
+You can only activate 1 "Interception Protocol" per turn.
 ```
 
 ---

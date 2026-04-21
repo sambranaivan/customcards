@@ -1,10 +1,10 @@
 # Black Saints Cards Effects (PSCT)
 
-Este documento compila las cartas del arquetipo **Black Saints** con redaccion PSCT en ingles lista para adaptar a EDOPro.
+Este documento compila las cartas del arquetipo **Black Saints** con redaccion PSCT en ingles lista para adaptar a EDOPro. Todos los nombres estan unificados en ingles para el formato Saint Seiya.
 
 ## Black Saints
 
-### Black Saint - Ikki, Lider de la Reina Muerte
+### Black Saint - Ikki, Leader of Death Queen Island
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -15,10 +15,10 @@ Este documento compila las cartas del arquetipo **Black Saints** con redaccion P
 If this card is in your GY: You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY; Special Summon this card.
 If this card is Normal or Special Summoned: You can add 1 "Fragment of Sagittarius" card from your Deck to your hand.
 Once per turn (Quick Effect): You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY, then target 1 face-up card on the field; destroy it.
-You can only use each effect of "Black Saint - Ikki, Lider de la Reina Muerte" once per turn.
+You can only use each effect of "Black Saint - Ikki, Leader of Death Queen Island" once per turn.
 ```
 
-### Black Saint - Jango, Comandante de la Sombra
+### Black Saint - Jango, Commander of the Shadow
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -27,11 +27,11 @@ You can only use each effect of "Black Saint - Ikki, Lider de la Reina Muerte" o
 
 ```text
 If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
-If a face-up "Fragment of Sagittarius" Equip Spell(s) you control is sent to the GY by card effect: You can Special Summon 1 Level 4 or lower "Black Saint" monster from your hand or GY, except "Black Saint - Jango, Comandante de la Sombra".
-You can only use each effect of "Black Saint - Jango, Comandante de la Sombra" once per turn.
+If a face-up "Fragment of Sagittarius" Equip Spell(s) you control is sent to the GY by card effect: You can Special Summon 1 Level 4 or lower "Black Saint" monster from your hand or GY, except "Black Saint - Jango, Commander of the Shadow".
+You can only use each effect of "Black Saint - Jango, Commander of the Shadow" once per turn.
 ```
 
-### Black Saint - Pegaso Oscuro
+### Black Saint - Dark Pegasus
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -44,7 +44,7 @@ Once per turn: You can equip 1 "Fragment of Sagittarius" Equip Spell from your h
 If this card declares an attack while equipped with a "Fragment of Sagittarius" card: Your opponent cannot activate cards or effects until the end of the Damage Step.
 ```
 
-### Black Saint - Dragon Oscuro
+### Black Saint - Dark Dragon
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -55,10 +55,10 @@ If this card declares an attack while equipped with a "Fragment of Sagittarius" 
 If this card is Normal or Special Summoned: You can equip 1 "Fragment of Sagittarius" Equip Spell from your Deck to this card, but send it to the GY during the End Phase.
 Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; this card cannot be destroyed by battle or card effects this turn.
 If this card is sent to the GY: You can add 1 "Fragment of Sagittarius" card from your GY to your hand.
-You can only use each effect of "Black Saint - Dragon Oscuro" once per turn.
+You can only use each effect of "Black Saint - Dark Dragon" once per turn.
 ```
 
-### Black Saint - Cisne Oscuro
+### Black Saint - Dark Cygnus
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -69,10 +69,10 @@ You can only use each effect of "Black Saint - Dragon Oscuro" once per turn.
 If this card is Normal or Special Summoned: You can target 1 face-up monster your opponent controls; change it to Defense Position.
 Once per turn (Quick Effect): You can send 1 "Fragment of Sagittarius" Equip Spell equipped to a monster you control to the GY, then target 1 face-up monster your opponent controls; negate its effects until the end of this turn.
 If this card is sent to the GY as material for the Summon of a "Black Saint" monster: You can equip 1 "Fragment of Sagittarius" Equip Spell from your GY to that Summoned monster.
-You can only use each effect of "Black Saint - Cisne Oscuro" once per turn.
+You can only use each effect of "Black Saint - Dark Cygnus" once per turn.
 ```
 
-### Black Saint - Andromeda Oscuro
+### Black Saint - Dark Andromeda
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -84,10 +84,10 @@ Your opponent cannot target other "Black Saint" monsters you control for attacks
 Once per turn: You can equip 1 "Fragment of Sagittarius" Equip Spell from your hand or GY to this card.
 If this card is equipped with 2 or more Equip Cards, your opponent cannot target this card with card effects.
 If a face-up "Fragment of Sagittarius" Equip Spell(s) you control is sent to the GY by card effect: Draw 1 card.
-You can only use this effect of "Black Saint - Andromeda Oscuro" once per turn.
+You can only use this effect of "Black Saint - Dark Andromeda" once per turn.
 ```
 
-### Black Saint - Fenix Oscuro
+### Black Saint - Dark Phoenix
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -95,15 +95,15 @@ You can only use this effect of "Black Saint - Andromeda Oscuro" once per turn.
 - **ATK/DEF**: 1700 / 1000
 
 ```text
-If you control "Black Saint - Ikki, Lider de la Reina Muerte": You can Special Summon this card from your hand.
+If you control "Black Saint - Ikki, Leader of Death Queen Island": You can Special Summon this card from your hand.
 If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
-During your Main Phase: You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY; Special Summon 1 "Black Saint - Fenix Oscuro" from your Deck in Defense Position, also for the rest of this turn, you cannot Special Summon monsters from the Extra Deck, except DARK monsters.
-You can only use each effect of "Black Saint - Fenix Oscuro" once per turn.
+During your Main Phase: You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY; Special Summon 1 "Black Saint - Dark Phoenix" from your Deck in Defense Position, also for the rest of this turn, you cannot Special Summon monsters from the Extra Deck, except DARK monsters.
+You can only use each effect of "Black Saint - Dark Phoenix" once per turn.
 ```
 
-## Fragmentos de Sagitario (Equip Spells)
+## Fragments of Sagittarius (Equip Spells)
 
-### Fragment of Sagittarius - Casco
+### Fragment of Sagittarius - Helmet
 - **Card Type**: Equip Spell
 
 ```text
@@ -112,7 +112,7 @@ The equipped monster gains 300 ATK.
 Once per turn (Quick Effect): You can send this face-up card to the GY; negate the activation of an opponent's card or effect that targets your equipped monster, and if you do, destroy that card.
 ```
 
-### Fragment of Sagittarius - Peto
+### Fragment of Sagittarius - Chestplate
 - **Card Type**: Equip Spell
 
 ```text
@@ -120,10 +120,10 @@ Equip only to a "Black Saint" monster.
 The equipped monster gains 500 DEF.
 If the equipped monster would be destroyed by battle or card effect, you can destroy this card instead.
 If this card is sent to the GY by card effect: You can gain 500 LP, then target 1 "Black Saint" monster you control; it gains 500 ATK until the end of this turn.
-You can only use this effect of "Fragment of Sagittarius - Peto" once per turn.
+You can only use this effect of "Fragment of Sagittarius - Chestplate" once per turn.
 ```
 
-### Fragment of Sagittarius - Faldon
+### Fragment of Sagittarius - Skirt
 - **Card Type**: Equip Spell
 
 ```text
@@ -132,17 +132,17 @@ Your opponent's monsters that battle the equipped monster lose 500 ATK during da
 Once per turn (Quick Effect): You can send this face-up card to the GY; change 1 face-up monster your opponent controls to Defense Position.
 ```
 
-### Fragment of Sagittarius - Brazo Izquierdo
+### Fragment of Sagittarius - Left Arm
 - **Card Type**: Equip Spell
 
 ```text
 Equip only to a "Black Saint" monster.
 Once per turn: You can target 1 card in your opponent's Spell & Trap Zone; return it to the hand.
-If this face-up card is sent to the GY by card effect: You can Set 1 "Black Saint" Spell/Trap directly from your Deck, except "Fragment of Sagittarius - Brazo Izquierdo".
-You can only use this effect of "Fragment of Sagittarius - Brazo Izquierdo" once per turn.
+If this face-up card is sent to the GY by card effect: You can Set 1 "Black Saint" Spell/Trap directly from your Deck, except "Fragment of Sagittarius - Left Arm".
+You can only use this effect of "Fragment of Sagittarius - Left Arm" once per turn.
 ```
 
-### Fragment of Sagittarius - Brazo Derecho
+### Fragment of Sagittarius - Right Arm
 - **Card Type**: Equip Spell
 
 ```text
@@ -152,29 +152,29 @@ If the equipped monster destroys an opponent's monster by battle: Inflict 500 da
 Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with ATK less than or equal to the equipped monster's ATK.
 ```
 
-### Fragment of Sagittarius - Pierna Derecha
+### Fragment of Sagittarius - Right Leg
 - **Card Type**: Equip Spell
 
 ```text
 Equip only to a "Black Saint" monster.
 The equipped monster can make a second attack during each Battle Phase, but only on monsters.
 If this card is sent to the GY by card effect: You can Special Summon 1 Level 4 or lower "Black Saint" monster from your hand.
-You can only use this effect of "Fragment of Sagittarius - Pierna Derecha" once per turn.
+You can only use this effect of "Fragment of Sagittarius - Right Leg" once per turn.
 ```
 
-### Fragment of Sagittarius - Pierna Izquierda
+### Fragment of Sagittarius - Left Leg
 - **Card Type**: Equip Spell
 
 ```text
 Equip only to a "Black Saint" monster.
-Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Pierna Izquierda".
+Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Left Leg".
 If this face-up card is sent to the GY by card effect: You can draw 1 card, then discard 1 card.
-You can only use this effect of "Fragment of Sagittarius - Pierna Izquierda" once per turn.
+You can only use this effect of "Fragment of Sagittarius - Left Leg" once per turn.
 ```
 
 ## Boss Monster
 
-### Sagitario Negro - Armadura Profanada
+### Black Sagittarius - Desecrated Cloth
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -193,47 +193,47 @@ Gains these effects based on the number of Equip Cards equipped to it.
 
 ## Spells and Traps
 
-### Isla de la Reina Muerte
+### Death Queen Island
 - **Card Type**: Field Spell
 
 ```text
 All "Black Saint" monsters you control gain 300 ATK/DEF.
 When this card is activated: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
 Once per turn: You can target 1 "Black Saint" monster you control; equip 1 "Fragment of Sagittarius" Equip Spell from your GY to that target.
-If a face-up "Fragment of Sagittarius" Equip Spell(s) you control is sent to the GY by card effect: You can add 1 "Black Saint" monster from your Deck to your hand, except "Black Saint - Ikki, Lider de la Reina Muerte".
-You can only use this effect of "Isla de la Reina Muerte" once per turn.
+If a face-up "Fragment of Sagittarius" Equip Spell(s) you control is sent to the GY by card effect: You can add 1 "Black Saint" monster from your Deck to your hand, except "Black Saint - Ikki, Leader of Death Queen Island".
+You can only use this effect of "Death Queen Island" once per turn.
 ```
 
-### La Armadura Dorada Robada
+### The Stolen Gold Cloth
 - **Card Type**: Normal Spell
 
 ```text
 Send 1 "Fragment of Sagittarius" card from your Deck to the GY, then target 1 "Black Saint" monster you control; equip 1 "Fragment of Sagittarius" Equip Spell from your GY to that target.
-If you control "Black Saint - Ikki, Lider de la Reina Muerte", you can send up to 2 "Fragment of Sagittarius" cards with different names from your Deck to the GY instead.
-You can only activate 1 "La Armadura Dorada Robada" per turn.
+If you control "Black Saint - Ikki, Leader of Death Queen Island", you can send up to 2 "Fragment of Sagittarius" cards with different names from your Deck to the GY instead.
+You can only activate 1 "The Stolen Gold Cloth" per turn.
 ```
 
-### Legado de Sagitario Profanado
+### Legacy of the Desecrated Sagittarius
 - **Card Type**: Counter Trap
 
 ```text
 When your opponent activates a card or effect, while you control a "Black Saint" monster equipped with a "Fragment of Sagittarius" card: Send 1 "Fragment of Sagittarius" Equip Spell you control to the GY; negate the activation, and if you do, destroy that card.
-Then, if you control "Black Saint - Ikki, Lider de la Reina Muerte", you can destroy 1 card your opponent controls.
-You can only activate 1 "Legado de Sagitario Profanado" per turn.
+Then, if you control "Black Saint - Ikki, Leader of Death Queen Island", you can destroy 1 card your opponent controls.
+You can only activate 1 "Legacy of the Desecrated Sagittarius" per turn.
 ```
 
-### Juramento de la Sombra
+### Oath of the Shadow
 - **Card Type**: Continuous Trap
 
 ```text
 Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY, but negate its effects.
-While you control "Black Saint - Ikki, Lider de la Reina Muerte", monsters Special Summoned by this effect can activate their effects.
+While you control "Black Saint - Ikki, Leader of Death Queen Island", monsters Special Summoned by this effect can activate their effects.
 If this face-up card leaves the field, destroy all monsters Special Summoned by this effect.
 ```
 
 ## Lore Support Cards (v2)
 
-### Saint - Seiya, Cosmos de sus Companeros
+### Saint - Seiya, Cosmos of His Companions
 - **Card Type**: Effect Monster
 - **Attribute**: LIGHT
 - **Type**: Warrior
@@ -245,10 +245,10 @@ If your opponent controls a "Black Saint" monster, you can Special Summon this c
 If this card is Normal or Special Summoned: You can send 1 "Saint" monster from your Deck to the GY, then target 1 face-up "Black Saint" monster your opponent controls; negate its effects until the end of this turn.
 Once per turn (Quick Effect): You can target 1 "Fragment of Sagittarius" Equip Spell your opponent controls; send it to the GY, and if you do, this card gains 800 ATK until the end of this turn.
 At the start of the Damage Step, if this card battles a "Black Saint" monster while you have 3 or more "Saint" monsters with different names in your GY: Destroy that opponent's monster.
-You can only use each effect of "Saint - Seiya, Cosmos de sus Companeros" once per turn.
+You can only use each effect of "Saint - Seiya, Cosmos of His Companions" once per turn.
 ```
 
-### Esmeralda, Luz de la Reina Muerte
+### Esmeralda, Light of Death Queen Island
 - **Card Type**: Effect Monster
 - **Attribute**: LIGHT
 - **Type**: Spellcaster
@@ -256,13 +256,13 @@ You can only use each effect of "Saint - Seiya, Cosmos de sus Companeros" once p
 - **ATK/DEF**: 400 / 1200
 
 ```text
-If this card is Normal or Special Summoned: You can add 1 "Isla de la Reina Muerte" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
+If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
 (Quick Effect): You can Tribute this card, then target 1 "Black Saint" monster you control; it cannot be destroyed by battle or card effects this turn.
-If this card is sent from the field to the GY by an opponent's card: You can Special Summon 1 "Black Saint - Ikki, Lider de la Reina Muerte" from your hand or GY.
-You can only use each effect of "Esmeralda, Luz de la Reina Muerte" once per turn.
+If this card is sent from the field to the GY by an opponent's card: You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand or GY.
+You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn.
 ```
 
-### Guilty, Maestro del Infierno
+### Guilty, Master of Hell
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -272,25 +272,25 @@ You can only use each effect of "Esmeralda, Luz de la Reina Muerte" once per tur
 ```text
 If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
 Once per turn (Quick Effect): You can send 1 "Fragment of Sagittarius" Equip Spell you control to the GY; negate the activation of an opponent's monster effect.
-If this face-up card is destroyed by battle or by your opponent's card effect: You can Special Summon 1 "Black Saint - Ikki, Lider de la Reina Muerte" from your hand or GY, then you can equip 1 "Fragment of Sagittarius" Equip Spell from your GY to it.
-You can only use each effect of "Guilty, Maestro del Infierno" once per turn.
+If this face-up card is destroyed by battle or by your opponent's card effect: You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand or GY, then you can equip 1 "Fragment of Sagittarius" Equip Spell from your GY to it.
+You can only use each effect of "Guilty, Master of Hell" once per turn.
 ```
 
-### Ultima Voluntad de Esmeralda
+### Esmeralda's Last Will
 - **Card Type**: Quick-Play Spell
 
 ```text
 Target 1 "Black Saint" monster you control; this turn, it gains 800 ATK, also it cannot be destroyed by battle.
-Then, if you control "Black Saint - Ikki, Lider de la Reina Muerte", you can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
-You can only activate 1 "Ultima Voluntad de Esmeralda" per turn.
+Then, if you control "Black Saint - Ikki, Leader of Death Queen Island", you can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
+You can only activate 1 "Esmeralda's Last Will" per turn.
 ```
 
-### Prueba Cruel de Guilty
+### Guilty's Cruel Trial
 - **Card Type**: Continuous Spell
 
 ```text
-When this card is activated: You can add 1 "Esmeralda, Luz de la Reina Muerte" or 1 "Guilty, Maestro del Infierno" from your Deck to your hand.
+When this card is activated: You can add 1 "Esmeralda, Light of Death Queen Island" or 1 "Guilty, Master of Hell" from your Deck to your hand.
 Once per turn, if a "Fragment of Sagittarius" Equip Spell you control is sent to the GY by card effect: You can draw 1 card, then discard 1 card.
-If you control "Black Saint - Ikki, Lider de la Reina Muerte", your opponent cannot target "Esmeralda, Luz de la Reina Muerte" with card effects.
-You can only activate 1 "Prueba Cruel de Guilty" per turn.
+If you control "Black Saint - Ikki, Leader of Death Queen Island", your opponent cannot target "Esmeralda, Light of Death Queen Island" with card effects.
+You can only activate 1 "Guilty's Cruel Trial" per turn.
 ```

@@ -1,10 +1,10 @@
 # Poseidon Cards Effects (PSCT)
 
-Este documento compila las cartas nombradas en `archetype_scale_poseidon.md` con redaccion PSCT en ingles lista para adaptar a EDOPro.
+Este documento compila las cartas nombradas en `archetype_scale_poseidon.md` con redaccion PSCT en ingles lista para adaptar a EDOPro. Todos los nombres estan unificados en ingles para el formato Saint Seiya.
 
 ## Marine Generals
 
-### Marine General - Kanon de Dragon de Mar
+### Marine General - Kanon of Sea Dragon
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -16,10 +16,10 @@ If you control a "Pillar" card: You can Special Summon this card from your hand 
 If this card is Normal or Special Summoned: You can add 1 "Pillar" card or 1 "Poseidon, God of the Seas" from your Deck to your hand.
 Once per turn: You can send 1 "Pillar" card from your Deck to the GY, then target 1 monster your opponent controls; move that target to an adjacent Main Monster Zone.
 If "Pillar of the North Atlantic" is in your field, cards in this card's column cannot be destroyed by card effects.
-You can only use each effect of "Marine General - Kanon de Dragon de Mar" once per turn.
+You can only use each effect of "Marine General - Kanon of Sea Dragon" once per turn.
 ```
 
-### Marine General - Sorrento de Sirena
+### Marine General - Sorrento of Siren
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -30,10 +30,10 @@ You can only use each effect of "Marine General - Kanon de Dragon de Mar" once p
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 Your opponent cannot target "Pillar" cards you control with card effects.
 If "Pillar of the South Atlantic" is in your field or GY, opponent's monsters in this card's column have their original ATK halved, also their effects are negated.
-You can only Special Summon "Marine General - Sorrento de Sirena" once per turn this way.
+You can only Special Summon "Marine General - Sorrento of Siren" once per turn this way.
 ```
 
-### Marine General - Krishna de Crisaor
+### Marine General - Krishna of Chrysaor
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -44,10 +44,10 @@ You can only Special Summon "Marine General - Sorrento de Sirena" once per turn 
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 If this card battles, your opponent cannot activate cards or effects until the end of the Damage Step.
 If "Pillar of the Indian Ocean" is in your field, your opponent cannot Special Summon monsters to this card's column or adjacent columns.
-You can only Special Summon "Marine General - Krishna de Crisaor" once per turn this way.
+You can only Special Summon "Marine General - Krishna of Chrysaor" once per turn this way.
 ```
 
-### Marine General - Isaac de Kraken
+### Marine General - Isaac of Kraken
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -58,10 +58,10 @@ You can only Special Summon "Marine General - Krishna de Crisaor" once per turn 
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 (Quick Effect): You can banish 1 "Pillar" card from your GY, then target 1 face-up monster your opponent controls; change it to face-down Defense Position.
 If "Pillar of the Arctic Ocean" is in your field or is banished, this card gains 1000 ATK.
-You can only use each effect of "Marine General - Isaac de Kraken" once per turn.
+You can only use each effect of "Marine General - Isaac of Kraken" once per turn.
 ```
 
-### Marine General - Eo de Escila
+### Marine General - Io of Scylla
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -74,10 +74,10 @@ This card can make a second attack during each Battle Phase.
 If "Pillar of the South Pacific" is in your field, this card gains these effects based on the number of "Marine General" monsters with different names in your GY.
 ● 2+: This card can attack directly.
 ● 4+: If this card attacks, after damage calculation: Destroy all Spells/Traps your opponent controls.
-You can only Special Summon "Marine General - Eo de Escila" once per turn this way.
+You can only Special Summon "Marine General - Io of Scylla" once per turn this way.
 ```
 
-### Marine General - Baian de Hipocampo
+### Marine General - Baian of Sea Horse
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -88,10 +88,10 @@ You can only Special Summon "Marine General - Eo de Escila" once per turn this w
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 (Quick Effect): You can target 1 card in this card's column; return it to the hand.
 If "Pillar of the North Pacific" is in your field, "Marine General" monsters you control in this card's column cannot be destroyed by card effects.
-You can only use each effect of "Marine General - Baian de Hipocampo" once per turn.
+You can only use each effect of "Marine General - Baian of Sea Horse" once per turn.
 ```
 
-### Marine General - Kasa de Lymnades
+### Marine General - Kasa of Lymnades
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Warrior
@@ -102,12 +102,12 @@ You can only use each effect of "Marine General - Baian de Hipocampo" once per t
 If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 If this card is Summoned: You can target 1 face-up monster your opponent controls; until the end of this turn, this card's name becomes that target's name, also it gains that target's original effects.
 If "Pillar of the Antarctic Ocean" is in your field, the activation and effect of this card's previous effect cannot be negated.
-You can only use each effect of "Marine General - Kasa de Lymnades" once per turn.
+You can only use each effect of "Marine General - Kasa of Lymnades" once per turn.
 ```
 
 ## Scales (Equip Spells)
 
-### Scale - Dragon de Mar
+### Scale - Sea Dragon
 - **Card Type**: Equip Spell
 
 ```text
@@ -117,7 +117,7 @@ Once per turn, when your opponent would activate a card or effect in the equippe
 Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, cards and effects activated in the equipped monster's column are negated.
 ```
 
-### Scale - Sirena
+### Scale - Siren
 - **Card Type**: Equip Spell
 
 ```text
@@ -126,7 +126,7 @@ If the equipped monster is a "Marine General", your opponent cannot Set cards in
 Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, your opponent cannot Set cards in the equipped monster's column, also cards in that column cannot be targeted by your opponent's card effects.
 ```
 
-### Scale - Crisaor
+### Scale - Chrysaor
 - **Card Type**: Equip Spell
 
 ```text
@@ -145,7 +145,7 @@ Once per turn (Quick Effect): You can target 1 face-up monster in the equipped m
 Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, when your opponent activates a monster effect in the equipped monster's column, negate that effect.
 ```
 
-### Scale - Escila
+### Scale - Scylla
 - **Card Type**: Equip Spell
 
 ```text
@@ -155,7 +155,7 @@ If the equipped monster destroys an opponent's monster by battle: It can make a 
 Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, if the equipped monster destroys an opponent's monster by battle, it can make up to 2 additional attacks on monsters during this Battle Phase.
 ```
 
-### Scale - Hipocampo
+### Scale - Sea Horse
 - **Card Type**: Equip Spell
 
 ```text
@@ -170,7 +170,7 @@ Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; th
 ```text
 Equip only to a "Marine General" monster.
 Once per turn: You can reveal 1 random card in your opponent's hand.
-If the equipped monster is "Marine General - Kasa de Lymnades", this card gains this effect.
+If the equipped monster is "Marine General - Kasa of Lymnades", this card gains this effect.
 ● Once per turn (Quick Effect): You can send this face-up Equip Card to the GY; this turn, 1 activated effect your opponent controls that targets a "Marine General" monster you control becomes "Your opponent discards 1 random card".
 ```
 
@@ -280,7 +280,7 @@ If this face-up card would be Tributed or change control, you can send 1 of your
 
 ## Support Monsters
 
-### Thetys de Sirena Menor (Tech Handtrap)
+### Thetys of Mermaid (Tech Handtrap)
 - **Card Type**: Effect Monster
 - **Attribute**: WATER
 - **Type**: Aqua
@@ -289,7 +289,7 @@ If this face-up card would be Tributed or change control, you can send 1 of your
 
 ```text
 If your opponent activates a card or effect in a column where you control no cards (Quick Effect): You can discard this card; negate that effect, and if you do, move 1 monster your opponent controls to another of their Main Monster Zones.
-You can only use this effect of "Thetys de Sirena Menor" once per turn.
+You can only use this effect of "Thetys of Mermaid" once per turn.
 ```
 
 ### Thetys, Guide of the Submarine Sanctuary (Main Engine)
@@ -410,7 +410,7 @@ You can only use this effect of "The Broken Amphora" once per turn.
 ```text
 When this card is activated: You can send 1 "Pillar" card from your Deck to the GY.
 Once per turn: You can banish 1 WATER monster from your hand or GY; add 1 "Pillar" card from your GY to your hand.
-If "Marine General - Kanon de Dragon de Mar" would be destroyed by battle or card effect, you can banish 1 card from your hand instead.
+If "Marine General - Kanon of Sea Dragon" would be destroyed by battle or card effect, you can banish 1 card from your hand instead.
 You can only activate 1 "Cape Sounion - Prison of Tides" per turn.
 ```
 
@@ -441,7 +441,7 @@ You can only activate 1 "The Will of Poseidon" per turn.
 - **Card Type**: Quick-Play Spell
 
 ```text
-Reveal 1 "Marine General - Kanon de Dragon de Mar" in your hand, or control 1 face-up "Gold Saint - Saga de Geminis"; apply 1 of these effects.
+Reveal 1 "Marine General - Kanon of Sea Dragon" in your hand, or control 1 face-up "Gold Saint - Saga of Gemini"; apply 1 of these effects.
 ● Add 1 "Pillar" card from your Deck to your hand, then discard 1 card.
 ● Target 1 monster on the field; move it to an adjacent Main Monster Zone.
 ● Banish 1 "Pillar" card from your GY; draw 1 card.
@@ -452,7 +452,7 @@ You can only activate 1 "Gemini's Secret - Saga and Kanon" per turn.
 - **Card Type**: Normal Trap
 
 ```text
-When your opponent activates a card or effect while you control "Marine General - Kanon de Dragon de Mar": Negate that activation, and if you do, move 1 monster your opponent controls to an adjacent Main Monster Zone.
+When your opponent activates a card or effect while you control "Marine General - Kanon of Sea Dragon": Negate that activation, and if you do, move 1 monster your opponent controls to an adjacent Main Monster Zone.
 If this Set card is destroyed by your opponent's card effect: You can send 1 "Pillar" card from your Deck to the GY.
 You can only activate 1 "Echoes of Sounion" per turn.
 ```
@@ -471,7 +471,7 @@ You can only activate 1 "Oath of the Sea Emperor" per turn.
 
 ```text
 Once per turn: You can target 1 face-up monster your opponent controls in the same column as your "Marine General" monster; negate its effects until the end of this turn.
-If "Marine General - Sorrento de Sirena" is on your field or in your GY, your opponent cannot activate cards or effects in response to the activation of your "Scale" cards.
+If "Marine General - Sorrento of Siren" is on your field or in your GY, your opponent cannot activate cards or effects in response to the activation of your "Scale" cards.
 ```
 
 ### Pillar Resonance Network
