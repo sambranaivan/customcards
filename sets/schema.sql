@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS cards (
   aliases_json       TEXT,
 
   card_type          TEXT NOT NULL CHECK (card_type IN ('Monster','Spell','Trap')),
+  card_sub_type      TEXT,
 
   level              INTEGER,
   rank               INTEGER,

@@ -211,6 +211,7 @@ def insert_cards(cards: list[ParsedCard], *, source_path: Path) -> tuple[int, in
               card_id,
               name_en,
               card_type,
+              card_sub_type,
               level, rank, link,
               attribute, race,
               atk, def,
@@ -218,6 +219,7 @@ def insert_cards(cards: list[ParsedCard], *, source_path: Path) -> tuple[int, in
               archetypes_json,
               updated_ts, updated_reason, updated_source_ref, updated_notes
             ) VALUES (
+              ?,
               ?,
               ?,
               ?,
@@ -236,6 +238,7 @@ def insert_cards(cards: list[ParsedCard], *, source_path: Path) -> tuple[int, in
                 next_id,
                 c.name_en,
                 card_type,
+                c.raw_card_type,
                 c.level,
                 c.rank,
                 c.link,
@@ -246,7 +249,7 @@ def insert_cards(cards: list[ParsedCard], *, source_path: Path) -> tuple[int, in
                 c.effect_text_en,
                 archetypes_json,
                 str(source_path),
-                f"Imported from {source_path.name} ({c.raw_card_type}).",
+                f"Imported from {source_path.name}.",
             ),
         )
         inserted += 1
