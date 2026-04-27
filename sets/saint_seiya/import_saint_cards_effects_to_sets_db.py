@@ -1,11 +1,11 @@
 import re
 import sqlite3
+import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Iterable, Optional
 
 
-MD_PATH = Path(r"c:\ProjectIgnis\sets\saint_seiya\saint_cards_effects.md")
 DB_PATH = Path(r"c:\ProjectIgnis\sets\sets.sqlite3")
 
 # Keep Saint Seiya cards in a predictable custom range.
@@ -185,7 +185,7 @@ def _card_exists_by_name(conn: sqlite3.Connection, name_en: str) -> bool:
     return row is not None
 
 
-def insert_cards(cards: list[ParsedCard]) -> tuple[int, int]:
+def insert_cards(cards: list[ParsedCard], *, source_path: Path) -> tuple[int, int]:
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys=ON")
 
@@ -245,8 +245,8 @@ def insert_cards(cards: list[ParsedCard]) -> tuple[int, int]:
                 c.defe,
                 c.effect_text_en,
                 archetypes_json,
-                str(MD_PATH),
-                f"Imported from {MD_PATH.name} ({c.raw_card_type}).",
+                str(source_path),
+                f"Imported from {source_path.name} ({c.raw_card_type}).",
             ),
         )
         inserted += 1
@@ -258,9 +258,14 @@ def insert_cards(cards: list[ParsedCard]) -> tuple[int, int]:
 
 
 def main() -> None:
-    cards = parse_cards_from_md(MD_PATH.read_text(encoding="utf-8").splitlines())
-    inserted, skipped = insert_cards(cards)
-    print(f"parsed={len(cards)} inserted={inserted} skipped={skipped} db={DB_PATH}")
+    md_path = (
+        Path(sys.argv[1])
+        if len(sys.argv) > 1
+        else Path(r"c:\ProjectIgnis\sets\saint_seiya\saint_cards_effects.md")
+    )
+    cards = parse_cards_from_md(md_path.read_text(encoding="utf-8").splitlines())
+    inserted, skipped = insert_cards(cards, source_path=md_path)
+    print(f"parsed={len(cards)} inserted={inserted} skipped={skipped} db={DB_PATH} md={md_path}")
 
 
 if __name__ == "__main__":
