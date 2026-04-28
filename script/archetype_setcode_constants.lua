@@ -601,6 +601,12 @@ SET_GOGETA                        = 0x1d3
 SET_SAIYAN                        = 0x1d4
 SET_GOHAN                         = 0x1d5
 SET_GOTENKS                       = 0x1d6
+SET_SAINT                         = 0x1d7
+SET_CLOTH                         = 0x1d8
+SET_BRONZE_SAINT                  = 0x1d9
+SET_SILVER_SAINT                  = 0x1da
+SET_GOLD_SAINT                    = 0x1db
+SET_GOLD_CLOTH                    = 0x1dc
 
 -- Pokemon Archetypes
 SET_AGUA                     = 0x3000
