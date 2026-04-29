@@ -12,15 +12,21 @@ from pathlib import Path
 REPO_ROOT = Path(r"c:\ProjectIgnis")
 DB_PATH = REPO_ROOT / "sets" / "sets.sqlite3"
 OUT_DIR = REPO_ROOT / "api_output"
+PROMPTS_DIR = OUT_DIR / "prompts"
 
 OPENAI_API_KEY_ENV = "OPENAI_API_KEY"
 OPENAI_IMAGES_URL = "https://api.openai.com/v1/images/generations"
+OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses"
 
 # As requested
 MODEL = "gpt-image-2"
 SIZE = "1024x1024"
 QUALITY = "low"
 N = 1
+
+# Reasoning step (prompt optimizer)
+REASONING_MODEL = "gpt-5.5"
+REASONING_EFFORT = "high"  # typical values: low | medium | high (model-dependent)
 
 
 @dataclass(frozen=True)
@@ -77,9 +83,80 @@ def _save_b64_png(b64_json: str, out_path: Path) -> None:
     tmp.replace(out_path)
 
 
+def _extract_responses_output_text(resp: dict) -> str:
+    """
+    Best-effort extractor for Responses API plain text output.
+    We accept multiple possible shapes to be robust across SDK/raw responses.
+    """
+    # Some client wrappers expose output_text directly.
+    if isinstance(resp.get("output_text"), str) and resp["output_text"].strip():
+        return resp["output_text"].strip()
+
+    out = resp.get("output")
+    if not isinstance(out, list):
+        return ""
+
+    chunks: list[str] = []
+    for item in out:
+        if not isinstance(item, dict):
+            continue
+        if item.get("type") != "message":
+            continue
+        content = item.get("content")
+        if not isinstance(content, list):
+            continue
+        for part in content:
+            if not isinstance(part, dict):
+                continue
+            # Typical: {"type":"output_text","text":"..."}
+            if part.get("type") in ("output_text", "text") and isinstance(part.get("text"), str):
+                t = part["text"].strip()
+                if t:
+                    chunks.append(t)
+    return "\n".join(chunks).strip()
+
+
+def _improve_prompt_with_reasoning(*, api_key: str, idea: str, timeout_s: int = 120) -> str:
+    instruction = f"""
+Convert this idea into a final prompt for image generation Saint seiya Lore accurated.
+
+Requirements:
+- TCG art Style
+- anime 90s modernized
+- Full body (when applicable; for items like armor/cloth, show the item clearly)
+- Heroic pose (or iconic display for non-character items)
+- Detailed metallic armor but not overdesigned
+- Cosmic background
+- Ethereal spirit in background corresponding to the character 
+- No text, no watermark
+- Prompt in English
+- Do not explain anything; return ONLY the final prompt
+
+Idea:
+{idea}
+""".strip()
+
+    payload = {
+        "model": REASONING_MODEL,
+        "reasoning": {"effort": REASONING_EFFORT},
+        "input": instruction,
+    }
+    resp = _post_json(OPENAI_RESPONSES_URL, payload, api_key=api_key, timeout_s=timeout_s)
+    out = _extract_responses_output_text(resp)
+    return out.strip()
+
+
+def _write_text_atomic(path: Path, text: str) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
 def main() -> None:
     api_key = _get_api_key()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
+    PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
 
     conn = sqlite3.connect(DB_PATH)
     try:
@@ -98,18 +175,81 @@ def main() -> None:
 
     for idx, card in enumerate(cards, start=1):
         out_path = OUT_DIR / f"{card.card_id}.png"
+        prompt_path = PROMPTS_DIR / f"{card.card_id}.txt"
 
         if out_path.exists():
             skipped_existing += 1
+            # Still ensure we have a reasoning-optimized prompt cached, for reproducibility.
+            if not prompt_path.exists():
+                try:
+                    final_prompt = _improve_prompt_with_reasoning(api_key=api_key, idea=card.image_prompt)
+                    if final_prompt:
+                        _write_text_atomic(prompt_path, final_prompt)
+                        print(f"[{idx}/{total}] PROMPT card_id={card.card_id} -> {prompt_path}")
+                except Exception as e:
+                    errors += 1
+                    print(f"[{idx}/{total}] ERR  card_id={card.card_id} prompt_cache err={e}")
             print(
                 f"[{idx}/{total}] SKIP card_id={card.card_id} (exists) | "
                 f"generated={generated} skipped_existing={skipped_existing} errors={errors}"
             )
             continue
 
+        # Step 1: reasoning model rewrites/optimizes the prompt.
+        final_prompt = ""
+        if prompt_path.exists():
+            final_prompt = prompt_path.read_text(encoding="utf-8").strip()
+
+        if not final_prompt:
+            for attempt in range(1, 4):
+                try:
+                    final_prompt = _improve_prompt_with_reasoning(api_key=api_key, idea=card.image_prompt)
+                    if not final_prompt:
+                        raise RuntimeError("Empty prompt from reasoning step")
+                    _write_text_atomic(prompt_path, final_prompt)
+                    print(f"[{idx}/{total}] PROMPT card_id={card.card_id} -> {prompt_path}")
+                    break
+                except urllib.error.HTTPError as e:
+                    status = getattr(e, "code", None)
+                    err_body = getattr(e, "_body_text", "") or ""
+                    # For reasoning, fail fast on auth/config issues.
+                    if attempt == 3 or status not in (408, 409, 429, 500, 502, 503, 504):
+                        errors += 1
+                        print(
+                            f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_status={status} "
+                            f"attempt={attempt} body={err_body[:400]}"
+                        )
+                        final_prompt = ""
+                        break
+                    sleep_s = min(20, 2**attempt)
+                    print(
+                        f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_status={status} "
+                        f"attempt={attempt} sleep={sleep_s}s"
+                    )
+                    time.sleep(sleep_s)
+                except Exception as e:
+                    if attempt == 3:
+                        errors += 1
+                        print(f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_attempt={attempt} err={e}")
+                        final_prompt = ""
+                        break
+                    sleep_s = min(20, 2**attempt)
+                    print(
+                        f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_attempt={attempt} err={e} sleep={sleep_s}s"
+                    )
+                    time.sleep(sleep_s)
+
+        if not final_prompt:
+            # If reasoning fails, do not generate an image to avoid wasting calls with a bad prompt.
+            print(
+                f"[{idx}/{total}] ERR  card_id={card.card_id} (no final prompt) | "
+                f"generated={generated} skipped_existing={skipped_existing} errors={errors}"
+            )
+            continue
+
         payload = {
             "model": MODEL,
-            "prompt": card.image_prompt,
+            "prompt": final_prompt,
             "n": N,
             "size": SIZE,
             "quality": QUALITY,
