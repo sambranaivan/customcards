@@ -607,6 +607,9 @@ SET_BRONZE_SAINT                  = 0x1d9
 SET_SILVER_SAINT                  = 0x1da
 SET_GOLD_SAINT                    = 0x1db
 SET_GOLD_CLOTH                    = 0x1dc
+SET_ENVOY_OF_THE_POPE             = 0x1dd
+SET_POPES_MANDATE                 = 0x1de
+SET_GHOST_SAINT                   = 0x1df
 
 -- Pokemon Archetypes
 SET_AGUA                     = 0x3000

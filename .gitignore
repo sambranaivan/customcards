@@ -20,3 +20,5 @@
 \puzzles\*
 \logs\*
 *.exe
+\api_output\*
+\api_output\prompts\*
