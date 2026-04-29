@@ -21,3 +21,5 @@
 \puzzles\*
 \logs\*
 *.exe
+README.md.txt
+cacert.pem
