@@ -15,4 +15,80 @@
 --Fragment of Sagittarius - Skirt
 local s,id=GetID()
 function s.initial_effect(c)
+	--Activate
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_ACTIVATE)
+	e0:SetCode(EVENT_FREE_CHAIN)
+	c:RegisterEffect(e0)
+
+	--Equip limit
+	local e1=Effect.CreateEffect(c)
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_EQUIP_LIMIT)
+	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
+	e1:SetValue(s.eqlimit)
+	c:RegisterEffect(e1)
+
+	--During damage calculation only, opponent monster loses 500 ATK
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	e2:SetCode(EVENT_PRE_DAMAGE_CALCULATE)
+	e2:SetRange(LOCATION_SZONE)
+	e2:SetOperation(s.atkop)
+	c:RegisterEffect(e2)
+
+	--Quick: send this; change 1 opponent face-up monster to DEF
+	local e3=Effect.CreateEffect(c)
+	e3:SetDescription(aux.Stringid(id,0))
+	e3:SetType(EFFECT_TYPE_QUICK_O)
+	e3:SetCode(EVENT_FREE_CHAIN)
+	e3:SetProperty(EFFECT_FLAG_CARD_TARGET)
+	e3:SetRange(LOCATION_SZONE)
+	e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
+	e3:SetCountLimit(1,id)
+	e3:SetCost(s.cost)
+	e3:SetTarget(s.postg)
+	e3:SetOperation(s.posop)
+	c:RegisterEffect(e3)
+end
+
+s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
+
+function s.eqlimit(e,c)
+	return c:IsSetCard(SET_BLACK_SAINT)
+end
+
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local ec=e:GetHandler():GetEquipTarget()
+	if not ec then return end
+	local a=Duel.GetAttacker()
+	local d=Duel.GetAttackTarget()
+	local tc=(a==ec) and d or (d==ec and a or nil)
+	if not tc or not tc:IsFaceup() then return end
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_SINGLE)
+	e1:SetCode(EFFECT_UPDATE_ATTACK)
+	e1:SetValue(-500)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_DAMAGE_CAL)
+	tc:RegisterEffect(e1)
+end
+
+function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return e:GetHandler():IsAbleToGraveAsCost() end
+	Duel.SendtoGrave(e:GetHandler(),REASON_COST)
+end
+function s.posfilter(c)
+	return c:IsFaceup() and c:IsMonster() and c:IsCanChangePosition()
+end
+function s.postg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
+	if chkc then return chkc:IsControler(1-tp) and chkc:IsLocation(LOCATION_MZONE) and s.posfilter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(s.posfilter,tp,0,LOCATION_MZONE,1,nil) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_POSITION)
+	Duel.SelectTarget(tp,s.posfilter,tp,0,LOCATION_MZONE,1,1,nil)
+end
+function s.posop(e,tp,eg,ep,ev,re,r,rp)
+	local tc=Duel.GetFirstTarget()
+	if tc and tc:IsRelateToEffect(e) then
+		Duel.ChangePosition(tc,POS_FACEUP_DEFENSE)
+	end
 end

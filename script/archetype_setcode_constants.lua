@@ -610,6 +610,9 @@ SET_GOLD_CLOTH                    = 0x1dc
 SET_ENVOY_OF_THE_POPE             = 0x1dd
 SET_POPES_MANDATE                 = 0x1de
 SET_GHOST_SAINT                   = 0x1df
+SET_STEEL_SAINT                   = 0x1e0
+SET_BLACK_SAINT                   = 0x1e1
+SET_FRAGMENT_OF_SAGITTARIUS       = 0x1e2
 
 -- Pokemon Archetypes
 SET_AGUA                     = 0x3000

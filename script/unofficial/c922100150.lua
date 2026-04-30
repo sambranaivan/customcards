@@ -20,4 +20,73 @@
 --Black Saint - Dark Pegasus
 local s,id=GetID()
 function s.initial_effect(c)
+	--Special Summon from hand if you control a Black Saint
+	local e0=Effect.CreateEffect(c)
+	e0:SetType(EFFECT_TYPE_FIELD)
+	e0:SetCode(EFFECT_SPSUMMON_PROC)
+	e0:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+	e0:SetRange(LOCATION_HAND)
+	e0:SetCondition(s.spcon)
+	c:RegisterEffect(e0)
+
+	--Equip 1 Fragment from hand or GY
+	local e1=Effect.CreateEffect(c)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_EQUIP)
+	e1:SetType(EFFECT_TYPE_IGNITION)
+	e1:SetRange(LOCATION_MZONE)
+	e1:SetCountLimit(1,id)
+	e1:SetTarget(s.eqtg)
+	e1:SetOperation(s.eqop)
+	c:RegisterEffect(e1)
+
+	--On attack while equipped with Fragment: opponent cannot activate until end of Damage Step
+	local e2=Effect.CreateEffect(c)
+	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e2:SetCode(EVENT_ATTACK_ANNOUNCE)
+	e2:SetCondition(s.atkcon)
+	e2:SetOperation(s.atkop)
+	c:RegisterEffect(e2)
+end
+
+s.listed_series={SET_BLACK_SAINT,SET_FRAGMENT_OF_SAGITTARIUS,SET_SAINT}
+
+function s.spcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
+		and Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsSetCard,SET_BLACK_SAINT),tp,LOCATION_MZONE,0,1,nil)
+end
+
+function s.eqfilter(c)
+	return c:IsType(TYPE_EQUIP) and c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and c:IsAbleToChangeControler()
+end
+function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
+end
+function s.eqop(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or not c:IsFaceup() then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
+	local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil)
+	local tc=g:GetFirst()
+	if tc then
+		Duel.Equip(tp,tc,c)
+	end
+end
+
+function s.atkcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():GetEquipGroup():IsExists(Card.IsSetCard,1,nil,SET_FRAGMENT_OF_SAGITTARIUS)
+end
+function s.atkop(e,tp,eg,ep,ev,re,r,rp)
+	local e1=Effect.CreateEffect(e:GetHandler())
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e1:SetCode(EFFECT_CANNOT_ACTIVATE)
+	e1:SetTargetRange(0,1)
+	e1:SetValue(1)
+	e1:SetReset(RESET_PHASE+PHASE_DAMAGE)
+	Duel.RegisterEffect(e1,tp)
 end

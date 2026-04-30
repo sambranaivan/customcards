@@ -25,8 +25,8 @@ QUALITY = "low"
 N = 1
 
 # Reasoning step (prompt optimizer)
-REASONING_MODEL = "gpt-5.5"
-REASONING_EFFORT = "high"  # typical values: low | medium | high (model-dependent)
+REASONING_MODEL = "gpt-5.4-mini"
+REASONING_EFFORT = "low"  # typical values: low | medium | high (model-dependent)
 
 
 @dataclass(frozen=True)
@@ -118,7 +118,8 @@ def _extract_responses_output_text(resp: dict) -> str:
 
 def _improve_prompt_with_reasoning(*, api_key: str, idea: str, timeout_s: int = 120) -> str:
     instruction = f"""
-Convert this idea into a final prompt for image generation Saint seiya Lore accurated.
+Use web search to confirm/refresh canon visual details (colors, armor version, setting, key motifs)
+for Saint Seiya-related subjects when needed, then convert this idea into a final prompt for image generation.
 
 Requirements:
 - TCG art Style
@@ -139,6 +140,7 @@ Idea:
     payload = {
         "model": REASONING_MODEL,
         "reasoning": {"effort": REASONING_EFFORT},
+        "tools": [{"type": "web_search_preview"}],
         "input": instruction,
     }
     resp = _post_json(OPENAI_RESPONSES_URL, payload, api_key=api_key, timeout_s=timeout_s)

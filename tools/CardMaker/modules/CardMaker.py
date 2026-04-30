@@ -1,6 +1,6 @@
 from _config import *
 from Creator import *
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFont
 import os
 import re
 import random
@@ -65,13 +65,21 @@ class DrawLevelImage():
         level_image = "Level-Blue.png"
     elif lvlcolor == "green":
         level_image = "Level-Green.png"
+    elif lvlcolor == "black":
+        level_image = "Level-black.png"
+    else:
+        # Sensible default: XYZ uses black levels; others use red.
+        level_image = "Level-black.png" if card == "XYZ" else "Level-Red.png"
 
-    level_file = Image.open(souce_path + path_lvl + level_image)
-    lvl_img = level_file.resize((25,25),Image.ANTIALIAS)
-    for i in range(Level):
-        area_x = area_x - 27
-        area = area_x, area_y
-        image_with_text.paste(lvl_img, area)
+    level_file = Image.open(souce_path + path_lvl + level_image).convert("RGBA")
+    lvl_img = level_file.resize((25, 25), getattr(Image, "Resampling", Image).LANCZOS)
+
+    # IMPORTANT: don't mutate the global `area_x` across cards; it causes drift.
+    start_x = 380
+    start_y = 76
+    for i in range(int(Level or 0)):
+        x = start_x - (27 * (i + 1))
+        image_with_text.paste(lvl_img, (x, start_y), lvl_img)
 
 class DrawImageCard():
     global image_with_text1
@@ -104,6 +112,91 @@ class DrawImageCard():
 
 class DrawText():
     print("Final font size: ",fontsize)
+
+    def _font_line_height(font: ImageFont.FreeTypeFont) -> int:
+        # Use a stable representative bbox for line height.
+        bbox = font.getbbox("Ag")
+        return max(1, bbox[3] - bbox[1])
+
+    def _text_width(font: ImageFont.FreeTypeFont, text: str) -> float:
+        # Pillow >=8 has getlength; fallback to bbox width.
+        if hasattr(font, "getlength"):
+            return float(font.getlength(text))
+        bbox = font.getbbox(text)
+        return float(bbox[2] - bbox[0])
+
+    def _wrap_text_to_width(text: str, font: ImageFont.FreeTypeFont, max_width: int) -> str:
+        # Preserve explicit newlines; wrap each paragraph independently.
+        paragraphs = (text or "").split("\n")
+        wrapped_paragraphs: list[str] = []
+
+        for para in paragraphs:
+            words = re.split(r"\s+", para.strip()) if para.strip() else [""]
+            lines: list[str] = []
+            current = ""
+
+            for w in words:
+                if not w:
+                    continue
+                candidate = w if not current else f"{current} {w}"
+                if _text_width(font, candidate) <= max_width:
+                    current = candidate
+                    continue
+
+                if current:
+                    lines.append(current)
+                    current = w
+                else:
+                    # Single token too wide; hard-split.
+                    token = w
+                    chunk = ""
+                    for ch in token:
+                        cand = chunk + ch
+                        if _text_width(font, cand) <= max_width or not chunk:
+                            chunk = cand
+                        else:
+                            lines.append(chunk)
+                            chunk = ch
+                    if chunk:
+                        current = chunk
+
+            if current or not lines:
+                lines.append(current)
+
+            wrapped_paragraphs.append("\n".join(lines))
+
+        return "\n".join(wrapped_paragraphs)
+
+    def _fit_font_to_width(font_path: str, text: str, max_width: int, max_size: int, min_size: int) -> ImageFont.FreeTypeFont:
+        for size in range(int(max_size), int(min_size) - 1, -1):
+            f = ImageFont.truetype(font_path, size)
+            if _text_width(f, text) <= max_width:
+                return f
+        return ImageFont.truetype(font_path, int(min_size))
+
+    def _fit_wrapped_text(font_path: str, text: str, max_width: int, max_height: int, max_size: int, min_size: int):
+        for size in range(int(max_size), int(min_size) - 1, -1):
+            f = ImageFont.truetype(font_path, size)
+            wrapped = _wrap_text_to_width(text, f, max_width)
+            lines = wrapped.split("\n") if wrapped else [""]
+            line_h = _font_line_height(f)
+            total_h = (len(lines) * line_h)
+            if total_h <= max_height:
+                return wrapped, f
+        f = ImageFont.truetype(font_path, int(min_size))
+        return _wrap_text_to_width(text, f, max_width), f
+
+    # --- Title auto-fit (prevents overflow, esp. XYZ/Overlay names) ---
+    # Title should fit before the Attribute icon at x=355 and with a little padding.
+    _title_max_width = 355 - title_x - 8
+    TitleFont1 = _fit_font_to_width(TitleFont, Title, _title_max_width, max_size=48, min_size=28)
+
+    # --- Effect text wrap + auto-shrink (prevents overflow) ---
+    # Text box ends before ATK/DEF line.
+    _desc_max_width = (image_width - desc_x - 35) if "image_width" in globals() else 350
+    _desc_bottom_y = atk_y - 6
+    _desc_max_height = max(40, _desc_bottom_y - desc_y)
+    Description, DescFont1 = _fit_wrapped_text(DescFont, Description, _desc_max_width, _desc_max_height, max_size=17, min_size=10)
 
     if card == "XYZ":
         draw.text((title_x, title_y), Title, font=TitleFont1, fill=title_color_xyz, align=text_alignment)
