@@ -22,3 +22,6 @@
 *.exe
 \api_output\*
 \api_output\prompts\*
+README.md.txt
+cacert.pem
+README.md.txt
