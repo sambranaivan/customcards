@@ -17,3 +17,7 @@
 nvalid
 [2026-04-30 08:05:51] The repo https://github.com/ProjectIgnis/DeltaBagooska couldn't be cloned
 [2026-04-30 08:05:51] Error: the SSL certificate is invalid
+[2026-04-30 08:17:37] Warning occurred in repo https://github.com/ProjectIgnis/LFLists: the SSL certificate is invalid
+[2026-04-30 08:17:37] Exception occurred in repo https://github.com/ProjectIgnis/DeltaBagooska: the SSL certificate is invalid
+[2026-04-30 08:17:37] The repo https://github.com/ProjectIgnis/DeltaBagooska couldn't be cloned
+[2026-04-30 08:17:37] Error: the SSL certificate is invalid
