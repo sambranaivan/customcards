@@ -154,6 +154,12 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=5)
     ap.add_argument("--offset", type=int, default=0)
     ap.add_argument(
+        "--start-card-id",
+        type=int,
+        default=None,
+        help="Export cards with card_id >= this value (overrides --offset)",
+    )
+    ap.add_argument(
         "--only-missing",
         action="store_true",
         help="Only export cards whose resolved lua file does not exist on disk",
@@ -162,8 +168,17 @@ def main() -> None:
 
     con = sqlite3.connect(args.db)
     cur = con.cursor()
+
+    where_sql = ""
+    params: list[object] = []
+    if args.start_card_id is not None:
+        where_sql = "WHERE card_id >= ?"
+        params.append(args.start_card_id)
+        # When starting from a specific card_id, OFFSET doesn't make much sense.
+        args.offset = 0
+
     cur.execute(
-        """
+        f"""
         SELECT
           card_id,
           name_en,
@@ -185,10 +200,11 @@ def main() -> None:
           lua_path,
           lua_text
         FROM cards
+        {where_sql}
         ORDER BY card_id
         LIMIT ? OFFSET ?
         """,
-        (args.limit, args.offset),
+        (*params, args.limit, args.offset),
     )
 
     exported = 0
