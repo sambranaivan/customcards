@@ -59,7 +59,7 @@ function s.initial_effect(c)
 	--If equipped monster is Ichi and it attacks directly: opponent cannot activate GY effects this turn
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
-	e4:SetCode(EVENT_DIRECT_ATTACK)
+	e4:SetCode(EVENT_ATTACK_ANNOUNCE)
 	e4:SetRange(LOCATION_SZONE)
 	e4:SetCountLimit(1,{id,2})
 	e4:SetCondition(s.gylockcon)
@@ -131,7 +131,7 @@ end
 
 function s.gylockcon(e,tp,eg,ep,ev,re,r,rp)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100006) and Duel.GetAttacker()==ec
+	return ec and ec:IsCode(922100006) and Duel.GetAttacker()==ec and Duel.GetAttackTarget()==nil
 end
 function s.gylockop(e,tp,eg,ep,ev,re,r,rp)
 	local e1=Effect.CreateEffect(e:GetHandler())
