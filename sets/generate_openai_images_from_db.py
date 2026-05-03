@@ -1,4 +1,5 @@
 import base64
+import argparse
 import json
 import os
 import sqlite3
@@ -26,13 +27,14 @@ N = 1
 
 # Reasoning step (prompt optimizer)
 REASONING_MODEL = "gpt-5.4-mini"
-REASONING_EFFORT = "low"  # typical values: low | medium | high (model-dependent)
+DEFAULT_THINKING = "low"  # low | medium | high | off
+DEFAULT_WEBSEARCH = True
 
 
 @dataclass(frozen=True)
 class Card:
     card_id: int
-    image_prompt: str
+    name: str
 
 
 def _get_api_key() -> str:
@@ -46,13 +48,15 @@ def _fetch_cards(conn: sqlite3.Connection) -> list[Card]:
     conn.row_factory = sqlite3.Row
     rows = conn.execute(
         """
-        SELECT card_id, image_prompt
+        SELECT
+          card_id,
+          COALESCE(NULLIF(TRIM(name_es), ''), NULLIF(TRIM(name_en), ''), '') AS name
         FROM cards
-        WHERE image_prompt IS NOT NULL AND trim(image_prompt) <> ''
+        WHERE COALESCE(NULLIF(TRIM(name_es), ''), NULLIF(TRIM(name_en), ''), '') <> ''
         ORDER BY card_id
         """
     ).fetchall()
-    return [Card(card_id=int(r["card_id"]), image_prompt=str(r["image_prompt"])) for r in rows]
+    return [Card(card_id=int(r["card_id"]), name=str(r["name"])) for r in rows]
 
 
 def _post_json(url: str, payload: dict, *, api_key: str, timeout_s: int = 120) -> dict:
@@ -116,7 +120,14 @@ def _extract_responses_output_text(resp: dict) -> str:
     return "\n".join(chunks).strip()
 
 
-def _improve_prompt_with_reasoning(*, api_key: str, idea: str, timeout_s: int = 120) -> str:
+def _improve_prompt_with_reasoning(
+    *,
+    api_key: str,
+    idea: str,
+    thinking: str,
+    websearch: bool,
+    timeout_s: int = 120,
+) -> str:
     instruction = f"""
 Use web search to confirm/refresh canon visual details (colors, armor version, setting, key motifs)
 for Saint Seiya-related subjects when needed, then convert this idea into a final prompt for image generation.
@@ -137,12 +148,13 @@ Idea:
 {idea}
 """.strip()
 
-    payload = {
+    payload: dict = {
         "model": REASONING_MODEL,
-        "reasoning": {"effort": REASONING_EFFORT},
-        "tools": [{"type": "web_search_preview"}],
+        "reasoning": {"effort": thinking},
         "input": instruction,
     }
+    if websearch:
+        payload["tools"] = [{"type": "web_search_preview"}]
     resp = _post_json(OPENAI_RESPONSES_URL, payload, api_key=api_key, timeout_s=timeout_s)
     out = _extract_responses_output_text(resp)
     return out.strip()
@@ -156,6 +168,30 @@ def _write_text_atomic(path: Path, text: str) -> None:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Generate images from cards.name_es/name_en using a reasoning step (optional) + OpenAI Images API."
+    )
+    parser.add_argument(
+        "--websearch",
+        dest="websearch",
+        action="store_true",
+        default=DEFAULT_WEBSEARCH,
+        help="Enable web search tool in the reasoning step (default).",
+    )
+    parser.add_argument(
+        "--no-websearch",
+        dest="websearch",
+        action="store_false",
+        help="Disable web search tool in the reasoning step.",
+    )
+    parser.add_argument(
+        "--thinking",
+        choices=["off", "low", "medium", "high"],
+        default=DEFAULT_THINKING,
+        help="Reasoning effort for the prompt-optimizer model. Use 'off' to skip the reasoning step entirely.",
+    )
+    args = parser.parse_args()
+
     api_key = _get_api_key()
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     PROMPTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -168,7 +204,7 @@ def main() -> None:
 
     total = len(cards)
     if total == 0:
-        print("No cards with image_prompt found.")
+        print("No cards with name_es/name_en found.")
         return
 
     generated = 0
@@ -181,16 +217,6 @@ def main() -> None:
 
         if out_path.exists():
             skipped_existing += 1
-            # Still ensure we have a reasoning-optimized prompt cached, for reproducibility.
-            if not prompt_path.exists():
-                try:
-                    final_prompt = _improve_prompt_with_reasoning(api_key=api_key, idea=card.image_prompt)
-                    if final_prompt:
-                        _write_text_atomic(prompt_path, final_prompt)
-                        print(f"[{idx}/{total}] PROMPT card_id={card.card_id} -> {prompt_path}")
-                except Exception as e:
-                    errors += 1
-                    print(f"[{idx}/{total}] ERR  card_id={card.card_id} prompt_cache err={e}")
             print(
                 f"[{idx}/{total}] SKIP card_id={card.card_id} (exists) | "
                 f"generated={generated} skipped_existing={skipped_existing} errors={errors}"
@@ -199,47 +225,59 @@ def main() -> None:
 
         # Step 1: reasoning model rewrites/optimizes the prompt.
         final_prompt = ""
-        if prompt_path.exists():
-            final_prompt = prompt_path.read_text(encoding="utf-8").strip()
+        if args.thinking == "off":
+            card_name = card.name.strip()
+            final_prompt = (
+                f"TCG art style, {card_name} from Saint Seiya, ratio 1:1, "
+                "no text, no artifacts, no frames"
+            )
+        else:
+            if prompt_path.exists():
+                final_prompt = prompt_path.read_text(encoding="utf-8").strip()
 
-        if not final_prompt:
-            for attempt in range(1, 4):
-                try:
-                    final_prompt = _improve_prompt_with_reasoning(api_key=api_key, idea=card.image_prompt)
-                    if not final_prompt:
-                        raise RuntimeError("Empty prompt from reasoning step")
-                    _write_text_atomic(prompt_path, final_prompt)
-                    print(f"[{idx}/{total}] PROMPT card_id={card.card_id} -> {prompt_path}")
-                    break
-                except urllib.error.HTTPError as e:
-                    status = getattr(e, "code", None)
-                    err_body = getattr(e, "_body_text", "") or ""
-                    # For reasoning, fail fast on auth/config issues.
-                    if attempt == 3 or status not in (408, 409, 429, 500, 502, 503, 504):
-                        errors += 1
-                        print(
-                            f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_status={status} "
-                            f"attempt={attempt} body={err_body[:400]}"
+            if not final_prompt:
+                for attempt in range(1, 4):
+                    try:
+                        final_prompt = _improve_prompt_with_reasoning(
+                            api_key=api_key,
+                            idea=card.name,
+                            thinking=args.thinking,
+                            websearch=args.websearch,
                         )
-                        final_prompt = ""
+                        if not final_prompt:
+                            raise RuntimeError("Empty prompt from reasoning step")
+                        _write_text_atomic(prompt_path, final_prompt)
+                        print(f"[{idx}/{total}] PROMPT card_id={card.card_id} -> {prompt_path}")
                         break
-                    sleep_s = min(20, 2**attempt)
-                    print(
-                        f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_status={status} "
-                        f"attempt={attempt} sleep={sleep_s}s"
-                    )
-                    time.sleep(sleep_s)
-                except Exception as e:
-                    if attempt == 3:
-                        errors += 1
-                        print(f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_attempt={attempt} err={e}")
-                        final_prompt = ""
-                        break
-                    sleep_s = min(20, 2**attempt)
-                    print(
-                        f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_attempt={attempt} err={e} sleep={sleep_s}s"
-                    )
-                    time.sleep(sleep_s)
+                    except urllib.error.HTTPError as e:
+                        status = getattr(e, "code", None)
+                        err_body = getattr(e, "_body_text", "") or ""
+                        # For reasoning, fail fast on auth/config issues.
+                        if attempt == 3 or status not in (408, 409, 429, 500, 502, 503, 504):
+                            errors += 1
+                            print(
+                                f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_status={status} "
+                                f"attempt={attempt} body={err_body[:400]}"
+                            )
+                            final_prompt = ""
+                            break
+                        sleep_s = min(20, 2**attempt)
+                        print(
+                            f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_status={status} "
+                            f"attempt={attempt} sleep={sleep_s}s"
+                        )
+                        time.sleep(sleep_s)
+                    except Exception as e:
+                        if attempt == 3:
+                            errors += 1
+                            print(f"[{idx}/{total}] ERR  card_id={card.card_id} reasoning_attempt={attempt} err={e}")
+                            final_prompt = ""
+                            break
+                        sleep_s = min(20, 2**attempt)
+                        print(
+                            f"[{idx}/{total}] RETRY card_id={card.card_id} reasoning_attempt={attempt} err={e} sleep={sleep_s}s"
+                        )
+                        time.sleep(sleep_s)
 
         if not final_prompt:
             # If reasoning fails, do not generate an image to avoid wasting calls with a bad prompt.

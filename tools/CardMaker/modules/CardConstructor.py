@@ -183,6 +183,46 @@ class CardConstructor:
                return f
          return ImageFont.truetype(font_path, int(min_size))
 
+      def _render_shrunk_title(text: str, font: ImageFont.FreeTypeFont, color: str, max_width: int, max_height: int):
+         """
+         Render a 1-line title at full font size, then shrink non-uniformly (X/Y) to fit the
+         nameband without cropping. This avoids making long names tiny just by reducing font size.
+         Returns (img, (w,h)) where img is RGBA with text and size is its dimensions.
+         """
+         if not text:
+            blank = Image.new("RGBA", (1, 1), (255, 255, 255, 0))
+            return blank, (1, 1)
+
+         # Render onto a generous canvas, then crop to content bbox.
+         pad = max(4, int(font.size * 0.2))
+         tmp_w = max_width + (pad * 4)
+         tmp_h = max_height + (pad * 6)
+         layer = Image.new("RGBA", (tmp_w, tmp_h), (255, 255, 255, 0))
+         d = ImageDraw.Draw(layer)
+         d.text((pad, pad), text, font=font, fill=color)
+         bbox = layer.getbbox()
+         if not bbox:
+            blank = Image.new("RGBA", (1, 1), (255, 255, 255, 0))
+            return blank, (1, 1)
+         cropped = layer.crop(bbox)
+         cw, ch = cropped.size
+
+         # Compute non-uniform shrink factors (never upscale; only shrink to fit).
+         sx = min(1.0, max_width / max(1, cw))
+         sy = min(1.0, max_height / max(1, ch))
+
+         # Avoid absurd over-condensing; beyond this, fall back to font size reduction.
+         # User preference: keep 1 line and shrink X/Y instead of wrapping.
+         min_sx = 0.35
+         min_sy = 0.60
+         if sx < min_sx or sy < min_sy:
+            return None, (0, 0)
+
+         new_w = max(1, int(round(cw * sx)))
+         new_h = max(1, int(round(ch * sy)))
+         resized = cropped.resize((new_w, new_h), getattr(Image, "Resampling", Image).LANCZOS)
+         return resized, (new_w, new_h)
+
       def _fit_wrapped_text(font_path: str, text: str, max_width: int, max_height: int, max_size: int, min_size: int):
          for size in range(int(max_size), int(min_size) - 1, -1):
             f = ImageFont.truetype(font_path, size)
@@ -198,45 +238,43 @@ class CardConstructor:
       title_font_path = self.config['text']['titleFont']
       desc_font_path = self.config['text']['DescFont']
       title_x, title_y = self.config['text']['title_xy']
-      desc_x, desc_y = self.config['text']['desc_xy']
+      desc_x, desc_y_default = self.config['text']['desc_xy']
+      type_x, type_y = self.config['text']['type_xy']
       atk_x, atk_y = self.config['text']['atk_xy']
       scale = int(self.config.get('scale') or 1)
+      is_spell_trap = self.json_card.get('card') in ("SPELL", "TRAP")
 
       # Pillow adds extra spacing between multiline lines by default; keep it tight.
-      DESC_LINE_SPACING = max(1, int(self.config['scale']))
+      DESC_LINE_SPACING = max(1, scale // 2)
 
       # Title: fit into the title box (stops before attribute icon at x=355).
       # NOTE: 355 and padding were authored at 1x; scale them up for hi-res rendering.
       title_max_width = (355 * scale) - title_x - (8 * scale)
-      title_text = self.json_card.get('Title', '')
-      TitleFont = _fit_font_to_width(
-         title_font_path,
-         title_text,
-         title_max_width,
-         max_size=self.config['text']['fontsize48'],
-         min_size=int(18 * self.config['scale']),
-      )
+      title_text = (self.json_card.get('Title', '') or "").strip()
 
-      # If even the minimum font size doesn't fit, truncate with ellipsis.
-      if _text_width(TitleFont, title_text) > title_max_width and title_text:
-         ell = "..."
-         lo, hi = 0, len(title_text)
-         while lo < hi:
-            mid = (lo + hi) // 2
-            cand = title_text[:mid].rstrip() + ell
-            if _text_width(TitleFont, cand) <= title_max_width:
-               lo = mid + 1
-            else:
-               hi = mid
-         cut = max(0, lo - 1)
-         title_text = title_text[:cut].rstrip() + ell
+      # Title band height depends on template; for monsters with Level/Rank row, don't let the
+      # title collide with the star row.
+      level_row_y = int(self.config['areas']['level_area'][1])
+      inferred_title_band_height = max(20 * scale, (level_row_y - (6 * scale)) - title_y)
+      title_box_height = min(44 * scale, inferred_title_band_height) if not is_spell_trap else (44 * scale)
+
+      # Use max font size, then shrink non-uniformly if needed to fit.
+      TitleFont = ImageFont.truetype(title_font_path, self.config['text']['fontsize48'])
 
       ATKDEFFont                 = ImageFont.truetype(self.config['text']['titleFont'], self.config['text']['fontsize23'])
       AttrFont                   = ImageFont.truetype(self.config['text']['AttrFont'], self.config['text']['fontsize15'])
 
+      # For Spell/Trap, the textbox no longer has a [TYPE] label line, so start effect higher.
+      desc_y = type_y if is_spell_trap else desc_y_default
+
       # Description: wrap and shrink to fit the effect box above ATK/DEF.
       desc_max_width = self.source_card1.size[0] - desc_x - (35 * scale)
-      desc_max_height = max(40 * scale, (atk_y - (6 * scale)) - desc_y)
+      if is_spell_trap:
+         # Spell/Trap templates have no ATK/DEF line; the textbox extends lower.
+         desc_bottom_y = (614 * scale) - (36 * scale)
+      else:
+         desc_bottom_y = atk_y - (6 * scale)
+      desc_max_height = max(40 * scale, desc_bottom_y - desc_y)
 
       # Some DB texts (esp. XYZ/Overlay) contain hard newlines; treat them as spaces so the
       # text can fully utilize the box width before wrapping.
@@ -258,21 +296,72 @@ class CardConstructor:
          desc_max_width,
          desc_max_height,
          max_size=self.config['text']['fontsize12'],
-         min_size=int(10 * self.config['scale']),
+         min_size=int(7 * scale),
       )
       
-      if self.json_card['card'] == "XYZ":
-         self.draw.text((self.config['text']['title_xy']), title_text, font=TitleFont, fill=self.config['text']['title_color_xyz'], align=self.config['text']['text_alignment']) 
-         sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Title")     
-      else:
-         self.draw.text((self.config['text']['title_xy']), title_text, font=TitleFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
-         sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Title")
+      title_color = self.config['text']['title_color_xyz'] if self.json_card['card'] == "XYZ" else self.config['text']['title_color']
 
-      self.draw.text((self.config['text']['atk_xy']), self.json_card['Atk'], font=ATKDEFFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
-      self.draw.text((self.config['text']['def_xy']), self.json_card['Def'], font=ATKDEFFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
-      sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering ATK/DEF")
-      self.draw.text((self.config['text']['type_xy']), "[" + self.json_card['Type'] + "]", font=AttrFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
-      sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Type")
+      title_img, (tw, th) = _render_shrunk_title(title_text, TitleFont, title_color, title_max_width, title_box_height)
+      if title_img is None:
+         # Fallback: reduce font size if shrink would be too extreme.
+         TitleFont = _fit_font_to_width(
+            title_font_path,
+            title_text,
+            title_max_width,
+            max_size=self.config['text']['fontsize48'],
+            min_size=int(18 * scale),
+         )
+         title_img, (tw, th) = _render_shrunk_title(title_text, TitleFont, title_color, title_max_width, title_box_height)
+
+      title_y_draw = title_y + max(0, (title_box_height - th) // 2)
+      self.source_card1.paste(title_img, (title_x, title_y_draw), title_img)
+      sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Title")
+
+      if not is_spell_trap:
+         self.draw.text((self.config['text']['atk_xy']), self.json_card['Atk'], font=ATKDEFFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+         self.draw.text((self.config['text']['def_xy']), self.json_card['Def'], font=ATKDEFFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+         sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering ATK/DEF")
+      if is_spell_trap:
+         # Official Spell/Trap header label, e.g. [Spell Card (icon)] / [Trap Card (icon)]
+         st_x = 275 * scale
+         st_y = 77 * scale
+         st_type = (self.json_card.get("Type") or "").lower()
+         icon_name = None
+         # Map common sub-types to available symbol icons.
+         if "quick" in st_type or "quick-play" in st_type:
+            icon_name = "Quick-Play.png"
+         elif "continuous" in st_type:
+            icon_name = "Continuous.png"
+         elif "equip" in st_type:
+            icon_name = "Equip.png"
+         elif "field" in st_type:
+            icon_name = "Field.png"
+         elif "ritual" in st_type:
+            icon_name = "Ritual.png"
+         elif self.json_card.get("card") == "TRAP" and "counter" in st_type:
+            icon_name = "Counter.png"
+
+         if icon_name:
+            sym_path = self.config['source_path'] + "symbols/" + icon_name
+            sym = Image.open(sym_path).convert("RGBA")
+            sym = sym.resize((17 * scale, 17 * scale), getattr(Image, "Resampling", Image).LANCZOS)
+            base = "[Spell Card" if self.json_card.get("card") == "SPELL" else "[Trap Card"
+            # draw base text (without closing bracket)
+            self.draw.text((st_x, st_y), base, font=AttrFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+            space_w = _text_width(AttrFont, " ")
+            base_w = _text_width(AttrFont, base)
+            icon_x = int(st_x + base_w + space_w)
+            icon_y = int(st_y + (1 * scale))
+            self.source_card1.paste(sym, (icon_x, icon_y), sym)
+            close_x = int(icon_x + (17 * scale) + space_w)
+            self.draw.text((close_x, st_y), "]", font=AttrFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+         else:
+            label = "[Spell Card]" if self.json_card.get("card") == "SPELL" else "[Trap Card]"
+            self.draw.text((st_x, st_y), label, font=AttrFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+         sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Type")
+      else:
+         self.draw.text((self.config['text']['type_xy']), "[" + self.json_card['Type'] + "]", font=AttrFont, fill=self.config['text']['title_color'], align=self.config['text']['text_alignment'])
+         sleeper(self.image, self.json_card['Title'],self.source_card1,"Rendering Type")
       def _draw_justified_text(xy, text, font, fill, max_width, line_spacing, skip_first_line=False):
          x0, y0 = xy
          y = y0
@@ -309,7 +398,7 @@ class CardConstructor:
             y += line_h + line_spacing
 
       _draw_justified_text(
-         self.config['text']['desc_xy'],
+         (desc_x, desc_y),
          wrapped_desc,
          DescFont,
          self.config['text']['title_color'],
