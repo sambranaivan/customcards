@@ -3,6 +3,8 @@ Read sets/sets.sqlite3 and render Yu-Gi-Oh! card images with tools/CardMaker.
 
 Artwork: repo api_output/{card_id}.png if present; otherwise a blank white
 512x512 placeholder (_blank.png) in CardMaker img/cardimages/.
+
+CLI: full run, or --card-id ID for a single card (always overwrites output).
 """
 
 from __future__ import annotations
@@ -131,9 +133,8 @@ def _expected_output_filename(title: str) -> str:
     return _title_sanitize.sub("", title).replace(" ", "_") + ".png"
 
 
-def _fetch_cards(conn: sqlite3.Connection) -> list[CardRow]:
-    rows = conn.execute(
-        """
+def _fetch_cards(conn: sqlite3.Connection, card_id: Optional[int] = None) -> list[CardRow]:
+    base_sql = """
         SELECT
           card_id,
           COALESCE(name_en, '') AS name_en,
@@ -145,9 +146,11 @@ def _fetch_cards(conn: sqlite3.Connection) -> list[CardRow]:
           atk, def,
           effect_text_en
         FROM cards
-        ORDER BY card_id
-        """
-    ).fetchall()
+    """
+    if card_id is not None:
+        rows = conn.execute(base_sql + " WHERE card_id = ? ORDER BY card_id", (card_id,)).fetchall()
+    else:
+        rows = conn.execute(base_sql + " ORDER BY card_id").fetchall()
 
     out: list[CardRow] = []
     for (
@@ -192,6 +195,13 @@ def main() -> None:
         action="store_true",
         help="Regenerate outputs even if sets/cardmaker_output/{id}.png exists.",
     )
+    parser.add_argument(
+        "--card-id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Process only this card_id (always regenerates that file). Ignores bulk skip logic.",
+    )
     args = parser.parse_args()
 
     if not DB_PATH.is_file():
@@ -202,8 +212,11 @@ def main() -> None:
     _ensure_default_art()
 
     conn = sqlite3.connect(DB_PATH)
-    cards = _fetch_cards(conn)
+    cards = _fetch_cards(conn, card_id=args.card_id)
     conn.close()
+
+    if args.card_id is not None and not cards:
+        raise SystemExit(f"No card with card_id={args.card_id} in {DB_PATH}")
 
     os.chdir(CARDMAKER_DIR)
     if str(CARDMAKER_DIR) not in sys.path:
@@ -217,9 +230,11 @@ def main() -> None:
     used_api = 0
     used_blank = 0
 
+    force_one = args.card_id is not None
+
     for row in cards:
         out_path = OUT_DIR / f"{row.card_id}.png"
-        if out_path.exists() and not args.regenerate:
+        if out_path.exists() and not args.regenerate and not force_one:
             skipped_existing += 1
             continue
 
