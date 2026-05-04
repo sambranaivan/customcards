@@ -13,6 +13,7 @@ SETS_DB = ROOT / "sets" / "sets.sqlite3"
 # Low-16 setcode constants from script/archetype_setcode_constants.lua
 SETCODE_BY_TAG: dict[str, int] = {
     "saint": 0x1D7,
+    "Saint": 0x1D7,
     "saint-seiya": 0x1D7,  # umbrella
     "cloth": 0x1D8,
     "Bronze Saint": 0x1D9,
@@ -67,8 +68,10 @@ def parse_lua_archetypes(path: Path) -> tuple[int, list[str]] | None:
 
     arch: list[str] = []
     in_arch = False
+    saw_archetypes_header = False
     for line in txt.splitlines():
         if re.match(r"^--\s*Archetypes\s*:\s*$", line):
+            saw_archetypes_header = True
             in_arch = True
             continue
         if in_arch:
@@ -78,6 +81,8 @@ def parse_lua_archetypes(path: Path) -> tuple[int, list[str]] | None:
             if mm:
                 arch.append(mm.group(1))
 
+    if not saw_archetypes_header:
+        return None
     return cid, arch
 
 
@@ -115,6 +120,9 @@ def main() -> None:
         segs = desired_setcode_segments(tags)
         if segs:
             wanted[cid] = (tags, segs)
+        elif not tags:
+            # Explicit `-- Archetypes:` with no `-- - …` lines → setcode 0 (e.g. civilian / non-series monster).
+            wanted[cid] = ([], [])
 
     # 1) Normalize expansions/saint-seiya.cdb datas.setcode
     con = sqlite3.connect(str(SAINT_SEIYA_CDB))
@@ -138,12 +146,13 @@ def main() -> None:
 
     con = sqlite3.connect(str(SETS_DB))
     cur = con.cursor()
-    updated = 0
-    for cid, (tags, _segs) in wanted.items():
-        row = cur.execute("SELECT archetypes_json FROM cards WHERE card_id=?", (cid,)).fetchone()
+    updated_arch = 0
+    updated_sc = 0
+    for cid, (tags, segs) in wanted.items():
+        row = cur.execute("SELECT archetypes_json, setcodes_json FROM cards WHERE card_id=?", (cid,)).fetchone()
         if not row:
             continue
-        aj = row[0]
+        aj, sj = row[0], row[1]
         try:
             arr = json.loads(aj) if aj else []
         except Exception:
@@ -153,20 +162,42 @@ def main() -> None:
         kept = {t for t in existing if t not in managed}
         new_arr = sorted(kept | set(tags))
 
-        if new_arr != arr:
+        want_sc = json.dumps(segs, ensure_ascii=False)
+        sc_changed = sj != want_sc
+        aj_changed = new_arr != arr
+        if sc_changed:
+            updated_sc += 1
+        if aj_changed:
+            updated_arch += 1
+        if sc_changed or aj_changed:
+            reason = "archetype+setcodes" if sc_changed and aj_changed else ("setcodes-json" if sc_changed else "archetype-fix")
+            notes = (
+                "setcodes from lua Archetypes map; archetypes_json from lua header."
+                if sc_changed and aj_changed
+                else (
+                    "Packed setcode segments from lua Archetypes + SETCODE_BY_TAG."
+                    if sc_changed
+                    else "Normalized archetypes_json to match lua Archetypes header."
+                )
+            )
             cur.execute(
-                "UPDATE cards SET archetypes_json=?, updated_reason=?, updated_notes=? WHERE card_id=?",
+                """
+                UPDATE cards SET archetypes_json=?, setcodes_json=?,
+                updated_ts=strftime('%Y-%m-%dT%H:%M:%fZ','now'), updated_reason=?, updated_notes=?
+                WHERE card_id=?
+                """,
                 (
                     json.dumps(new_arr, ensure_ascii=False),
-                    "archetype-fix",
-                    "Normalized archetypes_json to match lua Archetypes header.",
+                    want_sc,
+                    reason,
+                    notes,
                     cid,
                 ),
             )
-            updated += 1
     con.commit()
     con.close()
-    print("sets.sqlite3 archetypes_json normalized updated", updated)
+    print("sets.sqlite3 setcodes_json rows updated", updated_sc)
+    print("sets.sqlite3 archetypes_json normalized updated", updated_arch)
 
 
 if __name__ == "__main__":

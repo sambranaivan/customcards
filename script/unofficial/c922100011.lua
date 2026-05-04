@@ -8,9 +8,7 @@
 -- ATK/DEF: 500/500
 --
 -- Archetypes:
--- - Bronze Saint
--- - saint
--- - saint-seiya
+-- (no archetype setcode — not a "Saint" or "Bronze Saint" monster; supports allies via card text.)
 --
 -- Effect (EN):
 -- (Quick Effect): You can discard this card, then target 1 "Saint" monster you control; equip 1 "Cloth" Equip Spell from your Deck or GY to that target.
@@ -55,7 +53,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e2)
 end
 
-s.listed_series={SET_SAINT,SET_BRONZE_SAINT,SET_CLOTH}
+s.listed_series={SET_SAINT, SET_CLOTH}
 
 function s.eqcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return e:GetHandler():IsDiscardable() end
