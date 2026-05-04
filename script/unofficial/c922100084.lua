@@ -78,7 +78,7 @@ function s.activate(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.silverclothfilter(c)
-	return c:IsType(TYPE_EQUIP) and c:IsSetCard(SET_CLOTH) and c:IsSetCard(SET_SILVER_SAINT) and c:IsAbleToHand()
+	return c:IsType(TYPE_EQUIP) and c:IsSetCard(SET_SILVER_CLOTH) and c:IsAbleToHand()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.silverclothfilter,tp,LOCATION_DECK,0,1,nil) end

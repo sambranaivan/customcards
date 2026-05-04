@@ -5,8 +5,7 @@
 --
 -- Archetypes:
 -- - cloth
--- - Gold Saint
--- - saint-seiya
+-- - Gold Cloth
 --
 -- Effect (EN):
 -- Equip only to a "Gold Saint" monster.
@@ -52,7 +51,6 @@ function s.initial_effect(c)
 end
 
 s.listed_series={SET_CLOTH,SET_GOLD_CLOTH,SET_GOLD_SAINT,SET_SAINT}
-
 function s.eqlimit(e,c)
 	return c:IsSetCard(SET_GOLD_SAINT)
 end

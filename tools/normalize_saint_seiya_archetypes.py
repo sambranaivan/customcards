@@ -16,6 +16,9 @@ SETCODE_BY_TAG: dict[str, int] = {
     "Saint": 0x1D7,
     "saint-seiya": 0x1D7,  # umbrella
     "cloth": 0x1D8,
+    "Cloth": 0x1D8,
+    "Bronze Cloth": 0x1EC,
+    "Silver Cloth": 0x1EB,
     "Bronze Saint": 0x1D9,
     "Silver Saint": 0x1DA,
     "Gold Saint": 0x1DB,
@@ -39,10 +42,12 @@ SETCODE_BY_TAG: dict[str, int] = {
 SETCODE_PRIORITY: list[int] = [
     0x1D7,  # SAINT umbrella
     0x1D8,  # CLOTH
+    0x1EC,  # BRONZE_CLOTH
     0x1D9,  # BRONZE_SAINT
     0x1DA,  # SILVER_SAINT
     0x1DB,  # GOLD_SAINT
     0x1DC,  # GOLD_CLOTH
+    0x1EB,  # SILVER_CLOTH
     0x1DD,  # ENVOY
     0x1DE,  # POPES_MANDATE
     0x1DF,  # GHOST_SAINT

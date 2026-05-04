@@ -5,8 +5,7 @@
 --
 -- Archetypes:
 -- - cloth
--- - Gold Saint
--- - saint-seiya
+-- - Gold Cloth
 --
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
@@ -71,7 +70,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 
-s.listed_series={SET_CLOTH,SET_GOLD_CLOTH,SET_GOLD_SAINT,SET_SAINT,SET_BRONZE_SAINT}
+s.listed_series={SET_CLOTH,SET_GOLD_CLOTH,SET_GOLD_SAINT,SET_SAINT}
 s.listed_names={922100000,922100029}
 
 function s.eqlimit(e,c)

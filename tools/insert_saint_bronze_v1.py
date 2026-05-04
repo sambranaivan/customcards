@@ -198,6 +198,7 @@ def main() -> None:
     ]
 
     for cid, name, atk, defe, attribute, desc in cards:
+        setcode = 0 if cid == 922100010 else SET_SAINT
         # datas: id, ot, alias, setcode, type, atk, def, level, race, attribute, category
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
@@ -205,7 +206,7 @@ def main() -> None:
                 cid,
                 4,  # ot
                 0,  # alias
-                SET_SAINT,  # setcode
+                setcode,
                 33,  # type: Effect Monster
                 atk,
                 defe,
