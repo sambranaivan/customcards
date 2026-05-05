@@ -36,5 +36,7 @@ WindBot/*
 !WindBot/Executors/**
 WindBot/**/*.dll
 WindBot/**/*.pdb
+!WindBot/Executors/**/*.dll
+!WindBot/Executors/**/*.pdb
 WindBot/**/obj/
 tools\CardMaker\output\*
