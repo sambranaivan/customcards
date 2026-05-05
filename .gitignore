@@ -31,6 +31,7 @@ config/system.conf
 puzzles/Canon collection 
 # WindBot runtime folder is mostly binary/local; track executor sources only.
 WindBot/*
+!WindBot/bots.json
 !WindBot/Executors/
 !WindBot/Executors/**
 WindBot/**/*.dll
