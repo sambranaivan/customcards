@@ -798,3 +798,148 @@ Use events this core already defines (same pattern as many official scripts, e.g
 `c922100047.lua` condition is now: Ichi is the attacker **and** there is no attack target (direct attack), matching the card text.
 
 If you want those newer event names project-wide later, you’d add them in `constant.lua` **and** ensure the ocgcore actually raises them; swapping to `EVENT_BATTLE_CONFIRM` / `EVENT_ATTACK_ANNOUNCE` is the safe fix for this codebase.
+
+---
+
+_**User**_
+
+@error.log (7-23) 
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Fixing script issues**
+
+I need to fix the script in c922100086.lua because it seems like SetCategory is set to nil, which is indicating that a CATEGORY_* constant is not defined. I'll start by reading through the script to figure out what's going on. My plan is to search for any mention of CATEGORY to see where the problem lies, so I can address the issue properly. It's all about getting that fixed!</details></think>
+
+_**Agent (default)**_
+
+Got it—same class of problem as before: `SetCategory` is receiving `nil`, which almost always means the script is using a `CATEGORY_*` constant that doesn’t exist in this core. I’m going to open `c922100086.lua`, identify the undefined category, and swap it to the correct constant(s) from `script/constant.lua`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\script\unofficial\c922100086.lua</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+I found the culprit: `c922100086.lua` uses `CATEGORY_PROTECTION`, which isn’t a real category constant in this core (so it evaluates to `nil`, and `SetCategory(nil)` crashes). I’m going to change it to `0` (no category), since this effect doesn’t need a built-in category to function.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:/ProjectIgnis/script/unofficial/c922100086.lua</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "c:\\ProjectIgnis\\script\\unofficial\\c922100086.lua",
+  "pattern": "CATEGORY_PROTECTION"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\script\\unofficial\\c922100086.lua",
+  "pattern": "CATEGORY_PROTECTION",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\script\\unofficial\\c922100086.lua"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\script\\unofficial\\c922100086.lua"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### What caused the crash
+In `script/unofficial/c922100086.lua`, line 19 was:
+
+- `e1:SetCategory(CATEGORY_PROTECTION)`
+
+`CATEGORY_PROTECTION` **doesn’t exist** in `script/constant.lua` in this repo, so it becomes `nil`, and `SetCategory(nil)` triggers the error you saw.
+
+### What I changed
+In `c922100086.lua` I replaced it with:
+
+- `e1:SetCategory(0)`
+
+That keeps the effect working while avoiding invalid category constants.

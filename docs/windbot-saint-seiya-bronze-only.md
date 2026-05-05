@@ -19,6 +19,10 @@ significa que el **WindBot.exe** que estás usando **no contiene** el executor `
 
 Tu carpeta `C:\ProjectIgnis\WindBot\Executors\...dll` **no se carga** (no hay carga dinámica de executors), por eso **no sirve** compilar un plugin DLL: hay que **recompilar WindBot.exe** con el executor incluido.
 
+## Nota de gameplay (importante para el executor)
+
+- `922100000` (**Bronze Saint - Seiya of Pegasus**): el efecto de equipar pagando 500 LP fue cambiado a **solo equipar 1 "Cloth" desde tu Cementerio** (ya no desde la mano). Ajustar heurísticas/condiciones del executor y cualquier documentación que asuma “hand or GY”.
+
 ## 1) Requisitos en la otra PC
 
 - Windows con permisos para instalar build tools.

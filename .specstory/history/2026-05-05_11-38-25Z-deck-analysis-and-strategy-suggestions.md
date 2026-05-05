@@ -3665,3 +3665,65 @@ Creé la skill de proyecto en:
 - `c:\ProjectIgnis\.cursor\skills\windbot-deck-executor-guide\SKILL.md`
 
 Hace exactamente este proceso para futuros decks: leer `.ydk`, resolver efectos desde `script/**/c<ID>.lua` y/o `expansions/*.cdb`, definir estados booleanos relevantes, elegir plan **go-first/go-second según coinflip**, y generar un **árbol literal en pseudocódigo** + políticas de activación, guardándolo como guía `.md` bajo `sets/**/bots/`.
+
+---
+
+_**User**_
+
+actualiza @docs/windbot-saint-seiya-bronze-only.md con el cambio de efecto que se hizo en 922100000 (solo equipa un cloth desde el cementerio pagando 500 lp) 
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Editing documentation**
+
+I need to edit the document before applying the patch. I'll read through the file to find the old description and make the necessary updates. The user asked specifically for the documentation, so although I wonder if I should mention anything in the executor, I think I’ll focus on what they requested and stick to updating the docs for now. That seems like the best approach!</details></think>
+
+_**Agent (default)**_
+
+Voy a abrir `docs/windbot-saint-seiya-bronze-only.md`, ubicar dónde describe a `922100000` (Seiya) y actualizar esa sección para reflejar el cambio: **solo puede equipar 1 “Cloth” desde el Cementerio pagando 500 LP** (ya no desde mano). Luego verifico que no queden referencias contradictorias en el mismo doc.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Updating documentation**
+
+The document doesn't mention the effect, so I might need to look elsewhere. It seems like this is a handoff only, but I should consider updating the document with the effect change in the executor section. The request calls for an explicit update to include a small section called "Card notes," which mentions Seiya's equipment from GY. I want to keep it minimal, so I'll plan to apply this patch near the top after the deck info.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+## Actualizado
+
+Actualicé `docs/windbot-saint-seiya-bronze-only.md` agregando una sección **“Nota de gameplay (importante para el executor)”** donde se refleja el cambio de `922100000`:
+
+- **Seiya** ahora **solo equipa 1 “Cloth” desde el Cementerio pagando 500 LP** (ya no desde la mano).

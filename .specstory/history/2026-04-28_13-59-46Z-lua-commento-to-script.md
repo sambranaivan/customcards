@@ -17761,8 +17761,6 @@ _**Agent (default)**_
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\.cursor\skills\saint-seiya-172-302-integration\SKILL.md</summary>
 
-Status: **loading**
-
 </details>
 
 </tool-use>
@@ -17777,8 +17775,6 @@ _**Agent (default)**_
 <tool-use data-tool-type="write" data-tool-name="edit_file_v2">
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\.cursor\skills\saint-seiya-172-302-integration\SKILL.md</summary>
-
-Status: **loading**
 
 </details>
 
@@ -17795,7 +17791,28 @@ _**Agent (default)**_
 <details>
 <summary>Tool use: **read_lints**</summary>
 
-Status: **loading**
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\.cursor\\skills\\saint-seiya-172-302-integration\\SKILL.md"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\.cursor\\skills\\saint-seiya-172-302-integration\\SKILL.md"
+    }
+  ]
+}
+```
+Status: **completed**
 
 
 </details>
@@ -17812,7 +17829,20 @@ _**Agent (default)**_
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\.cursor\skills\saint-seiya-172-302-integration\SKILL.md</summary>
 
-Status: **loading**
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\.cursor\skills\saint-seiya-172-302-integration\SKILL.md</summary>
 
 </details>
 
@@ -17822,3 +17852,346 @@ Status: **loading**
 <summary>Tool use: **edit_file_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\.cursor\\skills\\saint-seiya-172-302-integration\\SKILL.md"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\.cursor\\skills\\saint-seiya-172-302-integration\\SKILL.md"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Hecho: skill genérica (sin atar a DB ni rango)
+
+Actualicé la skill para que sea **genérica**:
+
+- **Nuevo nombre (invocación)**: `lua-template-card-integration`
+- **Ya no está atada** a `expansions/saint-seiya.cdb` ni al rango `172–302`
+- Ahora el flujo arranca capturando parámetros:
+  - **`SCRIPTS_DIR`**, **`ID_START`**, **`ID_END`**, **`DB_PATH`**
+- Dejé claro que los scripts actuales en `tools/` (rewrite/insert/audit) son **batch-specific** y que, si cambian templates o DB, corresponde crear **un inserter/rewriter genérico parametrizable**.
+
+La skill quedó en:
+
+- `c:\ProjectIgnis\.cursor\skills\saint-seiya-172-302-integration\SKILL.md`
+
+(El nombre del directorio puede quedar así; lo que importa para invocarla es el `name:` del frontmatter).
+
+---
+
+_**User**_
+
+quiero modificar el script de seiya 922100000, para el efecto de pagar 500lp para equipar una carta de la mano o GY, el efecto solo es equipar desde GY (es redudante activar un equipo de la mano siendo que se puede activar de manera normal)                                                                                                                                                                                                                                                                                                                                                                                           
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Editing Lua File**
+
+I need to edit a Lua file for a card modification in the yugioh-card-creator project. It seems like using the projectignis-custom-card skill could help, but it’s not mandatory. First, I'll read the file c922100000.lua and look for the effect that allows equipping by paying 500 LP. I need to change it so it only works from the graveyard now. I’ll use Grep to find the relevant function, then I’ll apply the patch and lint the code.</details></think>
+
+_**Agent (default)**_
+
+Perfecto. Voy a ubicar en `c922100000.lua` el efecto de **pagar 500 LP para equipar**, y lo ajusto para que **solo pueda seleccionar Equip Spells desde el GY** (no desde la mano). Después paso linter para confirmar que no rompa nada.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\script\unofficial\c922100000.lua</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\script\\unofficial\\c922100000.lua",
+  "pattern": "500\\s*LP|PayLPCost\\(|CheckLPCost\\(|500"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\script\\unofficial\\c922100000.lua",
+  "pattern": "500\\s*LP|PayLPCost\\(|CheckLPCost\\(|500",
+  "topFiles": [
+    {
+      "matchCount": 3,
+      "uri": "script\\unofficial\\c922100000.lua"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 3
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Ya encontré el efecto: hoy está buscando `LOCATION_HAND+LOCATION_GRAVE` en `s.eqtg` y `s.eqop`. Lo cambio para que seleccione **solo `LOCATION_GRAVE`**, y ajusto también el `OperationInfo` para que coincida. Luego corro linter del archivo.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\script\unofficial\c922100000.lua</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\script\\unofficial\\c922100000.lua"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\script\\unofficial\\c922100000.lua"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Cambiado en `c922100000.lua`
+
+- El efecto de **pagar 500 LP para equipar** ahora **solo equipa desde el GY**.
+- Reemplacé `LOCATION_HAND+LOCATION_GRAVE` por `LOCATION_GRAVE` en:
+  - `s.eqtg` (check + `OperationInfo`)
+  - `s.eqop` (selección)
+
+Sin errores de linter en `c:\ProjectIgnis\script\unofficial\c922100000.lua`.
+
+---
+
+_**User**_
+
+corrige tambien el desc de la base de datos
+
+---
+
+_**Agent (default)**_
+
+Dale. Voy a actualizar la descripción en `expansions/saint-seiya.cdb` para el ID **922100000**, reemplazando el texto “from your hand or GY” por “from your GY”, así queda consistente con el script.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python -c "import sqlite3
+from pathlib import Path
+p=Path('expansions/saint-seiya.cdb')
+con=sqlite3.connect(p)
+cur=con.cursor()
+cur.execute('select desc from texts where id=?',(922100000,))
+row=cur.fetchone()
+if not row:
+ raise SystemExit('missing texts row')
+d=row[0] or ''
+new=d.replace('equip 1 "Cloth" Equip Spell from your hand or GY','equip 1 "Cloth" Equip Spell from your GY')
+new=new.replace('equip 1 \"Cloth\" Equip Spell from your hand or GY','equip 1 \"Cloth\" Equip Spell from your GY')
+if new==d:
+ # broader fallback
+ new=new.replace('from your hand or GY','from your GY')
+cur.execute('update texts set desc=? where id=?',(new,922100000))
+con.commit()
+cur.execute('select length(desc) from texts where id=?',(922100000,))
+print('updated_desc_len',cur.fetchone()[0])
+con.close()
+"</summary>
+
+```bash
+python -c "import sqlite3
+from pathlib import Path
+p=Path('expansions/saint-seiya.cdb')
+con=sqlite3.connect(p)
+cur=con.cursor()
+cur.execute('select desc from texts where id=?',(922100000,))
+row=cur.fetchone()
+if not row:
+ raise SystemExit('missing texts row')
+d=row[0] or ''
+new=d.replace('equip 1 "Cloth" Equip Spell from your hand or GY','equip 1 "Cloth" Equip Spell from your GY')
+new=new.replace('equip 1 \"Cloth\" Equip Spell from your hand or GY','equip 1 \"Cloth\" Equip Spell from your GY')
+if new==d:
+ # broader fallback
+ new=new.replace('from your hand or GY','from your GY')
+cur.execute('update texts set desc=? where id=?',(new,922100000))
+con.commit()
+cur.execute('select length(desc) from texts where id=?',(922100000,))
+print('updated_desc_len',cur.fetchone()[0])
+con.close()
+"
+```
+
+```
+  File "&lt;string&gt;", line 11
+    new=d.replace('equip 1 
+                  ^
+SyntaxError: unterminated string literal (detected at line 11)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Buen catch: PowerShell rompió el `python -c` por las comillas internas. Lo rehago evitando comillas dobles dentro del patrón (reemplazo directo del fragmento `from your hand or GY` → `from your GY`, que es suficiente) y vuelvo a ejecutar el update.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python -c "import sqlite3; from pathlib import Path
+p=Path('expansions/saint-seiya.cdb')
+con=sqlite3.connect(p)
+cur=con.cursor()
+cur.execute('select desc from texts where id=?',(922100000,))
+row=cur.fetchone()
+if not row: raise SystemExit('missing texts row for 922100000')
+d=row[0] or ''
+new=d.replace('from your hand or GY','from your GY')
+cur.execute('update texts set desc=? where id=?',(new,922100000))
+con.commit()
+cur.execute('select desc from texts where id=?',(922100000,))
+print(cur.fetchone()[0])
+con.close()
+"</summary>
+
+```bash
+python -c "import sqlite3; from pathlib import Path
+p=Path('expansions/saint-seiya.cdb')
+con=sqlite3.connect(p)
+cur=con.cursor()
+cur.execute('select desc from texts where id=?',(922100000,))
+row=cur.fetchone()
+if not row: raise SystemExit('missing texts row for 922100000')
+d=row[0] or ''
+new=d.replace('from your hand or GY','from your GY')
+cur.execute('update texts set desc=? where id=?',(new,922100000))
+con.commit()
+cur.execute('select desc from texts where id=?',(922100000,))
+print(cur.fetchone()[0])
+con.close()
+"
+```
+
+```
+If this card is Normal or Special Summoned: You can add 1 "Cloth" Equip Spell or 1 "Saint" monster from your Deck to your hand.
+If you control no monsters: You can Special Summon this card from your hand.
+Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card.
+Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
+You can only use each effect of "Saint - Seiya of Pegasus" once per turn.
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Listo: actualicé el `desc` en la base `expansions/saint-seiya.cdb` para **922100000**.
+
+- Cambiado: **“from your hand or GY” → “from your GY”**
+- Verificado: el `desc` ahora muestra la línea correcta (solo desde GY).

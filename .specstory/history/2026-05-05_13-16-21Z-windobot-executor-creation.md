@@ -2437,3 +2437,312 @@ No fue necesario compilar `WindBot.exe`.
 - Al reiniciar, WindBot escaneó `WindBot/Executors/` y registró el `[Deck("SaintSeiyaBronzeOnly", "AI_SaintSeiyaBronzeOnly", ...)]`
 
 En resumen: **compilar fue necesario para crear el plugin**, pero **no fue necesario recompilar el exe**.
+
+---
+
+_**User**_
+
+crea un skill para la creacion de executors a partir de un archivo de logica md y un deck ydk  /create-skill 
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Considering reference files**
+
+I’m thinking it might be a good idea to add a reference file, and I wonder if one file will be enough. It seems like it could help provide more context or support for whatever I'm working on. So, I’ll consider asking about it to see if it’s necessary to have additional files or just stick with one. It feels like making the right choice will help everything come together better!</details></think>
+
+_**Agent (default)**_
+
+Puedo armar este skill con el workflow completo (copiar deck a `WindBot/Decks/`, generar executor plugin en `WindBot/Executors/`, compilar con MSBuild .NET 4.0-compatible, registrar en `bots.json`, y checklist de verificación con el log “Decks initialized, N found”). Necesito 2 decisiones rápidas para que quede “plug and play”.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question">
+<details>
+<summary>Tool use: **ask_question**</summary>
+
+
+Parameters:
+
+```json
+{
+  "questions": [
+    {
+      "id": "skill_location",
+      "options": [
+        {
+          "id": "project",
+          "label": "Proyecto (.cursor/skills/) – compartido en el repo"
+        },
+        {
+          "id": "personal",
+          "label": "Personal (~/.cursor/skills/) – solo tu usuario"
+        }
+      ],
+      "prompt": "¿Dónde lo querés guardar?"
+    },
+    {
+      "id": "auto_invoke",
+      "options": [
+        {
+          "id": "explicit",
+          "label": "Explícito (default, disable-model-invocation: true)"
+        },
+        {
+          "id": "auto",
+          "label": "Auto (se activa por triggers)"
+        }
+      ],
+      "prompt": "¿Querés que se auto-aplique cuando el usuario diga cosas como “bots md to windobot” o preferís invocarlo explícitamente?"
+    }
+  ],
+  "title": "Skill: md+ydk → WindBot executor"
+}
+```
+Additional data:
+
+```json
+{
+  "currentSelections": {
+    "auto_invoke": [
+      "explicit"
+    ],
+    "skill_location": [
+      "project"
+    ]
+  },
+  "freeformTexts": {
+    "auto_invoke": "",
+    "skill_location": ""
+  },
+  "status": "submitted"
+}
+```
+Result:
+
+```json
+{
+  "answers": [
+    {
+      "freeformText": "",
+      "questionId": "skill_location",
+      "selectedOptionIds": [
+        "project"
+      ]
+    },
+    {
+      "freeformText": "",
+      "questionId": "auto_invoke",
+      "selectedOptionIds": [
+        "explicit"
+      ]
+    }
+  ]
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ask_question"><details>
+<summary>Tool use: **ask_question**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Perfecto: lo creo como **skill de proyecto** en `.cursor/skills/` y queda para **invocación explícita** (no se auto-activa). Ahora lo escribo con pasos exactos, estructura de archivos y checklist de verificación.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\.cursor\skills\md-ydk-windbot-executor\SKILL.md</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\.cursor\\skills\\md-ydk-windbot-executor\\SKILL.md"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\.cursor\\skills\\md-ydk-windbot-executor\\SKILL.md"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Skill creado
+- **Ubicación**: `.cursor/skills/md-ydk-windbot-executor/SKILL.md`
+- **Nombre**: `md-ydk-windbot-executor`
+- **Modo**: explícito (`disable-model-invocation: true`)
+
+Para usarlo en un chat: “cargá el skill `md-ydk-windbot-executor` y creá el executor para `X.md` + `Y.ydk`”.
+
+---
+
+_**User**_
+
+@docs/windbot-saint-seiya-bronze-only.md se actaulizo, refleja la nueva estrategia y actualiza el executor
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Updating executor code**
+
+I need to update the executor based on the documentation. First, I'll read the docs to ensure I modify the executor code correctly. It seems I also need to rebuild the DLL, so I'll proceed with that. I'll use the Read method and then ApplyPatch to edit the executor. After that, I'll build using MSBuild. It looks like the documentation is already updated, so I’ll just implement the changes. Let's inspect the docs!</details></think>
+
+_**Agent (default)**_
+
+Voy a leer `docs/windbot-saint-seiya-bronze-only.md`, comparar contra el executor actual, y después ajustar prioridades/condiciones (starter/equip/negates) para que refleje la nueva estrategia. Al final recompilo el plugin y verifico que WindBot vuelva a mostrar `54 found`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Voy a ajustar el executor para reflejar el cambio clave del doc: **Seiya ahora solo equipa Cloths desde el Cementerio**, así que el bot tiene que **priorizar tener al menos 1 Cloth en GY** (vía discard de Cloth) antes de intentar líneas de equip/defensa. Luego recompilo el `.dll`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal</summary>
+
+```bash
+& "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal
+```
+
+```
+Microsoft (R) Build Engine, versi�n 4.8.4084.0
+[Microsoft .NET Framework, versi�n 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
