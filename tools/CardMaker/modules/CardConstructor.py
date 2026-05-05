@@ -195,7 +195,10 @@ class CardConstructor:
 
          # Render onto a generous canvas, then crop to content bbox.
          pad = max(4, int(font.size * 0.2))
-         tmp_w = max_width + (pad * 4)
+         # IMPORTANT: the title may be much wider than max_width; if tmp_w is too small,
+         # Pillow will clip the text before we can shrink it. Allocate based on measured width.
+         measured_w = int(_text_width(font, text)) + (pad * 4)
+         tmp_w = max(max_width + (pad * 4), measured_w)
          tmp_h = max_height + (pad * 6)
          layer = Image.new("RGBA", (tmp_w, tmp_h), (255, 255, 255, 0))
          d = ImageDraw.Draw(layer)
@@ -211,15 +214,18 @@ class CardConstructor:
          sx = min(1.0, max_width / max(1, cw))
          sy = min(1.0, max_height / max(1, ch))
 
-         # Avoid absurd over-condensing; beyond this, fall back to font size reduction.
-         # User preference: keep 1 line and shrink X/Y instead of wrapping.
-         min_sx = 0.35
+         # If vertical shrink would be too extreme, fall back to font size reduction.
+         # Horizontal shrink is allowed to be very strong (even if it distorts aspect ratio),
+         # per user preference (avoid cropping at all costs).
          min_sy = 0.60
-         if sx < min_sx or sy < min_sy:
+         if sy < min_sy:
             return None, (0, 0)
 
          new_w = max(1, int(round(cw * sx)))
          new_h = max(1, int(round(ch * sy)))
+         # Guard against rounding making the image 1-2px too wide.
+         if new_w > max_width:
+            new_w = int(max_width)
          resized = cropped.resize((new_w, new_h), getattr(Image, "Resampling", Image).LANCZOS)
          return resized, (new_w, new_h)
 

@@ -4607,7 +4607,76 @@ _**Agent (default)**_
 
 <details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\sets\inspect_cdb.py</summary>
 
-Status: **loading**
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python c:\ProjectIgnis\sets\inspect_cdb.py</summary>
+
+```bash
+python c:\ProjectIgnis\sets\inspect_cdb.py
+```
+
+```
+cdb: C:\ProjectIgnis\expansions\saint-seiya.cdb
+exists: True
+tables: [('datas',), ('texts',)]
+datas cols: [(0, 'id', 'INTEGER', 0, None, 1), (1, 'ot', 'INTEGER', 0, None, 0), (2, 'alias', 'INTEGER', 0, None, 0), (3, 'setcode', 'INTEGER', 0, None, 0), (4, 'type', 'INTEGER', 0, None, 0), (5, 'atk', 'INTEGER', 0, None, 0), (6, 'def', 'INTEGER', 0, None, 0), (7, 'level', 'INTEGER', 0, None, 0), (8, 'race', 'INTEGER', 0, None, 0), (9, 'attribute', 'INTEGER', 0, None, 0), (10, 'category', 'INTEGER', 0, None, 0)]
+texts cols: [(0, 'id', 'INTEGER', 0, None, 1), (1, 'name', 'TEXT', 0, None, 0), (2, 'desc', 'TEXT', 0, None, 0), (3, 'str1', 'TEXT', 0, None, 0), (4, 'str2', 'TEXT', 0, None, 0), (5, 'str3', 'TEXT', 0, None, 0), (6, 'str4', 'TEXT', 0, None, 0), (7, 'str5', 'TEXT', 0, None, 0), (8, 'str6', 'TEXT', 0, None, 0), (9, 'str7', 'TEXT', 0, None, 0), (10, 'str8', 'TEXT', 0, None, 0), (11, 'str9', 'TEXT', 0, None, 0), (12, 'str10', 'TEXT', 0, None, 0), (13, 'str11', 'TEXT', 0, None, 0), (14, 'str12', 'TEXT', 0, None, 0), (15, 'str13', 'TEXT', 0, None, 0), (16, 'str14', 'TEXT', 0, None, 0), (17, 'str15', 'TEXT', 0, None, 0), (18, 'str16', 'TEXT', 0, None, 0)]
+sample: (922100000, 'Bronze Saint - Seiya of Pegasus', 33, 1700, 1200, 4, 1, 16, 'If this card is Normal or Special Summoned: You can add 1 "Cloth" Equip Spell or 1 "Saint" monster from your Deck to your hand.\nIf you control no monsters: You can Special Summon this card from your hand.\nOnce per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.\nAlso, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.\nIf this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).\nYou can only use each effect of "Saint - Seiya of Pegasus" once per turn.')
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Perfecto: `saint-seiya.cdb` tiene el esquema estándar (`datas`/`texts`). Ahora adapto el generador para leer de ahí: decodear `datas.type` (bitmask) a plantilla CardMaker (SPELL/TRAP/XYZ/etc), derivar subtipos (Quick-Play/Field/Equip/Continuous/Counter/Ritual) para el header, y mapear `attribute/race/atk/def/level`. También voy a permitir pasar `--cdb` opcional pero por defecto usar `expansions/saint-seiya.cdb`. Después corro el generador para confirmar que sigue produciendo `sets/cardmaker_output/{id}.png`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Voy a modificar `sets/generate_cardmaker_from_sets_sqlite.py` para que por defecto lea `expansions/saint-seiya.cdb` (join `datas`+`texts`) y traduzca los bitmasks de YGOPro (type/attribute/race/level/link) a los campos que espera `CardConstructor`. Mantengo `--card-id` y `--regenerate`, y agrego `--cdb` opcional por si querés apuntar a otro `.cdb`.
+
+_**Agent (default)**_
+
+Invalid patch format. Your diff must begin with *** Begin Patch and end with *** End Patch.
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py</summary>
 
 </details>
 
@@ -4617,3 +4686,322 @@ Status: **loading**
 <summary>Tool use: **edit_file_v2**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --card-id 922100000 --regenerate</summary>
+
+```bash
+python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --card-id 922100000 --regenerate
+```
+
+```
+Rendering Artwork:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  1.21it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  1.21it/s]
+Rendering Attribute:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  1.09it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  1.09it/s]
+Rendering Title:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]
+Rendering ATK/DEF:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]
+Rendering Type:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.34it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.34it/s]
+Rendering Description:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  1.22it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  1.22it/s]
+Rendering Level:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.26it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.26it/s]
+finished..
+cards=1 generated=1 skipped_existing=0 art_from_api=1 art_blank=0 errors=0 out_dir=C:\ProjectIgnis\sets\cardmaker_output
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\sets\cardmaker_output\922100000.png</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Listo: ya quedó para que el generador tome la info **directamente desde** `expansions/saint-seiya.cdb` (tablas `datas` + `texts`).
+
+### Qué cambié
+- `sets/generate_cardmaker_from_sets_sqlite.py` ahora:
+  - Usa por defecto **`expansions/saint-seiya.cdb`**
+  - Hace `JOIN datas/texts`
+  - Decodifica `datas.type` (bitmask) para elegir plantilla `SPELL/TRAP/XYZ/LINK/...`
+  - Decodifica `datas.attribute`, `datas.race`, y `datas.level` (incluye Link Rating)
+  - Genera el `Type` string de Spell/Trap con keywords (`Quick-Play`, `Continuous`, `Equip`, `Field`, `Ritual`, `Counter`) para que el header use los íconos
+
+- Agregué `--cdb` opcional por si querés apuntar a otro `.cdb`.
+
+### Verificación
+Probé con `--card-id 922100000` y generó bien `sets/cardmaker_output/922100000.png` usando el `.cdb`.
+
+### Uso
+- Regenerar todo desde el `.cdb`:
+
+```bash
+python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --regenerate
+```
+
+- Un solo ID:
+
+```bash
+python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --card-id 922100131 --regenerate
+```
+
+- Otro `.cdb`:
+
+```bash
+python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --cdb c:\ProjectIgnis\expansions\otro.cdb --regenerate
+```
+
+---
+
+_**User**_
+
+excelente, ahora quiero hacer un ajuste en los nombres de las cartas, para nombres largos esta haciendo crop del nombre, ajuste (auqnue se pierda el ratio) el ajuste horizotal del texto, vertical esta correcto
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Debugging title cropping**
+
+I need to change how CardConstructor renders the shrunk title. Right now, the shrink factors for sx and sy lead to cropping. I think I should paste the title image after resizing to fit it correctly. The cropping might happen because the bounding box is removing the sides. The user mentioned long names being cropped, so I need to ensure horizontal adjustments without losing the vertical dimensions. Also, I need to avoid returning None when adjusting font size, as that might still lead to cropping.
+**Refining image fitting**
+
+It looks like the cropped image is still bigger than title_max_width, possibly due to rounding issues or because I'm rejecting very small sx values and falling back on font fitting. The font fit might be underestimating length, causing overflow and cropping. My plan is to enforce horizontal shrinkage to fit the max width, regardless of how small sx is, while keeping sy set to 1 for vertical accuracy. I'll adjust _render_shrunk_title to force horizontal fitting and ensure the width doesn't exceed max_width afterward. Adding a bit of padding before computation should help too.
+**Adjusting font fitting**
+
+It seems like in the fallback font fitting, I might be shrinking both dimensions. However, the user wants horizontal adjustments even if that means losing the aspect ratio. So I'll prioritize having sx, even if it’s tiny, while keeping sy as it is. I need to remove the min_sx restriction and ensure that the width always resizes to fit. This way, I can keep everything aligned with the user's preferences!</details></think>
+
+_**Agent (default)**_
+
+Perfecto: el “crop” viene de que todavía hay casos donde el ancho real renderizado del texto supera por 1–2px el `title_max_width` (por redondeos/medición de fuente). Voy a hacer que el título **siempre** haga ajuste **horizontal** (aunque se deforme) hasta entrar en el nameband, sin imponer mínimo de `sx`. El ajuste vertical lo dejo como está (ya te gusta).
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\tools\CardMaker\modules\CardConstructor.py</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\tools\CardMaker\modules\CardConstructor.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: C:\Windows\System32\cmd.exe /c python -c "import os,sys; from pathlib import Path; d=Path('c:/ProjectIgnis/tools/CardMaker'); os.chdir(d); sys.path.insert(0,str(d)); from modules.CardConstructor import CardConstructor; CardConstructor({'card':'EFFECT','image_card':'_blank.png','Title':'THIS IS AN EXTREMELY LONG CARD NAME THAT USED TO CROP AT THE RIGHT EDGE OF THE NAMEBAND','attribute':'Light','Level':4,'Type':'Warrior/Effect','Descripton':'Test.','Atk':'1000','Def':'1000'}).generateCard(); print('done')"</summary>
+
+```bash
+C:\Windows\System32\cmd.exe /c python -c "import os,sys; from pathlib import Path; d=Path('c:/ProjectIgnis/tools/CardMaker'); os.chdir(d); sys.path.insert(0,str(d)); from modules.CardConstructor import CardConstructor; CardConstructor({'card':'EFFECT','image_card':'_blank.png','Title':'THIS IS AN EXTREMELY LONG CARD NAME THAT USED TO CROP AT THE RIGHT EDGE OF THE NAMEBAND','attribute':'Light','Level':4,'Type':'Warrior/Effect','Descripton':'Test.','Atk':'1000','Def':'1000'}).generateCard(); print('done')"
+```
+
+```
+Rendering Artwork:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  2.00it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  1.99it/s]
+Rendering Attribute:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  2.10it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  2.10it/s]
+Rendering Title:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  2.00it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  2.00it/s]
+Rendering ATK/DEF:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.94it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.94it/s]
+Rendering Type:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.96it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.96it/s]
+Rendering Description:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  2.01it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  2.01it/s]
+Rendering Level:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.98it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.98it/s]
+finished..
+done
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **1** result in **1** directory</summary>
+
+Directory: **** (1 file)
+
+| File |
+|------|
+| `tools\CardMaker\output\THIS_IS_AN_EXTREMELY_LONG_CARD_NAME_THAT_USED_TO_CROP_AT_THE_RIGHT_EDGE_OF_THE_NAMEBAND.png` |
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\tools\CardMaker\output\THIS_IS_AN_EXTREMELY_LONG_CARD_NAME_THAT_USED_TO_CROP_AT_THE_RIGHT_EDGE_OF_THE_NAMEBAND.png</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Listo: ajusté el “shrink” del nombre para que **nunca cropee por ancho**, aunque tenga que **deformar horizontalmente** (perder ratio). El vertical queda igual.
+
+### Qué cambié
+En `tools/CardMaker/modules/CardConstructor.py`, dentro de `_render_shrunk_title()`:
+
+- **Eliminé el mínimo de shrink horizontal (`min_sx`)** → ahora `sx` puede ser tan chico como haga falta.
+- Mantengo solo un límite para el **shrink vertical** (`min_sy`) para evitar aplastar demasiado en Y.
+- Agregué un **guard** para que por redondeo el `new_w` no quede 1–2px más grande que `max_width`.
+
+### Verificación
+Rendericé un nombre exageradamente largo y **no se corta**:
+
+- `tools/CardMaker/output/THIS_IS_AN_EXTREMELY_LONG_CARD_NAME_THAT_USED_TO_CROP_AT_THE_RIGHT_EDGE_OF_THE_NAMEBAND.png`
+
+Si querés, aplicalo al set completo con `--regenerate` y ya no deberías ver ningún crop en nombres largos.
+
+---
+
+_**User**_
+
+sigue cortando el nombre por ejemplo para "Bronze Saint - Seiya of Pegasus", solo se ve "Bronze Saint - Seiya of"
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Investigating title truncation**
+
+I need to investigate why the output for 922100000 shows a possibly truncated title. It seems like our shrink might be causing this issue, potentially cropping the title text mid-way. Maybe the generator uses CardConstructor's title shrink, but the computed max width is too small. It's peculiar, because earlier output displayed "BRONZE SAINT - SEIYA OF," indicating shrink wasn't applied. However, if the text exceeds the set width, it gets clipped. The temporary width calculation might be missing part of the text.
+**Adjusting layer dimensions**
+
+I need to make the layer wider, independent of max_width, possibly using an estimated text width based on the font’s getlength multiplied by a factor. So, I’ll create a temporary width (tmp_w) that combines the max width plus padding or the text width with padding if it's larger. This approach will help capture the full text without falling back on methods that may shrink the text and cause clipping. I’ll implement this with a call to _text_width and patch the generator accordingly for 922100000.</details></think>
+
+_**Agent (default)**_
+
+Tenés razón: ese corte no viene del “fit” final, sino de cómo estoy **renderizando el título en un canvas temporal**: si el nombre es más ancho que ese canvas, Pillow lo **clipea antes** de que yo lo recorte y lo achique, y por eso se pierde el final (“…of Pegasus”). Voy a agrandar dinámicamente ese canvas según el ancho real del texto (medido con la fuente) para que **nunca se recorte antes del shrink**, y vuelvo a renderizar `922100000` para verificar.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\tools\CardMaker\modules\CardConstructor.py</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --card-id 922100000 --regenerate</summary>
+
+```bash
+python c:\ProjectIgnis\sets\generate_cardmaker_from_sets_sqlite.py --card-id 922100000 --regenerate
+```
+
+```
+Rendering Artwork:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  1.33it/s]Rendering Artwork: 100%|##########| 1/1 [00:00&lt;00:00,  1.33it/s]
+Rendering Attribute:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]Rendering Attribute: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]
+Rendering Title:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  1.27it/s]Rendering Title: 100%|##########| 1/1 [00:00&lt;00:00,  1.27it/s]
+Rendering ATK/DEF:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]Rendering ATK/DEF: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]
+Rendering Type:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]Rendering Type: 100%|##########| 1/1 [00:00&lt;00:00,  1.31it/s]
+Rendering Description:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  1.32it/s]Rendering Description: 100%|##########| 1/1 [00:00&lt;00:00,  1.32it/s]
+Rendering Level:   0%|          | 0/1 [00:00&lt;?, ?it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]Rendering Level: 100%|##########| 1/1 [00:00&lt;00:00,  1.28it/s]
+finished..
+cards=1 generated=1 skipped_existing=0 art_from_api=1 art_blank=0 errors=0 out_dir=C:\ProjectIgnis\sets\cardmaker_output
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\sets\cardmaker_output\922100000.png</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Arreglado. El recorte pasaba **antes** del shrink: el título se dibujaba en un canvas temporal demasiado angosto (`tmp_w = max_width + pad`), entonces Pillow **clipeaba** el texto (“…of Pegasus”) y después ya no había forma de recuperarlo.
+
+### Qué cambié
+En `tools/CardMaker/modules/CardConstructor.py` (`_render_shrunk_title`):
+- `tmp_w` ahora se calcula con el **ancho real medido del texto** (`_text_width(font, text)`) para que nunca se recorte antes de achicar.
+
+### Verificación
+Re-rendericé `922100000` y ahora se ve completo:
+
+- `sets/cardmaker_output/922100000.png` muestra **“Bronze Saint - Seiya of Pegasus”** entero.
