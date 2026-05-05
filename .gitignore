@@ -1,6 +1,7 @@
 \pics
 \pics\*
 \replay\*
+*.png
 *.jpg
 *.gif
 *.mp4
