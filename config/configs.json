@@ -1,31 +1,6 @@
 {
 	"repos": [
-		{
-			"url": "https://github.com/ProjectIgnis/DeltaBagooska",
-			"repo_name": "Project Ignis updates",
-			"repo_path": "./repositories/delta-bagooska",
-			"has_core": true,
-			"core_path": "bin",
-			"data_path": "",
-			"script_path": "script",
-			"should_update": true,
-			"should_read": true
-		},
-		{
-			"url": "https://github.com/ProjectIgnis/LFLists",
-			"repo_name": "Forbidden & Limited Card Lists",
-			"repo_path": "./repositories/lflists",
-			"lflist_path": ".",
-			"should_update": true,
-			"should_read": true
-		},
-		{
-			"url": "https://github.com/ProjectIgnis/Puzzles",
-			"repo_name": "Project Ignis puzzles",
-			"repo_path": "./puzzles/Canon collection",
-			"should_update": true,
-			"should_read": true
-		}
+		
 	],
 	"urls": [
 		{

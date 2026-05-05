@@ -8,9 +8,9 @@ def main() -> None:
     SET_SAINT = 0x1D7
     SET_SILVER_SAINT = 0x1DA
 
-    # We encode multiple archetypes into setcode segments.
-    # Lower 16 bits: Saint, upper 16 bits: Silver Saint.
-    setcode = SET_SAINT | (SET_SILVER_SAINT << 16)
+    # Kiki is a civilian (not a Saint / Bronze Saint); 012+ are Silver Saints.
+    setcode_kiki = 0
+    setcode_silver = SET_SAINT | (SET_SILVER_SAINT << 16)
 
     cards = [
         (
@@ -29,6 +29,7 @@ def main() -> None:
                 'You can only use each effect of "Kiki - Messenger of the Cloth Sculptor" once per turn.'
             ),
             33,  # Effect Monster
+            setcode_kiki,
         ),
         (
             922100012,
@@ -46,6 +47,7 @@ def main() -> None:
                 'You can only use this effect of "Silver Saint - Marin of Eagle" once per turn.'
             ),
             8225,  # Synchro/Effect
+            setcode_silver,
         ),
         (
             922100013,
@@ -62,6 +64,7 @@ def main() -> None:
                 'currently controls until the end of this Battle Phase.'
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100014,
@@ -78,6 +81,7 @@ def main() -> None:
                 "and they cannot change their battle positions."
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100015,
@@ -94,6 +98,7 @@ def main() -> None:
                 'Once per turn, if this card would be destroyed by battle or card effect, it is not destroyed.'
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100016,
@@ -111,6 +116,7 @@ def main() -> None:
                 'You can only use this effect of "Silver Saint - Orphee of Lyra" once per turn.'
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100017,
@@ -128,6 +134,7 @@ def main() -> None:
                 "● Spell/Trap: Set 1 Spell/Trap your opponent controls face-down."
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100018,
@@ -145,6 +152,7 @@ def main() -> None:
                 "that returned monster."
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100019,
@@ -162,6 +170,7 @@ def main() -> None:
                 'You can only use this effect of "Silver Saint - Centaurus Babel" once per turn.'
             ),
             8225,
+            setcode_silver,
         ),
         (
             922100020,
@@ -178,10 +187,11 @@ def main() -> None:
                 "activate its effects this turn. If that monster leaves the field this turn, inflict 400 damage to your opponent."
             ),
             8225,
+            setcode_silver,
         ),
     ]
 
-    for cid, name, atk, defe, level, attribute, race, desc, type_value in cards:
+    for cid, name, atk, defe, level, attribute, race, desc, type_value, setcode in cards:
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
             (

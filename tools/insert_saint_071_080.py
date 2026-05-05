@@ -7,10 +7,9 @@ def main() -> None:
 
     SET_SAINT = 0x1D7
     SET_CLOTH = 0x1D8
-    SET_GOLD_SAINT = 0x1DB
     SET_GOLD_CLOTH = 0x1DC
 
-    setcode_gold_cloth = SET_CLOTH | (SET_GOLD_CLOTH << 16) | (SET_GOLD_SAINT << 32)
+    setcode_gold_cloth = SET_CLOTH | (SET_GOLD_CLOTH << 16)
 
     equip_cards = [
         (922100071, "Gold Cloth - Libra"),

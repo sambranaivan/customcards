@@ -14,7 +14,7 @@
 --
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Cloth" Equip Spell or 1 "Saint" monster from your Deck to your hand.
--- If you control no monsters, or all monsters you control are "Saint" monsters: You can Special Summon this card from your hand.
+-- If you control no monsters: You can Special Summon this card from your hand.
 -- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
 -- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
@@ -95,12 +95,8 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
-function s.saint_mon_filter(c)
-	return c:IsFaceup() and c:IsSetCard(SET_SAINT)
-end
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetFieldGroup(tp,LOCATION_MZONE,0)
-	return #g==0 or g:FilterCount(s.saint_mon_filter,nil)==#g
+	return Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()

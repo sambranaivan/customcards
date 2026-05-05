@@ -6,13 +6,12 @@ def main() -> None:
     c = conn.cursor()
 
     SET_CLOTH = 0x1D8
-    SET_SILVER_SAINT = 0x1DA
-    SET_GOLD_SAINT = 0x1DB
+    SET_SILVER_CLOTH = 0x1EB
     SET_GOLD_CLOTH = 0x1DC
 
-    setcode_silver = SET_CLOTH | (SET_SILVER_SAINT << 16)
-    # Gold cloths are both Cloth + Gold Cloth archetype; also tag as Gold Saint in comments.
-    setcode_gold = SET_CLOTH | (SET_GOLD_CLOTH << 16) | (SET_GOLD_SAINT << 32)
+    setcode_silver = SET_CLOTH | (SET_SILVER_CLOTH << 16)
+    # Gold Cloth equips: Cloth + Gold Cloth only (not Gold Saint on the Spell card).
+    setcode_gold = SET_CLOTH | (SET_GOLD_CLOTH << 16)
 
     silver = [
         (922100061, "Silver Cloth - Auriga"),

@@ -6,10 +6,10 @@ def main() -> None:
     c = conn.cursor()
 
     SET_CLOTH = 0x1D8
-    SET_BRONZE_SAINT = 0x1D9
+    SET_BRONZE_CLOTH = 0x1EC
 
-    # These are "Cloth" cards, also tagged as Bronze Saint in comments.
-    setcode = SET_CLOTH | (SET_BRONZE_SAINT << 16)
+    # Bronze Cloth Equip Spells: Cloth + Bronze Cloth (not Bronze Saint).
+    setcode = SET_CLOTH | (SET_BRONZE_CLOTH << 16)
 
     cards = [
         (922100041, "Bronze Cloth - Pegasus"),

@@ -1,0 +1,3 @@
+[2026-05-04 19:20:16] [Script Error]: stack traceback:
+[2026-05-04 19:20:16] [Script Error]: 	[string "c922100002.lua"]:68: in function <[string "c922100002.lua"]:65>
+[2026-05-04 19:20:16] [Script Error]: [string "c922100002.lua"]:68: attempt to call a nil value (method 'IsControl')

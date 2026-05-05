@@ -4,35 +4,24 @@
 -- Type: Spell / Equip Spell
 --
 -- Archetypes:
--- - Bronze Saint
 -- - cloth
--- - saint-seiya
+-- - Bronze Cloth
 --
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- You can discard this card; add 1 Level 4 "Saint" monster from your Deck to your hand.
 -- The equipped monster gains 1000 ATK.
 -- If the equipped monster destroys an opponent's monster by battle: Inflict 1000 damage to your opponent.
--- If the equipped monster is "Saint - Ikki of Phoenix", and it would be sent to the GY: You can destroy this card instead, and if you do, Special Summon that monster, then you can destroy 1 card on the field.
+-- If the equipped monster is "Saint - Ikki of Phoenix": If it would be destroyed by battle or card effect, you can destroy this equipped card instead, and if you do, you can destroy 1 card on the field.
 -- If this face-up Equip Card in its owner's Spell & Trap Zone is sent to the GY: You can target 1 "Saint" monster you control; during your next Standby Phase, equip this card to that target, but banish it when it leaves the field.
--- You can only use 1 effect of "Bronze Cloth - Phoenix" per turn, and only once that turn.
+-- You can only use 1 "Bronze Cloth - Phoenix" effect per turn, and only once that turn.
 --]==]
 --Bronze Cloth - Phoenix
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_ACTIVATE)
-	e0:SetCode(EVENT_FREE_CHAIN)
-	c:RegisterEffect(e0)
-
-	--Equip limit
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EQUIP_LIMIT)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetValue(s.eqlimit)
-	c:RegisterEffect(e1)
+	--Activate: select target then Duel.Equip (must use aux.AddEquipProcedure)
+	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
+	e0:SetDescription(aux.Stringid(id,1))
 
 	--Discard; add 1 Level 4 "Saint" monster
 	local e2=Effect.CreateEffect(c)
@@ -55,7 +44,7 @@ function s.initial_effect(c)
 
 	--If equipped monster destroys by battle: inflict 1000
 	local e4=Effect.CreateEffect(c)
-	e4:SetDescription(aux.Stringid(id,1))
+	e4:SetDescription(aux.Stringid(id,2))
 	e4:SetCategory(CATEGORY_DAMAGE)
 	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e4:SetCode(EVENT_BATTLE_DESTROYING)
@@ -66,9 +55,10 @@ function s.initial_effect(c)
 	e4:SetOperation(s.damop)
 	c:RegisterEffect(e4)
 
-	--Ikki bonus: if equipped monster would be destroyed, destroy this card instead; Special Summon it, then destroy 1 card
+	--Ikki: if he would be destroyed, destroy this equip instead; then optional destroy 1 card on the field
 	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,2))
+	e5:SetDescription(aux.Stringid(id,3))
+	e5:SetCategory(CATEGORY_DESTROY)
 	e5:SetType(EFFECT_TYPE_CONTINUOUS+EFFECT_TYPE_EQUIP)
 	e5:SetCode(EFFECT_DESTROY_REPLACE)
 	e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
@@ -80,7 +70,7 @@ function s.initial_effect(c)
 
 	--If sent from S/T Zone to GY: re-equip next Standby Phase (banish when leaves field)
 	local e6=Effect.CreateEffect(c)
-	e6:SetDescription(aux.Stringid(id,3))
+	e6:SetDescription(aux.Stringid(id,4))
 	e6:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e6:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
 	e6:SetCode(EVENT_TO_GRAVE)
@@ -91,11 +81,14 @@ function s.initial_effect(c)
 	c:RegisterEffect(e6)
 end
 
-s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_SAINT}
+s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
 s.listed_names={922100004}
 
-function s.eqlimit(e,c)
-	return c:IsSetCard(SET_SAINT)
+function s.actcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(function(tc)
+			return tc:IsFaceup() and tc:IsSetCard(SET_SAINT) and tc:IsControler(tp)
+		end,tp,LOCATION_MZONE,0,1,nil)
 end
 
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
@@ -139,20 +132,17 @@ function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	return Duel.SelectEffectYesNo(tp,c,96)
 end
 function s.repop(e,tp,eg,ep,ev,re,r,rp)
-	--After replacement, Special Summon the equipped monster (if possible) then destroy 1 card
 	local c=e:GetHandler()
 	local ec=c:GetEquipTarget()
 	if not ec then return end
 	Duel.BreakEffect()
-	if Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and ec:IsCanBeSpecialSummoned(e,0,tp,false,false) then
-		Duel.SpecialSummon(ec,0,tp,tp,false,false,POS_FACEUP)
-	end
-	if Duel.IsExistingMatchingCard(Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,nil) then
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
-		local g=Duel.SelectMatchingCard(tp,Card.IsDestructable,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
-		if #g>0 then
-			Duel.Destroy(g,REASON_EFFECT)
-		end
+	Duel.Destroy(c,REASON_EFFECT+REASON_REPLACE)
+	if Duel.GetFieldGroupCount(tp,LOCATION_ONFIELD,LOCATION_ONFIELD)==0 then return end
+	if not Duel.SelectYesNo(tp,209) then return end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)
+	local g=Duel.SelectMatchingCard(tp,aux.TRUE,tp,LOCATION_ONFIELD,LOCATION_ONFIELD,1,1,nil)
+	if #g>0 then
+		Duel.Destroy(g,REASON_EFFECT)
 	end
 end
 

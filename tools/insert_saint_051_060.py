@@ -6,8 +6,8 @@ def main() -> None:
     c = conn.cursor()
 
     SET_CLOTH = 0x1D8
-    SET_SILVER_SAINT = 0x1DA
-    setcode = SET_CLOTH | (SET_SILVER_SAINT << 16)
+    SET_SILVER_CLOTH = 0x1EB
+    setcode = SET_CLOTH | (SET_SILVER_CLOTH << 16)
 
     cards = [
         (922100051, "Silver Cloth - Eagle"),

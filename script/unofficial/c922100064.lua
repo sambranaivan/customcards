@@ -5,8 +5,7 @@
 --
 -- Archetypes:
 -- - cloth
--- - saint-seiya
--- - Silver Saint
+-- - Silver Cloth
 --
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
@@ -50,7 +49,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 
-s.listed_series={SET_CLOTH,SET_SILVER_SAINT}
+s.listed_series={SET_CLOTH,SET_SILVER_CLOTH,SET_SAINT}
 s.listed_names={922100025}
 
 function s.eqlimit(e,c)

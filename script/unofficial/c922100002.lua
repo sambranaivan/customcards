@@ -13,7 +13,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- If this card battles an opponent's monster, after damage calculation: Change that opponent's monster to Defense Position, and if you do, negate its effects until the end of your opponent's next turn.
+-- If this card attacks an opponent's monster, before damage calculation: Change that opponent's monster to Defense Position, and if you do, negate its effects until the end of your opponent's next turn.
 -- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
 -- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
@@ -22,12 +22,12 @@
 --Saint - Hyoga of Cygnus
 local s,id=GetID()
 function s.initial_effect(c)
-	--After damage calculation: change to DEF, negate effects
+	--When Hyoga attacks only — before damage calculation: change to DEF, negate effects
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_POSITION)
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e1:SetProperty(EFFECT_FLAG_DELAY)
-	e1:SetCode(EVENT_DAMAGE_STEP_END)
+	e1:SetCode(EVENT_PRE_DAMAGE_CALCULATE)
 	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.poscon)
 	e1:SetTarget(s.postg)
@@ -62,18 +62,22 @@ end
 
 s.listed_series={SET_SAINT,SET_BRONZE_SAINT,SET_CLOTH}
 
-function s.poscon(e,tp,eg,ep,ev,re,r,rp)
+function s.battleopp(e)
 	local c=e:GetHandler()
-	local bc=c:GetBattleTarget()
-	return bc and bc:IsControl(1-tp) and bc:IsRelateToBattle()
+	if Duel.GetAttacker()~=c then return nil end
+	return Duel.GetAttackTarget()
+end
+function s.poscon(e,tp,eg,ep,ev,re,r,rp)
+	local bc=s.battleopp(e)
+	return bc~=nil and bc:IsControler(1-tp) and bc:IsFaceup() and bc:IsRelateToBattle()
 end
 function s.postg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local bc=e:GetHandler():GetBattleTarget()
+	local bc=s.battleopp(e)
 	if chk==0 then return bc and bc:IsCanChangePosition() end
 	Duel.SetOperationInfo(0,CATEGORY_POSITION,bc,1,0,0)
 end
 function s.posop(e,tp,eg,ep,ev,re,r,rp)
-	local bc=e:GetHandler():GetBattleTarget()
+	local bc=s.battleopp(e)
 	if not bc or not bc:IsRelateToBattle() then return end
 	if Duel.ChangePosition(bc,POS_FACEUP_DEFENSE,POS_FACEDOWN_DEFENSE,POS_FACEUP_DEFENSE,POS_FACEDOWN_DEFENSE)~=0 then
 		local e1=Effect.CreateEffect(e:GetHandler())

@@ -4,9 +4,8 @@
 -- Type: Spell / Equip Spell
 --
 -- Archetypes:
--- - Bronze Saint
 -- - cloth
--- - saint-seiya
+-- - Bronze Cloth
 --
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
@@ -19,19 +18,9 @@
 --Bronze Cloth - Bear
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_ACTIVATE)
-	e0:SetCode(EVENT_FREE_CHAIN)
-	c:RegisterEffect(e0)
-
-	--Equip limit
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EQUIP_LIMIT)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetValue(s.eqlimit)
-	c:RegisterEffect(e1)
+	--Activate: select target then Duel.Equip (must use aux.AddEquipProcedure)
+	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
+	e0:SetDescription(aux.Stringid(id,1))
 
 	--Discard; add 1 Level 4 "Saint" monster
 	local e2=Effect.CreateEffect(c)
@@ -47,7 +36,7 @@ function s.initial_effect(c)
 
 	--If equipped monster destroys by battle: opponent discards 1 random card
 	local e3=Effect.CreateEffect(c)
-	e3:SetDescription(aux.Stringid(id,1))
+	e3:SetDescription(aux.Stringid(id,2))
 	e3:SetCategory(CATEGORY_HANDES)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_BATTLE_DESTROYING)
@@ -59,7 +48,7 @@ function s.initial_effect(c)
 
 	--If equipped monster is Geki: at start of Damage Step vs higher ATK, destroy that monster
 	local e4=Effect.CreateEffect(c)
-	e4:SetDescription(aux.Stringid(id,2))
+	e4:SetDescription(aux.Stringid(id,3))
 	e4:SetCategory(CATEGORY_DESTROY)
 	e4:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e4:SetCode(EVENT_BATTLE_CONFIRM)
@@ -72,7 +61,7 @@ function s.initial_effect(c)
 
 	--If sent from S/T Zone to GY: re-equip next Standby Phase (banish when leaves field)
 	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,3))
+	e5:SetDescription(aux.Stringid(id,4))
 	e5:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e5:SetProperty(EFFECT_FLAG_DELAY+EFFECT_FLAG_CARD_TARGET)
 	e5:SetCode(EVENT_TO_GRAVE)
@@ -83,11 +72,14 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 
-s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_SAINT}
+s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
 s.listed_names={922100007}
 
-function s.eqlimit(e,c)
-	return c:IsSetCard(SET_SAINT)
+function s.actcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(function(tc)
+			return tc:IsFaceup() and tc:IsSetCard(SET_SAINT) and tc:IsControler(tp)
+		end,tp,LOCATION_MZONE,0,1,nil)
 end
 
 function s.thcost(e,tp,eg,ep,ev,re,r,rp,chk)
