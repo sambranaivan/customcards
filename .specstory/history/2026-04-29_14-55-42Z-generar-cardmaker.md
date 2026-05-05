@@ -4518,3 +4518,102 @@ Hecho. En `tools/CardMaker/modules/CardConstructor.py` ajusté Magias/Trampas pa
 - El cálculo de alto del textbox también se recalcula con ese `desc_y`.
 
 Verificado en `tools/CardMaker/output/Spell_Text_Start_Up_Test.png`: el efecto arranca arriba y aprovecha mejor el box.
+
+---
+
+_**User**_
+
+quiero que el cardMaker ahora tome la informacion directamente desde @expansions/saint-seiya.cdb  ya que los siguientes correccion las hare directamente alli
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Modifying SQLite script**
+
+I need to adjust my `generate_cardmaker_from_sets_sqlite.py` file to read from `expansions/saint-seiya.cdb` (an EDOPro SQLite database). I should inspect the schema, possibly using Python to query PRAGMA. It might be better to use the Shell sqlite3. I'll create a new script named `generate_cardmaker_from_cdb.py`, or modify the existing one to accept a `--db` path that defaults to `expansions/saint-seiya.cdb`. I'll also need to map the columns from the datas and texts tables in the cdb file. Let’s look into it with Python quickly!</details></think>
+
+_**Agent (default)**_
+
+Perfecto: voy a actualizar el generador para que, en vez de `sets/sets.sqlite3`, lea directamente el SQLite de EDOPro `expansions/saint-seiya.cdb` (tablas típicas `datas` + `texts`). Primero inspecciono el esquema real de ese `.cdb`, y después adapto el mapeo (name, type, atk/def, level/rank/link, race/attribute, y efecto) manteniendo todas las reglas de render que ya ajustamos.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python -c "import sqlite3, pathlib; p=pathlib.Path('c:/ProjectIgnis/expansions/saint-seiya.cdb'); print('exists',p.exists(),p); conn=sqlite3.connect(p); cur=conn.cursor(); print('tables',cur.execute(\"select name from sqlite_master where type='table' order by name\").fetchall());\nprint('datas cols',cur.execute('pragma table_info(datas)').fetchall());\nprint('texts cols',cur.execute('pragma table_info(texts)').fetchall());\nprint('sample',cur.execute('select d.id,t.name,d.type,d.atk,d.def,d.level,d.race,d.attribute,t.desc from datas d join texts t on t.id=d.id limit 1').fetchone()); conn.close()"</summary>
+
+```bash
+python -c "import sqlite3, pathlib; p=pathlib.Path('c:/ProjectIgnis/expansions/saint-seiya.cdb'); print('exists',p.exists(),p); conn=sqlite3.connect(p); cur=conn.cursor(); print('tables',cur.execute(\"select name from sqlite_master where type='table' order by name\").fetchall());\nprint('datas cols',cur.execute('pragma table_info(datas)').fetchall());\nprint('texts cols',cur.execute('pragma table_info(texts)').fetchall());\nprint('sample',cur.execute('select d.id,t.name,d.type,d.atk,d.def,d.level,d.race,d.attribute,t.desc from datas d join texts t on t.id=d.id limit 1').fetchone()); conn.close()"
+```
+
+```
+  File "&lt;string&gt;", line 1
+    import sqlite3, pathlib; p=pathlib.Path('c:/ProjectIgnis/expansions/saint-seiya.cdb'); print('exists',p.exists(),p); conn=sqlite3.connect(p); cur=conn.cursor(); print('tables',cur.execute(" select name from sqlite_master where type=table order by name\).fetchall());\nprint('datas
+                                                                                                                                                                                                ^
+SyntaxError: unterminated string literal (detected at line 1)
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Voy a re-ejecutar la inspección con un `python -c` bien escapado (sin strings rotos) para ver tablas/columnas y así adaptar el script a `saint-seiya.cdb`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: python -c "import sqlite3, pathlib\np=pathlib.Path(r'c:/ProjectIgnis/expansions/saint-seiya.cdb')\nprint('exists', p.exists(), p)\nconn=sqlite3.connect(str(p))\ncur=conn.cursor()\nprint('tables', cur.execute(\"select name from sqlite_master where type='table' order by name\").fetchall())\nprint('datas cols', cur.execute('pragma table_info(datas)').fetchall())\nprint('texts cols', cur.execute('pragma table_info(texts)').fetchall())\nrow=cur.execute('select d.id,t.name,d.type,d.atk,d.def,d.level,d.race,d.attribute,t.desc from datas d join texts t on t.id=d.id limit 1').fetchone()\nprint('sample', row)\nconn.close()"</summary>
+
+```bash
+python -c "import sqlite3, pathlib\np=pathlib.Path(r'c:/ProjectIgnis/expansions/saint-seiya.cdb')\nprint('exists', p.exists(), p)\nconn=sqlite3.connect(str(p))\ncur=conn.cursor()\nprint('tables', cur.execute(\"select name from sqlite_master where type='table' order by name\").fetchall())\nprint('datas cols', cur.execute('pragma table_info(datas)').fetchall())\nprint('texts cols', cur.execute('pragma table_info(texts)').fetchall())\nrow=cur.execute('select d.id,t.name,d.type,d.atk,d.def,d.level,d.race,d.attribute,t.desc from datas d join texts t on t.id=d.id limit 1').fetchone()\nprint('sample', row)\nconn.close()"
+```
+
+```
+  File "&lt;string&gt;", line 1
+    import sqlite3, pathlib\np=pathlib.Path(r'c:/ProjectIgnis/expansions/saint-seiya.cdb')\nprint('exists', p.exists(), p)\nconn=sqlite3.connect(str(p))\ncur=conn.cursor()\nprint('tables', cur.execute(" select name from sqlite_master where type=table order by name\).fetchall())\nprint('datas
+                            ^
+SyntaxError: unexpected character after line continuation character
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Considering PowerShell scripting**
+
+I'm thinking about PowerShell quoting issues and whether to use the Shell tool. It seems tricky with Python's embedded newlines in a command, so maybe it's better to create a temporary .py file? However, file operations are allowed with tools, like using ApplyPatch to add a small script under sets/inspect_cdb.py and then run it. I already read the file earlier, so I can create a new one using ApplyPatch too.</details></think>
+
+_**Agent (default)**_
+
+Para evitar los problemas de comillas en PowerShell, voy a crear un mini script `sets/inspect_cdb.py` que inspeccione el `.cdb` y lo ejecuto. Con esa info adapto `sets/generate_cardmaker_from_sets_sqlite.py` para leer `expansions/saint-seiya.cdb`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\sets\inspect_cdb.py</summary>
+
+Status: **loading**
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
