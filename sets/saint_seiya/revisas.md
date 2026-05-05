@@ -224,7 +224,7 @@ You can only use this effect of "Silver Saint - Orphee of Lyra" once per turn.
 
 ---
 
-## Resumen de prioridades
+## Resumen de prioridades — Silver Saints Synchro
 
 | Prioridad | Carta | Tipo de cambio |
 |-----------|-------|---------------|
@@ -236,3 +236,235 @@ You can only use this effect of "Silver Saint - Orphee of Lyra" once per turn.
 | 🟡 Bajo-medio | Sagitta Ptolemy | Convertir a Quick Effect + duración extendida |
 | 🟠 Bajo | Heracles Algethi | Limitar doble ataque a no directo |
 | 🟠 Bajo | Orphee of Lyra | Cláusula de no respuesta |
+
+---
+
+# Revisión de Balance — Silver Cloths (Equip Spells)
+
+Cada Silver Cloth equipa solo a monstruos "Silver Saint" y tiene dos capas:
+- **Efecto genérico**: funciona equipada a cualquier Silver Saint.
+- **Efecto específico**: bonus adicional al equipar al Silver Saint correspondiente.
+
+---
+
+## Clasificación de genéricos
+
+| Cloth | Efecto genérico | Evaluación |
+|-------|----------------|------------|
+| Eagle | No puede ser destruida por efectos de Trap | 🔴 Demasiado situacional |
+| Ophiuchus | +800 ATK | ✅ El bonus de ATK más alto |
+| Perseus | Al ser atacada: el atacante pierde 1000 ATK antes del cálculo de daño | ✅ Defensivo sólido |
+| Lacerta | No puede ser objetivo de efectos del oponente | ✅ Excelente en cualquier Silver Saint |
+| Lyra | El oponente paga 300 LP para activar efectos de monstruo | 🔴 300 LP es irrelevante en YGO moderno |
+| Hound | 1 vez/turno: revela 1 carta aleatoria de la mano del oponente | ✅ Información valiosa |
+| Whale | Opcional: si un monstruo volvería a la mano por efecto de Silver Saint, puedes mandar 1 Cloth al GY para mandarlo al Deck | 🟡 Demasiado nicho |
+| Centaurus | +500 ATK | ✅ Decente |
+| Crow | Los monstruos del oponente pierden 300 ATK (global, continuo) | 🟡 Menor pero constante |
+| Cerberus | 1 vez/turno: destierra 1 carta de cualquier GY | ✅ Útil |
+| Auriga | +600 ATK | ✅ Decente |
+| Canis Major | Cuando un monstruo del oponente activa su efecto en Battle Phase: +500 ATK | 🟠 Muy situacional |
+| Musca | 1 vez/turno: coloca 1 Fly Counter en cualquier monstruo boca arriba. Monstruos con Fly Counter pierden 500 ATK/DEF | ✅ Buen soporte del sistema |
+| Heracles | +700 ATK | ✅ Segundo bonus de ATK más alto |
+| Sagitta | Después de que el monstruo equipado combata: inflige 400 de daño | 🔴 400 de daño es irrelevante |
+| Cepheus | 1 vez/turno: toma 1 "Saint" de tu GY a la mano, luego descartas 1 | ✅ Reciclaje sólido |
+
+---
+
+## Combinaciones problemáticas (genérico + específico)
+
+### 🔴 Centaurus Babel + Silver Cloth - Centaurus — DOS NEGACIONES/TURNO
+Babel ya niega Spell/Traps con su propio efecto (costando 1 Cloth). El efecto específico del Cloth le da **una segunda negación por turno** pagando solo 500 LP. Dos negaciones de Spell/Trap en un solo monstruo es demasiado.
+
+### 🔴 Heracles Algethi + Silver Cloth - Heracles — OTK GARANTIZADO
+Heracles pone ATK a 0 + doble ataque. El Cloth específico además fuerza a DEF y bloquea el cambio de posición. Secuencia: Cloth → manda a DEF, QE → ATK 0, ataca dos veces a un monstruo en DEF con 0/0. **OTK sobre cualquier monstruo** sin restricción.
+
+### 🔴 Orphee of Lyra + Silver Cloth - Lyra — NEGAR TODO + ROBAR UN MONSTRUO
+Orphee niega todos los monstruos del oponente. El Cloth específico además roba un monstruo por turno (efectos negados). Combinación excesiva con 2700 ATK de base.
+
+### 🟡 Cepheus Daidalos + Silver Cloth - Cepheus — BOUNCES EN CADENA
+Cepheus al ser Synchro Summoned invoca un Bronze Saint del GY → activa inmediatamente el específico del Cloth → bounce de 1 carta del oponente. Cada Saint invocado posteriormente ese turno activa otro bounce. Puede vaciar el campo del oponente con suficientes invocaciones.
+
+### 🟡 Silver Cloth - Cerberus — EFECTO ESPECÍFICO CONFUSO
+```
+While you control this equipped card, cards in your opponent's GY cannot be 
+banished except by card effects.
+```
+Impide el destierro *pasivo* (Macro Cosmos, Dimensional Fissure) pero **permite** el destierro por efectos de carta, que es exactamente lo que Dante hace. La restricción es mínima y confusa — parece escrita al revés.
+
+---
+
+## Cambios sugeridos
+
+### 🔴 Silver Cloth - Eagle — MEJORAR GENÉRICO (prioridad crítica)
+
+**Problema:** "No puede ser destruida por efectos de Trap" es extremadamente específico. En el meta actual casi nadie destruye con Traps directamente.
+
+**Efecto actual:**
+```
+Equip only to a "Silver Saint" monster.
+The equipped monster cannot be destroyed by Trap effects.
+If the equipped monster is "Silver Saint - Marin of Eagle", once per turn, when 
+your opponent activates a card or effect: You can add 1 Level 4 "Saint" monster 
+from your Deck to your hand.
+```
+
+**Efecto propuesto:**
+```
+Equip only to a "Silver Saint" monster.
+The equipped monster cannot be destroyed by Trap Card effects.
+Once per turn, if the equipped monster would be targeted by a card effect: You can 
+negate that targeting.
+If the equipped monster is "Silver Saint - Marin of Eagle", once per turn, when 
+your opponent activates a card or effect: You can add 1 Level 4 "Saint" monster 
+from your Deck to your hand.
+```
+
+**Justificación:** El genérico pasa de solo anti-Trap a anti-targeting reactivo — útil en cualquier Silver Saint y refleja el rol protector de Marin. Nota: si se rediseña Marin, el efecto específico de este Cloth también debe revisarse para complementar el nuevo diseño.
+
+---
+
+### 🔴 Silver Cloth - Lyra — SUBIR EL IMPUESTO (prioridad crítica)
+
+**Problema:** 300 LP por efecto de monstruo es insignificante. En una partida normal el oponente activa decenas de efectos sin notar el costo.
+
+**Efecto actual:**
+```
+Equip only to a "Silver Saint" monster.
+Your opponent must pay 300 LP to activate a monster effect.
+If the equipped monster is "Silver Saint - Orphee of Lyra", once per turn: You can 
+target 1 monster your opponent controls; take control of it until the End Phase, 
+but negate its effects.
+```
+
+**Efecto propuesto:**
+```
+Equip only to a "Silver Saint" monster.
+Each time your opponent activates a monster effect, they must pay 1000 LP. 
+If they cannot pay, that effect cannot be activated.
+If the equipped monster is "Silver Saint - Orphee of Lyra", once per turn: You can 
+target 1 monster your opponent controls; take control of it until the End Phase, 
+but negate its effects.
+```
+
+**Justificación:** 1000 LP por efecto hace el impuesto real (3 efectos = 3000 LP de presión). La cláusula "si no puede pagar" convierte la Cloth en un cierre de efectos cuando el oponente está bajo de LP.
+
+---
+
+### 🟡 Silver Cloth - Centaurus — CAMBIAR COSTO DEL SEGUNDO NEGATE (prioridad media)
+
+**Problema:** El específico da a Babel una segunda negación de Spell/Trap pagando solo 500 LP. Dos negaciones en un monstruo con costo irrelevante es demasiado.
+
+**Efecto actual:**
+```
+If this card is equipped to "Silver Saint - Centaurus Babel", once per turn, when 
+your opponent activates a Spell/Trap Card or effect: You can pay 500 LP; negate 
+that activation, and if you do, destroy that card.
+```
+
+**Efecto propuesto:**
+```
+If this card is equipped to "Silver Saint - Centaurus Babel", once per turn, when 
+your opponent activates a Spell/Trap Card or effect: You can discard 1 card from 
+your hand; negate that activation, and if you do, destroy that card.
+```
+
+**Justificación:** El primer negate de Babel cuesta 1 Cloth, el segundo cuesta 1 carta de mano. Dos negaciones siguen siendo posibles pero ambas tienen costo real de carta.
+
+---
+
+### 🟡 Silver Cloth - Heracles — RESTRINGIR PARA EVITAR OTK (prioridad media)
+
+**Problema:** Forzar DEF + ATK=0 + doble ataque en un monstruo en DEF resulta en OTK garantizado sobre cualquier monstruo del oponente sin restricción.
+
+**Efecto actual:**
+```
+If this card is equipped to "Silver Saint - Heracles Algethi", once per turn: You 
+can target 1 face-up monster your opponent controls; change it to Defense Position, 
+and if you do, it cannot change its battle position this turn.
+```
+
+**Efecto propuesto:**
+```
+If this card is equipped to "Silver Saint - Heracles Algethi", once per turn: You 
+can target 1 face-up Attack Position monster your opponent controls; change it to 
+Defense Position, and if you do, it cannot change its battle position this turn.
+```
+
+**Justificación:** Limitar el efecto a monstruos en **Attack Position** impide forzar a DEF un monstruo ya en DEF para combinar con ATK=0 + doble ataque. El OTK requiere más pasos y condiciones.
+
+---
+
+### 🟡 Silver Cloth - Cerberus — REESCRIBIR EFECTO ESPECÍFICO (prioridad media)
+
+**Problema:** "Cards in your opponent's GY cannot be banished except by card effects" — impide destierro pasivo pero permite destierro por efectos, que es exactamente lo que Dante hace. La restricción es inútil y confusa.
+
+**Efecto actual:**
+```
+If this card is equipped to "Silver Saint - Cerberus Dante", while you control 
+this equipped card, cards in your opponent's GY cannot be banished except by card 
+effects.
+```
+
+**Efecto propuesto:**
+```
+If this card is equipped to "Silver Saint - Cerberus Dante", while you control 
+this equipped card, your opponent cannot activate card effects from their GY, also 
+your opponent cannot banish cards from their GY by their own card effects.
+```
+
+**Justificación:** Dante destierra del GY del oponente; el Cloth evita que el oponente use o destierro su propio GY. Cierre completo y temáticamente coherente — Dante como guardián del inframundo que bloquea el acceso.
+
+---
+
+### 🟠 Silver Cloth - Sagitta — ESCALAR EL DAÑO (prioridad baja)
+
+**Problema:** 400 de daño fijo después de combate es irrelevante en el juego actual.
+
+**Efecto actual:**
+```
+If the equipped monster battles an opponent's monster, after damage calculation: 
+Inflict 400 damage to your opponent.
+```
+
+**Efecto propuesto:**
+```
+If the equipped monster battles an opponent's monster, after damage calculation: 
+Inflict damage to your opponent equal to 400 x the number of cards your opponent 
+controls.
+```
+
+**Justificación:** El daño escala con el campo del oponente — presiona más cuando tienen tablero lleno, temáticamente Sagitta dispara múltiples flechas.
+
+---
+
+### 🟠 Silver Cloth - Canis Major — QUITAR RESTRICCIÓN DE BATTLE PHASE (prioridad baja)
+
+**Problema:** El genérico solo da +500 ATK cuando el oponente activa un efecto de monstruo en la Battle Phase. Condición demasiado específica para un bonus menor.
+
+**Efecto actual:**
+```
+When an opponent's monster activates its effect in the Battle Phase: The equipped 
+monster gains 500 ATK until the end of this turn.
+```
+
+**Efecto propuesto:**
+```
+Once per turn, when your opponent activates a monster effect: The equipped monster 
+gains 500 ATK until the end of this turn.
+```
+
+**Justificación:** Sin restricción de fase, el buff reactivo es más consistente y útil en Main Phase también.
+
+---
+
+## Resumen de prioridades — Silver Cloths
+
+| Prioridad | Cloth | Cambio |
+|-----------|-------|--------|
+| 🔴 Crítico | Eagle (genérico) | Reemplazar anti-Trap por anti-targeting reactivo |
+| 🔴 Crítico | Lyra (genérico) | Subir impuesto a 1000 LP + cláusula de bloqueo |
+| 🟡 Medio | Centaurus (específico) | Cambiar costo de 500 LP a descartar 1 carta |
+| 🟡 Medio | Heracles (específico) | Limitar a Attack Position para evitar OTK |
+| 🟡 Medio | Cerberus (específico) | Reescribir para cierre completo del GY del oponente |
+| 🟠 Bajo | Sagitta (genérico) | Daño escalable × cartas del oponente |
+| 🟠 Bajo | Canis Major (genérico) | Quitar restricción de Battle Phase |
