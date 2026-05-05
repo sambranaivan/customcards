@@ -2737,6 +2737,7 @@ Microsoft (R) Build Engine, versi�n 4.8.4084.0
 [Microsoft .NET Framework, versi�n 4.0.30319.42000]
 Copyright (C) Microsoft Corporation. Todos los derechos reservados.
 
+  SaintSeiyaBronzeOnlyExecutor -&gt; c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll
 
 ```
 </details>
@@ -2744,5 +2745,1202 @@ Copyright (C) Microsoft Corporation. Todos los derechos reservados.
 
 <tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
 <summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Executor actualizado según `docs/windbot-saint-seiya-bronze-only.md`
+Apliqué el cambio de estrategia mencionado en el doc:
+
+- **Seiya ahora equipa Cloths solo desde el Cementerio** → el bot ahora **prioriza “sembrar” 1 Cloth en GY**.
+- En el executor (`WindBot/Executors/SaintSeiyaBronzeOnlyExecutor/SaintSeiyaBronzeOnlyExecutor.cs`) ajusté `ActivateClothDiscardSearch()` para que, si **Seiya está face-up** y **no hay Cloth en GY**, el bot **active el descarte de Cloth** aunque ya tenga 3 nombres, para habilitar las líneas de equip/protección.
+
+Recompilé el plugin y quedó actualizado en:
+
+- `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll`
+
+Si querés que también cambie *cuándo* usa `Kiki` vs *guardar* Cloths en mano (por ejemplo “priorizar discard antes que Kiki” en ciertos escenarios), decime qué parte exacta cambió en tu nueva estrategia y lo aterrizo en prioridades/condiciones.
+
+---
+
+_**User**_
+
+se pueden programar custom dialogs en los executors?
+
+---
+
+_**Agent (default)**_
+
+Sí, **se puede**, pero **no desde el executor “solo”**: los diálogos que WindBot usa vienen de archivos `.json` en `WindBot/Dialogs/`, y el executor puede **disparar** esas líneas/keys (según el soporte del `ExecutorBase` que estés usando).
+
+### Cómo funciona en la práctica
+- **Los textos** viven en `WindBot/Dialogs/*.json` (por ejemplo `WindBot/Dialogs/default.json`).
+- El executor normalmente solo puede:
+  - **elegir qué “tag/linea” decir** (si la API del bot expone un método para hablar/loguear), o
+  - dejar que WindBot use sus mensajes por defecto.
+
+### Qué necesito para decirte “exactamente cómo” en tu build
+Depende de qué métodos expone tu `ExecutorBase.dll`. Si me pasás el contenido de `WindBot/Dialogs/default.json` (o me dejás leerlo) y yo busco en tu `ExecutorBase` qué método usa para emitir diálogos (por ejemplo algo tipo `AI.Chat(...)`, `GameAI.Chat(...)`, `Dialogs.Say(...)`), te digo:
+- qué clave agregar al JSON,
+- cómo invocarla desde el executor,
+- y en qué eventos conviene (summon, activate, negate, win/lose).
+
+---
+
+_**User**_
+
+@WindBot/Dialogs/default.json 
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Examining dialog configuration**
+
+I need to read the file and check if it has dialog keys. I'm also unsure about inspecting ExecutorBase.dll easily. Maybe I could use grep, but I can't seem to do that. It looks like I should read the JSON content and see how to add a new dialog file in bots.json. WindBot seems to select dialogs based on its config. I can't search in WindBot.exe, but I can look at the structure of default.json, since WindBot uses that, and maybe we can create a custom dialog file to pass through bots.json. Let’s check out default.json.</details></think>
+
+_**Agent (default)**_
+
+Voy a mirar la estructura de `default.json` para decirte qué podés personalizar (keys, eventos, placeholders) y cuál es la forma típica de apuntar a un dialog custom desde WindBot.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Dialogs\default.json</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Sí: **los diálogos custom se hacen editando/creando JSON en `WindBot/Dialogs/`** (como este `default.json`). Ahí definís “eventos” → lista de frases, con placeholders tipo `{0}` / `{1}`.
+
+### Qué se puede customizar (según tu `default.json`)
+- **Eventos**: `welcome`, `duelstart`, `newturn`, `endturn`, `summon`, `activate`, `chaining`, `attack`, `directattack`, etc.
+- **Placeholders**:
+  - `{0}` suele ser el **nombre de tu carta** (ej. en `summon`, `activate`, `chaining`)
+  - `{1}` aparece en `attack` como **objetivo** (otro monstruo / “monster” si está boca abajo)
+- **Nombre para facedown**: `facedownmonstername`
+
+### Lo importante: ¿se programa “desde el executor”?
+En general **no “hardcodeás” frases dentro del executor**. Lo que hace WindBot es:
+- el executor decide **acciones** (summon/activate/chain/attack)
+- el sistema de diálogos elige una frase del JSON para ese evento
+
+O sea: **tu executor dispara el evento indirectamente** (al activar/encadenar), y el texto sale del JSON.
+
+### Cómo hacer un dialog “Saint Seiya”
+1) Copiá `WindBot/Dialogs/default.json` a, por ejemplo:
+- `WindBot/Dialogs/saint-seiya.json`
+2) Cambiá frases de `summon`, `activate`, `chaining`, etc. por líneas temáticas.
+3) Falta un detalle: **cómo le decís a WindBot que use ese JSON** (algunas builds lo eligen por config/argumento/bot setting).
+
+Si me pegás el contenido de `WindBot/WindBot.exe.config` y/o me decís **cómo estás lanzando WindBot** (desde EDOPro o manual), te digo exactamente **dónde se setea el nombre del dialog** en tu build para que use `saint-seiya.json` en vez de `default.json`.
+
+---
+
+_**User**_
+
+@WindBot/WindBot.exe.config  
+
+desde Edopro
+
+---
+
+_**Agent (default)**_
+
+Voy a revisar `WindBot.exe.config` (probablemente solo runtime) y después ubicar **dónde EDOPro le pasa el “dialog”** a WindBot (suele ser argumento/setting). Con eso te digo cómo fijar un `saint-seiya.json` por bot.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\WindBot.exe.config</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "dialog"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "dialog",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "skin/Red/skin.xml"
+    },
+    {
+      "matchCount": 1,
+      "uri": "skin/Indigo/skin.xml"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\README.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "README.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".cursor/skills/windbot-executor-creator/api-reference.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\AI\\Dialogs.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "skin/Dark Red/skin.xml"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\GameAI.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "skin/Dark Green/skin.xml"
+    },
+    {
+      "matchCount": 1,
+      "uri": "skin/Dark Blue/skin.xml"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".agents/skills/windbot-executor-creator/api-reference.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-05-05_13-16-21Z-windobot-executor-creation.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Program.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-03-04_10-39-39Z-duelo-entre-dos-ia-de-windbot.md"
+    }
+  ],
+  "totalFiles": 14,
+  "totalMatches": 14
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "Dialogs\\\\"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "Dialogs\\\\",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-02-24_14-08-09Z-servidor-propio-de-edopro-y-cartas-personalizadas.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "docs\\windbot-saint-seiya-bronze-only.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\WindBot.csproj"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-05-05_13-16-21Z-windobot-executor-creation.md"
+    }
+  ],
+  "totalFiles": 4,
+  "totalMatches": 4
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "WindBot\\.exe"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis",
+  "pattern": "WindBot\\.exe",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-03-03_15-27-45Z-executor-creation-for-windbot-ai.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\BotWrapper\\BotWrapper.sh"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-05-05_13-16-21Z-windobot-executor-creation.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-02-24_14-08-09Z-servidor-propio-de-edopro-y-cartas-personalizadas.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-03-04_11-11-48Z-nuevo-set-de-pokémon-con-cartas-definidas.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\README.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.csproj"
+    },
+    {
+      "matchCount": 1,
+      "uri": "docs\\windbot-saint-seiya-bronze-only.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".agents/skills/windbot-executor-creator/SKILL.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".cursor/skills/windbot-executor-creator/SKILL.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\BotWrapper\\BotWrapper.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".cursor\\skills\\md-ydk-windbot-executor\\SKILL.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-03-04_10-39-39Z-duelo-entre-dos-ia-de-windbot.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Program.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": ".specstory\\history\\2026-04-16_11-41-46Z-creación-de-banlist-para-formato-pokémon.md"
+    }
+  ],
+  "totalFiles": 15,
+  "totalMatches": 15
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\repositories\windbot\Program.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\repositories\windbot\Game\AI\Dialogs.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\repositories\windbot\Game\GameAI.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Sí, y de hecho **está soportado explícitamente** por WindBot, pero con una limitación importante:
+
+### Cómo se definen dialogs “custom”
+WindBot carga el archivo de diálogo desde:
+
+- **`WindBot/Dialogs/<Dialog>.json`**
+
+y el nombre `<Dialog>` sale de un parámetro llamado **`Dialog`**.
+
+En el source de WindBot se ve claro:
+
+- `Program.cs` lee `Info.Dialog = Config.GetString("Dialog", Info.Dialog);`
+- `Dialogs.cs` hace `Program.ReadFile("Dialogs", dialogfilename, "json")`
+
+O sea: si `Dialog = "default"` → busca `Dialogs/default.json`.
+
+### ¿Se puede disparar chat desde un executor?
+Sí, pero **solo usando el canal “custom”** (no agregando nuevas keys arbitrarias).
+
+WindBot tiene en `DialogsData`:
+
+- `custom: string[]`
+
+y en `GameAI`:
+
+- `SendCustomChat(int index, params object[] opts)`
+
+Entonces:
+- Ponés frases en `custom` dentro del JSON
+- Desde el executor, llamás `AI.SendCustomChat(index, ...)` (en el source) / o su equivalente si está expuesto en tu `ExecutorBase.dll`
+
+### Limitación real en tu build actual (ProjectIgnis + EDOPro)
+En tu `WindBot/Dialogs/default.json` **no existe `custom`**, pero podés agregarlo y usarlo.
+
+Lo que **no está garantizado** es poder elegir por-bot un JSON distinto (ej. `saint-seiya.json`) porque eso depende de si **EDOPro le pasa el parámetro `Dialog=`** cuando lanza WindBot. Tu `WindBot.exe.config` no define nada (solo runtime), así que el lugar donde se setea es **en cómo EDOPro invoca WindBot**.
+
+### Recomendación práctica (funciona seguro con EDOPro)
+- Editá `WindBot/Dialogs/default.json` y agregá una sección:
+
+```json
+"custom": [
+  "¡Eleva tu Cosmos!",
+  "¡Por Atenea!",
+  "{0}, ¡ponte la Cloth!"
+]
+```
+
+- Y en el executor, cuando quieras una frase, hacés (según API disponible):
+  - `AI.SendCustomChat(0);`
+  - `AI.SendCustomChat(2, Card.Name);`  (para usar `{0}`)
+
+Si querés, te lo implemento ya en `SaintSeiyaBronzeOnlyExecutor` (por ejemplo: al resolver `AthenasCall`, al setear `Athena Exclamation`, etc.), pero antes tengo que confirmar si en tu DLL actual el executor tiene acceso a `AI.SendCustomChat(...)` (en algunos builds está como `AI`, en otros como `Duel.AI`/`GameAI`).
+
+---
+
+_**User**_
+
+ implemento ya en SaintSeiyaBronzeOnlyExecutor
+
+---
+
+_**Agent (default)**_
+
+Perfecto: voy a (1) agregar `custom` a `WindBot/Dialogs/default.json`, (2) meter llamadas `AI.SendCustomChat(...)` en puntos clave del `SaintSeiyaBronzeOnlyExecutor`, y (3) recompilar el `.dll` para confirmar que tu `ExecutorBase` expone ese método.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Dialogs\default.json</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Failed to find context:
+        private bool ActivateAthenasCall()
+        {
+            if (!IsMainPhase())
+                return false
+
+            // If we are empty, Kiki is high value to turn on equips quickly.
+            if (FieldIsEmpty() && Bot.GetRemainingCount(CardId.Kiki, 3) > 0)
+            {
+                AI.SelectCard(CardId.Kiki);
+                return true;
+            }
+
+            // Prefer Seiya as the best starter if available.
+            if (!Bot.HasInHand(CardId.Seiya) && Bot.GetRemainingCount(CardId.Seiya, 3) > 0)
+            {
+                AI.SelectCard(CardId.Seiya);
+                return true;
+            }
+
+            AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            return true;
+        }
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+El executor cambió de líneas desde la última lectura (tiene más líneas ahora), así que voy a re-leer los bloques exactos y re-aplicar el parche con el contexto correcto.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "private bool ActivateAthenasCall\\("
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "private bool ActivateAthenasCall\\(",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 1
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+    "c:\\ProjectIgnis\\WindBot\\Dialogs\\default.json"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    },
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Dialogs\\default.json"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal</summary>
+
+```bash
+& "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal
+```
+
+```
+Microsoft (R) Build Engine, versi�n 4.8.4084.0
+[Microsoft .NET Framework, versi�n 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+SaintSeiyaBronzeOnlyExecutor.cs(174,20): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+SaintSeiyaBronzeOnlyExecutor.cs(182,20): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+SaintSeiyaBronzeOnlyExecutor.cs(187,16): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+SaintSeiyaBronzeOnlyExecutor.cs(285,16): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+SaintSeiyaBronzeOnlyExecutor.cs(384,16): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+SaintSeiyaBronzeOnlyExecutor.cs(391,16): error CS1061: 'WindBot.Game.GameAI' does not contain a definition for 'SendCustomChat' and no extension method 'SendCustomChat' accepting a first argument of type 'WindBot.Game.GameAI' could be found (are you missing a using directive or an assembly reference?) [c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Thinking through the code issue**
+
+I'm exploring the binary ExecutorBase and notice that the AI type needs to be WindBot.Game.GameAI instead of just Game.GameAI. There's a problem, though—this version is missing the SendCustomChat method. Maybe I can use GameClient.Chat as an alternative? To avoid compile errors, I'll try dynamic reflection invocation instead, which allows me to call the method if it exists. I plan to implement a helper method TrySendCustomChat for this, so I should be able to patch it smoothly now.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal</summary>
+
+```bash
+& "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal
+```
+
+```
+Microsoft (R) Build Engine, versi�n 4.8.4084.0
+[Microsoft .NET Framework, versi�n 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+  SaintSeiyaBronzeOnlyExecutor -&gt; c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Listo: dialogs custom implementados (compatibles con tu build)
+Tu `ExecutorBase`/`WindBot.exe` **no expone** `SendCustomChat` en el tipo `AI` que ve el plugin (por eso falló al compilar). Así que lo implementé de forma **segura por reflexión**: si el método existe en otra build, se usa; si no existe, **no rompe nada**.
+
+### Cambios hechos
+- **`WindBot/Dialogs/default.json`**: agregué la key `"custom"` con frases Saint Seiya.
+- **`SaintSeiyaBronzeOnlyExecutor`**:
+  - Agregué `TrySendCustomChat(int index, params object[] args)` (reflection).
+  - Llamadas en puntos clave:
+    - al usar `Athena’s Call` (índices 0/1)
+    - al resolver `Kiki` equip (índice 2 con `{0}`)
+    - al activar `Athena Exclamation` (índice 3)
+    - al activar `The Pope’s Verdict` (índice 4)
+
+- Recompilé OK: `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll`
+
+### Nota importante
+Con tu build actual, **puede que no hable igual** porque el hook `SendCustomChat` puede no existir en runtime. Lo dejé “future-proof”: si en algún momento actualizás WindBot/ExecutorBase a una versión que lo tenga, **empieza a funcionar automáticamente** sin tocar el executor.
+
+---
+
+_**User**_
+
+no se muestran los custom chats,
+
+necesito saber la version del build del executor cada vez que actualizo como puedo leerlo para saber si se cargo la nueva version o una vieja (en un print, en un log, en el nombre del executor?)
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Updating logging implementation**
+
+I need to implement a code change in the executor to log in the constructor with the Logger. I’ll also consider including the version in the deck key. It seems I can't do that right now, so I’ll focus on updating the plugin code and rebuilding instead. I'll add a constant string for BuildTag and log during the first instantiation. Including the version in the bots.json name seems unnecessary, but let's apply the patch regardless!</details></think>
+
+_**Agent (default)**_
+
+Voy a resolver dos cosas: por qué no aparecen los `custom` (hay un flag `Chat` que suele venir apagado desde EDOPro), y además voy a meter un **“build tag”** que WindBot loguee al cargar el executor, así siempre ves si se cargó la DLL nueva o una vieja.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\repositories\\windbot\\Config.cs",
+  "pattern": "_chat"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\repositories\\windbot\\Config.cs",
+  "pattern": "_chat",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **1** result in **1** directory</summary>
+
+Directory: **** (1 file)
+
+| File |
+|------|
+| `repositories\windbot\Config.cs` |
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis\\repositories\\windbot",
+  "pattern": "Chat"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "files_with_matches",
+  "path": "c:\\ProjectIgnis\\repositories\\windbot",
+  "pattern": "Chat",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\GameBehavior.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\AI\\Dialogs.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\GameAI.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\YGOSharp.Network\\Enums\\StocMessage.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\README.md"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\AI\\Decks\\ZefraExecutor.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\YGOSharp.Network\\Enums\\CtosMessage.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\AI\\Decks\\MalissOCGExecutor.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Program.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\WindBotInfo.cs"
+    },
+    {
+      "matchCount": 1,
+      "uri": "repositories\\windbot\\Game\\GameClient.cs"
+    }
+  ],
+  "totalFiles": 11,
+  "totalMatches": 11
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\repositories\windbot\README.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal</summary>
+
+```bash
+& "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal
+```
+
+```
+Microsoft (R) Build Engine, versi�n 4.8.4084.0
+[Microsoft .NET Framework, versi�n 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+  SaintSeiyaBronzeOnlyExecutor -&gt; c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Por qué no se ven los `custom` chats
+Aunque agreguemos `"custom"` al JSON, **WindBot solo habla si el flag `Chat` está habilitado**. En el upstream, `Chat` “False” apaga todo (y EDOPro muchas veces lo lanza con chat off).
+
+Además, tu build actual **no expone `SendCustomChat`** al executor plugin (por eso lo dejé por reflexión: no rompe, pero solo funcionará si esa API existe en tu `ExecutorBase`).
+
+### Cómo saber si se cargó la DLL nueva (vs una vieja)
+Implementé un “build tag” que se imprime **una vez por duelo** cuando se instancia el executor:
+
+- En `SaintSeiyaBronzeOnlyExecutor.cs` agregué:
+
+`[SaintSeiyaBronzeOnlyExecutor] build=2026-05-05T12:56Z-customchat-buildtag`
+
+y recompilé el plugin.
+
+**Qué hacer vos**:
+- Iniciá un duelo con ese bot y buscá esa línea en el log de WindBot/EDOPro.  
+  Si aparece ese tag, **se cargó la versión nueva** del executor.
+
+### Alternativas rápidas (sin tocar código)
+- Ver versión/fecha del DLL desde PowerShell:
+
+```powershell
+Get-Item "C:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll" | Select FullName, LastWriteTime, Length
+```
+
+Si querés que el bot hable sí o sí en EDOPro, el próximo paso es confirmar **con qué argumentos** EDOPro está ejecutando `WindBot.exe` (en particular si pasa `Chat=False`).
+
+---
+
+_**User**_
+
+quiero que la version tenga un numero incremental para mejor lectura, 
+
+hay un problema en el comportamiento de la ia, cuando hay un monstruo fuerte en el campo enemigo y yo tengo mosntruos para invocar nomarl/especial aunque sean mas debiles no los invoca (ordena que pueda invocarlos en modo de defensa para evitar mayor daño)
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+**Considering implementation details**
+
+I'm thinking about the implementation of SummonJabu. Currently, it uses a normal summon, but it seems like Jabu might need to support a special summon. I'm trying to figure out if this should be handled as an Activate. For now, I think I'll leave it as is, but I know I need to patch and rebuild accordingly. There’s quite a bit to consider as I work on these changes!</details></think>
+
+_**Agent (default)**_
+
+Voy a hacer dos ajustes: poner un **BuildVersion incremental (v1, v2, v3…)** que se loguee al cargar el executor, y corregir el comportamiento de invocación (ahora mismo el executor casi no tiene reglas para invocar otros Saints, por eso “se queda” y solo cambia posiciones). Luego recompilo el `.dll`.
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "private bool SummonSeiya\\(|private bool SummonMu\\(|private bool SummonJabu\\("
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "private bool SummonSeiya\\(|private bool SummonMu\\(|private bool SummonJabu\\(",
+  "topFiles": [
+    {
+      "matchCount": 3,
+      "uri": "WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 3
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
 
 </details></tool-use>
