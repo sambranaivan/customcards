@@ -154,6 +154,11 @@ def main() -> None:
     ap.add_argument("--limit", type=int, default=5)
     ap.add_argument("--offset", type=int, default=0)
     ap.add_argument(
+        "--all",
+        action="store_true",
+        help="Export all cards (ignores --limit/--offset; respects --start-card-id if provided)",
+    )
+    ap.add_argument(
         "--start-card-id",
         type=int,
         default=None,
@@ -177,8 +182,7 @@ def main() -> None:
         # When starting from a specific card_id, OFFSET doesn't make much sense.
         args.offset = 0
 
-    cur.execute(
-        f"""
+    select_sql = f"""
         SELECT
           card_id,
           name_en,
@@ -202,10 +206,11 @@ def main() -> None:
         FROM cards
         {where_sql}
         ORDER BY card_id
-        LIMIT ? OFFSET ?
-        """,
-        (*params, args.limit, args.offset),
-    )
+    """
+    if args.all:
+        cur.execute(select_sql, params)
+    else:
+        cur.execute(select_sql + "\nLIMIT ? OFFSET ?", (*params, args.limit, args.offset))
 
     exported = 0
     for row in cur.fetchall():
