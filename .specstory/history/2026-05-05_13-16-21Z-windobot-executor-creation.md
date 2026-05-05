@@ -2400,176 +2400,40 @@ Si querés, pegame el resultado de `where msbuild` después de instalar Build To
 
 _**User**_
 
-en esta pc no puedo instalar visual stido 2022. dejame en in readme los pasos a seguir para continuar en otra pc (incluido el clonar el repositorio de windbot)
+reinicie el cliente y ya me tomo el deck 54 found y funciona
 
 ---
 
 _**Agent (default)**_
 
-<think><details><summary>Thought Process</summary>
-**Creating README steps**
+### Genial, quedó funcionando
+Eso encaja perfecto con lo que vimos: al reiniciar, WindBot volvió a inicializar decks y ya tomó **`AI_SaintSeiyaBronzeOnly`**, por eso ahora ves **`54 found`** y el bot usa el executor correcto.
 
-I need to create a README with specific steps. I'm thinking I should read the existing README first, and it seems I might have already reviewed it. I’ll consider updating the documentation by placing a new file under the docs or tools directory. The user mentioned a README, so I'll create `docs/README_WindBot_SaintSeiya.md` and include Spanish instructions on how to clone the project, build it, and update files. I must ensure I've used the Read tool appropriately before proceeding with the edit.</details></think>
+### Qué quedó en tu instalación
+- **Deck**: `WindBot/Decks/AI_SaintSeiyaBronzeOnly.ydk`
+- **Registro**: `WindBot/bots.json` con `"deck": "SaintSeiyaBronzeOnly"`
+- **Executor**: compilado como `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll` (y `.pdb`)
 
-_**Agent (default)**_
-
-Dejo un README “handoff” para que en otra PC puedas clonar WindBot, aplicar el executor de Saint Seiya, compilar con tooling moderno y copiar el `WindBot.exe` resultante a tu carpeta `C:\ProjectIgnis\WindBot\`. Ahora lo escribo como guía paso-a-paso reproducible.
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
-
-</details>
-
-</tool-use>
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
-<summary>Tool use: **edit_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-### README listo
-Dejé la guía completa en:
-
-- `docs/windbot-saint-seiya-bronze-only.md`
-
-Incluye **clonado de WindBot**, copia/registro del executor, build en otra PC con MSBuild moderno y el **deploy** del `WindBot.exe` compilado a `C:\ProjectIgnis\WindBot\`, más cómo verificar en logs que ya no haga “Deck not found”.
+Si querés, el próximo paso útil es refinar la IA (por ejemplo: activación más fina de `922100082/101/103`, y mejorar selección de equip/targets) usando el replay `replay/Bronzo_video1.yrpX` como evidencia.
 
 ---
 
 _**User**_
 
-copia tambien a docs los executors que necesito copiar a la otra pc (windbot es en gitignore)
+entonces? porque funciono? tomo el executors externo (plugin)? o fue necesario compilar'
 
 ---
 
 _**Agent (default)**_
 
-Buen punto: como `WindBot/` está ignorado por git, voy a dejar en `docs/` una “carpeta de handoff” con el **executor .cs** y el **deck .ydk** listos para copiar/pegar en la otra PC (y así no dependés de nada en `WindBot/`).
+### Sí: **funcionó porque WindBot cargó el executor externo (`WindBot/Executors/*.dll`)**
+No fue necesario compilar `WindBot.exe`.
 
-_**Agent (default)**_
+- **Antes**: el `.dll` no existía / no estaba listo, entonces WindBot sólo veía sus executors internos (**53**), y cuando pedías `SaintSeiyaBronzeOnly` decía “Deck not found” y cargaba random.
+- **Después** (reinicio): ya estaba `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll` y en el arranque WindBot lo detectó, por eso subió a **54 found** y pudo resolver el deck.
 
-<tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+### Qué cambió exactamente entre “no” y “sí”
+- Al compilar con MSBuild se generó: `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll`
+- Al reiniciar, WindBot escaneó `WindBot/Executors/` y registró el `[Deck("SaintSeiyaBronzeOnly", "AI_SaintSeiyaBronzeOnly", ...)]`
 
-</details>
-</tool-use>
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
-<summary>Tool use: **read_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Decks\AI_SaintSeiyaBronzeOnly.ydk</summary>
-
-</details>
-</tool-use>
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
-<summary>Tool use: **read_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2">
-<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
-
-</details>
-</tool-use>
-
-<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
-<summary>Tool use: **read_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\docs\windbot-handoff\SaintSeiyaBronzeOnlyExecutor.cs</summary>
-
-</details>
-
-</tool-use>
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
-<summary>Tool use: **edit_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\docs\windbot-handoff\AI_SaintSeiyaBronzeOnly.ydk</summary>
-
-</details>
-
-</tool-use>
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
-<summary>Tool use: **edit_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
-
-<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\docs\windbot-saint-seiya-bronze-only.md</summary>
-
-</details>
-
-</tool-use>
-
-<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
-<summary>Tool use: **edit_file_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
-<details><summary>Tool use: **run_terminal_command_v2** • Run command: git status --porcelain</summary>
-
-```bash
-git status --porcelain
-```
-
-```
- M .specstory/statistics.json
- M config/system.conf
- M repositories/lflists
-?? .specstory/history/2026-05-05_13-16-21Z-windobot-executor-creation.md
-?? .specstory/history/2026-05-05_13-34-42Z-visual-studio-build-tools-installation.md
-?? docs/windbot-handoff/
-?? docs/windbot-saint-seiya-bronze-only.md
-?? replay/Bronzo_video1.yrp
-?? replay/Bronzo_video1.yrpX
-
-```
-</details>
-</tool-use>
-
-<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
-<summary>Tool use: **run_terminal_command_v2**</summary>
-
-</details></tool-use>
-
-_**Agent (default)**_
-
-### Listo: handoff “portable” en `docs/`
-Copié los archivos que necesitás llevar a la otra PC a:
-
-- `docs/windbot-handoff/SaintSeiyaBronzeOnlyExecutor.cs`
-- `docs/windbot-handoff/AI_SaintSeiyaBronzeOnly.ydk`
-
-Y actualicé la guía `docs/windbot-saint-seiya-bronze-only.md` para que apunte a esos dos archivos (así ya no depende de nada dentro de `WindBot/`, que está en `.gitignore`).
+En resumen: **compilar fue necesario para crear el plugin**, pero **no fue necesario recompilar el exe**.
