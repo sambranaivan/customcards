@@ -29,5 +29,11 @@ README.md.txt
 error.log
 config/system.conf
 puzzles/Canon collection 
-WindBot/
+# WindBot runtime folder is mostly binary/local; track executor sources only.
+WindBot/*
+!WindBot/Executors/
+!WindBot/Executors/**
+WindBot/**/*.dll
+WindBot/**/*.pdb
+WindBot/**/obj/
 tools\CardMaker\output\*

@@ -3944,3 +3944,130 @@ Status: **completed**
 <summary>Tool use: **read_lints**</summary>
 
 </details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\ProjectIgnis\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal</summary>
+
+```bash
+& "C:\Windows\Microsoft.NET\Framework\v4.0.30319\MSBuild.exe" "c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:minimal
+```
+
+```
+Microsoft (R) Build Engine, versi�n 4.8.4084.0
+[Microsoft .NET Framework, versi�n 4.0.30319.42000]
+Copyright (C) Microsoft Corporation. Todos los derechos reservados.
+
+  SaintSeiyaBronzeOnlyExecutor -&gt; c:\ProjectIgnis\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+### Versión incremental (más legible)
+Listo: ahora el executor imprime una versión tipo **`v2`** al cargarse.
+
+En el constructor queda un log así:
+
+- **`[SaintSeiyaBronzeOnlyExecutor] v2 build=2026-05-05T13:00Z-v2-summon-fix`**
+
+Cada vez que actualices, solo subís `BuildVersion` a 3, 4, 5… y cambiás `BuildTag` si querés.
+
+### Fix del comportamiento de invocación (no invocaba “monstruos débiles”)
+La causa era simple: el executor **solo tenía reglas de invocar** para `Seiya`, `Mu` y `Jabu`. No había ningún `AddExecutor(Summon, ...)` para el resto de los Saints, entonces la IA **no tenía “permiso” de invocarlos** aunque pudiera.
+
+Ya lo corregí:
+- Agregué `AddExecutor(ExecutorType.Summon, <saint>, SummonSaintLv4)` para varios Saints.
+- Implementé `SummonSaintLv4()` para que **desarrolle campo** (prioriza llegar a 3 nombres, etc.).
+- Y además agregué `OnSelectPosition(...)` para que, si el enemigo tiene un monstruo con ATK mayor, **pueda invocar en Defensa** (esto es lo que vos describías).
+
+Recompilé el plugin: `WindBot/Executors/SaintSeiyaBronzeOnlyExecutor.dll`.
+
+Si ahora querés que *SIEMPRE* invoque aunque sea débil (sin condiciones de handcount/3 nombres), decime “invocar siempre que haya zona libre” y lo hago más agresivo.
+
+---
+
+_**User**_
+
+añade windbot/executors al repositorio
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+The user intends to integrate WindBot/Executors into the repository.</details></think>
