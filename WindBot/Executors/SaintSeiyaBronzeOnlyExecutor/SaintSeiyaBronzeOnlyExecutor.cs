@@ -6,13 +6,469 @@ using WindBot;
 using WindBot.Game;
 using WindBot.Game.AI;
 
+
+/*
+================================================================================
+WindBot design reference — embedded from repo markdown (read alongside code).
+
+Source file: sets/saint_seiya/bots/Saint Seiya - Bronze Only.md
+
+Maintenance: evolve the AI in this .cs; keep this comment in sync when strategy
+intent changes so the executor stays the single place for behavior + rationale.
+
+The guide is the full target spec; `Activate*` / `Resolve*` / `Summon*` methods below
+implement a practical subset (WindBot defaults cover the rest where registered).
+
+--- embedded guide (markdown as plain text) ---
+================================================================================
+# Saint Seiya — WindBot Guide
+## Deck: **Saint Seiya - Bronze Only**
+
+This document is a **programming guide** for a WindBot executor for the deck:
+
+- Decklist: `deck/Saint Seiya - Bronze Only.ydk`
+- Cards DB: `expansions/saint-seiya.cdb`
+- Scripts: `script/unofficial/c{ID}.lua`
+
+The deck is **Main-only** (no Extra/Side). Its win plan is:
+
+- **Go first**: build a board with
+  - **3+ face-up "Saint" monsters with different names** (turns on `922100082`),
+  - **at least 1 "Saint" equipped with a "Cloth" Equip** (turns on `922100103`),
+  - backed by **Counter Traps** + protection spells.
+- **Go second**: survive the opponent’s push with protection/negates, then stabilize into the same “3 names + 1 equipped” shell and win by battle pressure from Cloths.
+
+---
+
+## Deck contents (by ID)
+
+### Monsters
+- `922100000` **Bronze Saint - Seiya of Pegasus**
+- `922100001` **Bronze Saint - Shiryu of Dragon**
+- `922100002` **Bronze Saint - Hyoga of Cygnus**
+- `922100003` **Bronze Saint - Shun of Andromeda**
+- `922100004` **Bronze Saint - Ikki of Phoenix**
+- `922100005` **Bronze Saint - Jabu of Unicorn**
+- `922100006` **Bronze Saint - Ichi of Hydra**
+- `922100007` **Bronze Saint - Geki of Bear**
+- `922100008` **Bronze Saint - Ban of Lionet**
+- `922100009` **Bronze Saint - Nachi of Wolf**
+- `922100010` **Mu of Aries - The Cloth Repairer**
+- `922100011` **Kiki - Messenger of the Cloth Sculptor**
+
+### Bronze Cloth (Equip Spells)
+All these share a key consistency effect:
+**Discard this card → add 1 Level 4 "Saint" monster from Deck to hand.**
+
+- `922100041` Bronze Cloth - Pegasus
+- `922100042` Bronze Cloth - Dragon
+- `922100043` Bronze Cloth - Cygnus
+- `922100044` Bronze Cloth - Andromeda
+- `922100045` Bronze Cloth - Phoenix
+- `922100046` Bronze Cloth - Unicorn
+- `922100047` Bronze Cloth - Hydra
+- `922100048` Bronze Cloth - Bear
+- `922100049` Bronze Cloth - Lionet
+- `922100050` Bronze Cloth - Wolf
+
+### Spells / Traps
+- `922100079` Athena's Sanctuary (Field Spell - base)
+- `922100081` Raise Your Cosmos! (Normal Spell)
+- `922100086` Awakening of the Cosmos (Quick-Play)
+- `922100088` Athena's Call (Normal Spell)
+- `922100092` Bond of Brotherhood (Quick-Play)
+- `922100082` Athena Exclamation (Counter Trap)
+- `922100101` Crystal Wall (Counter Trap)
+- `922100103` The Pope's Verdict (Counter Trap)
+
+---
+
+## Roles (for decision making)
+
+### Starters (openers / fix hands)
+- `922100088` **Athena's Call**: main starter. If you control no monsters it can search `922100011` instead.
+- `922100000` **Seiya**: best starter (summon-search + self-SS if you control no monsters).
+- Any **Bronze Cloth in hand**: acts as a “starter” because it converts into a Level 4 Saint search.
+- `922100081` **Raise Your Cosmos!**: fixes hands while setting GY (send 1 Saint from Deck; add a different-name Saint).
+
+### Extenders (increase bodies / unique names)
+- `922100005` **Jabu**: hand extender (SS if you control a Saint). On SS: add 1 Cloth from GY, then discard 1.
+- `922100004` **Ikki**: GY extender (revive by discarding 1 Saint).
+- `922100010` **Mu**: resource extender (on summon, add up to 2 Cloth Equips from GY).
+- `922100011` **Kiki**:
+  - Quick effect from hand: discard → equip 1 Cloth Equip from **Deck or GY** to a Saint you control.
+  - Next turn Standby: banish from GY → add up to 2 different-name Cloths from GY.
+
+### Payoffs / “board requirements”
+- `922100082` **Athena Exclamation** turns on at **3+ different-name Saints**.
+- `922100103` **The Pope’s Verdict** turns on if you control a **Saint equipped with a Cloth**.
+
+### Stabilizers / protection
+- `922100079` **Athena's Sanctuary**: global +300/+300; once/turn destruction replacement by sending an equipped Cloth to GY.
+- `922100086` **Awakening**: 1-turn indestructible + GY destruction replacement.
+- `922100092` **Bond**: protects from opponent’s effects (incl. banish); draws if chained to opponent monster effect.
+
+---
+
+## Key interactions (what matters to the bot)
+
+### Live checks (boolean state)
+Define these every decision step:
+
+- `HasEquippedSaint`:
+  - true if you control a face-up Saint monster whose EquipGroup contains a face-up card in `SET_CLOTH`.
+  - Enables `922100103`.
+
+- `SaintDistinctNamesOnField`:
+  - count of **unique** Saint card IDs among your face-up Saints.
+  - Enables `922100082` if ≥ 3.
+
+- `CanExtendToThreeNamesThisTurn`:
+  - true if you can plausibly reach `SaintDistinctNamesOnField >= 3` this turn via:
+    - additional Normal Summon lines (see Unicorn Cloth on Jabu),
+    - Jabu SS,
+    - Cloth discard → search,
+    - Seiya search,
+    - Athena’s Call search,
+    - Raise Your Cosmos (send+add).
+
+### Threat tiers (simple, executor-friendly)
+When deciding to spend Counter Traps:
+
+- **Tier S**: board wipes / removal that breaks the “3 names” core, or effects that remove the *equipped Saint*.
+- **Tier A**: strong tempo plays (high-impact search/negate engines, wincon setups).
+- **Tier B**: value plays (small removal, minor advantage).
+
+Use:
+- `Athena Exclamation (082)` mostly for **Tier S/A**.
+- `Pope’s Verdict (103)` for **Tier S/A** if it stops Spell/Trap lines.
+- `Crystal Wall (101)` whenever opponent targets your Saints with a negatable activation (usually Tier S/A by definition).
+
+---
+
+## Coinflip policy (choose go-first vs go-second plan)
+
+WindBot has access to duel state: `Duel.GetTurnPlayer()`, whether we started, etc.
+
+**Plan selection**:
+
+```pseudo
+function ChooseMacroPlan():
+  if Duel.IsFirstTurn() and Duel.GetTurnPlayer() == AI:
+    return GO_FIRST_CONTROL
+  else:
+    return GO_SECOND_SURVIVE_THEN_STABILIZE
+```
+
+If you want strict “coinflip” semantics:
+- going first ⇒ control plan
+- going second ⇒ survive/pressure plan
+
+---
+
+## Literal priority tree (pseudo-code)
+
+### Shared helpers
+
+```pseudo
+function CountDistinctSaintNamesOnField() -> int
+function HasEquippedSaint() -> bool
+
+function Have(cardId) -> bool           // hand+field+GY checks as needed
+function InHand(cardId) -> bool
+function InGY(cardId) -> bool
+function OnField(cardId) -> bool
+
+function CanActivate(cardId) -> bool
+function CanNormalSummon(cardId) -> bool
+function CanSpecialSummon(cardId) -> bool
+
+function NeedThirdName() -> bool:
+  return CountDistinctSaintNamesOnField() < 3
+
+function NeedEquipForVerdict() -> bool:
+  // only “must” if we either already set Verdict, or have it in hand and expect to set it
+  return (OnField(922100103) or InHand(922100103)) and not HasEquippedSaint()
+```
+
+### Turn 1+ Main Phase (GO_FIRST_CONTROL)
+
+```pseudo
+function MainPhase_GoFirst():
+  // 0) Field spell if it improves survival and doesn't reduce combo
+  if InHand(922100079) and CanActivate(922100079):
+    Activate(922100079)
+
+  // 1) Starter priority
+  if InHand(922100088) and CanActivate(922100088):
+    Activate_AthenasCall()
+  else if CanSpecialSummon(922100000) and FieldIsEmpty():
+    SpecialSummon(922100000)                 // Seiya from hand
+  else if CanNormalSummon(922100000):
+    NormalSummon(922100000)
+  else if HaveAnyBronzeClothInHand():
+    Use_ClothDiscardSearch_SaintLv4()
+  else if InHand(922100081) and CanActivate(922100081):
+    Activate_RaiseYourCosmos()
+
+  // 2) After first body: push for 2nd/3rd distinct name
+  while NeedThirdName():
+    if CanSpecialSummon(922100005) and ControlAnySaint():
+      SpecialSummon(922100005)               // Jabu extender
+      ResolveJabu_OnSPSummon()
+      continue
+
+    // Cloth in hand becomes a Saint search
+    if HaveAnyBronzeClothInHand():
+      Use_ClothDiscardSearch_SaintLv4()
+      continue
+
+    // Seiya search can fetch a Saint if we already have Cloth access
+    if PendingSeiyaSearch():
+      ResolveSeiyaSearch_PreferSaintForNames()
+      continue
+
+    // Athena's Call can fetch missing name
+    if InHand(922100088) and CanActivate(922100088):
+      Activate_AthenasCall()
+      continue
+
+    // Raise cosmos if still not there
+    if InHand(922100081) and CanActivate(922100081):
+      Activate_RaiseYourCosmos()
+      continue
+
+    break
+
+  // 3) Ensure Verdict live if we will set it
+  if NeedEquipForVerdict():
+    if InHand(922100011) and CanActivate(922100011):   // Kiki quick equip (can be used proactively)
+      UseKiki_EquipBestClothFromDeckOrGY()
+    else if HaveFaceUpSaint() and HaveClothThatCanEquipNow():
+      Equip_ClothToBestSaint()
+    else if HaveSeiyaOnFieldAndCanUseEquipEffect():
+      UseSeiya_EquipFromHandOrGY()
+
+  // 4) Set Counter Traps
+  if InHand(922100103): Set(922100103)                 // best generic S/T negate if equip is live
+  if InHand(922100101): Set(922100101)                 // target-negate
+  if InHand(922100082) and CountDistinctSaintNamesOnField() >= 3:
+    Set(922100082)
+  else if InHand(922100082):
+    // if not live yet, still can set; but value drops. prefer if hand is safe.
+    Set(922100082) if HandSizeOrBoardSuggestsSafety()
+
+  // 5) If excess resources: equip for value (pick one)
+  if HasSpareEquipAction():
+    EquipChoice_GoFirstValue()
+```
+
+### Turn 1+ Main Phase (GO_SECOND_SURVIVE_THEN_STABILIZE)
+
+```pseudo
+function MainPhase_GoSecond():
+  // 0) If threatened, prioritize protection line first (if available)
+  if InHand(922100079) and CanActivate(922100079):
+    Activate(922100079)
+
+  // 1) Establish at least 1 Saint + 1 equip (to turn on Verdict) if possible
+  if FieldIsEmpty() and CanSpecialSummon(922100000) and InHand(922100000):
+    SpecialSummon(922100000)
+  else if CanNormalSummonBestSaint():
+    NormalSummon(BestSaintForSurvival())
+
+  // 2) Get equip online ASAP (so Verdict works)
+  if not HasEquippedSaint():
+    if InHand(922100011) and CanActivate(922100011) and ControlAnySaint():
+      UseKiki_EquipBestClothFromDeckOrGY()
+    else if HaveClothThatCanEquipNow():
+      Equip_ClothToBestSaint()
+    else if HaveSeiyaOnFieldAndCanUseEquipEffect():
+      UseSeiya_EquipFromHandOrGY()
+
+  // 3) Extend towards 3 distinct names if safe
+  if BoardIsStableEnoughToExtend():
+    if InHand(922100088) and CanActivate(922100088):
+      Activate_AthenasCall()
+    if HaveAnyBronzeClothInHand():
+      Use_ClothDiscardSearch_SaintLv4()
+    if CanSpecialSummon(922100005) and ControlAnySaint():
+      SpecialSummon(922100005)
+      ResolveJabu_OnSPSummon()
+    if InHand(922100081) and CanActivate(922100081) and NeedThirdName():
+      Activate_RaiseYourCosmos()
+
+  // 4) Set interaction
+  if InHand(922100103): Set(922100103)
+  if InHand(922100101): Set(922100101)
+  if InHand(922100082): Set(922100082)                 // even if not live immediately, can become live next
+
+  // 5) Consider battle pressure lines if opponent is exposed
+  if CanPushForDamage():
+    EquipChoice_GoSecondPressure()
+    EnterBattle()
+```
+
+---
+
+## Literal implementations of key subroutines
+
+### `Activate_AthenasCall()`
+
+```pseudo
+function Activate_AthenasCall():
+  if FieldIsEmpty() and DeckContains(922100011) and (NeedEquipForVerdict() or NoOtherStarterInHand()):
+    Search(922100011)   // Kiki
+  else:
+    if not Have(922100000) and DeckContains(922100000):
+      Search(922100000) // Seiya
+    else:
+      Search(ChooseSaintLv4ToMaximizeDistinctNamesOrSurvival())
+```
+
+### `ResolveSeiyaSearch_PreferSaintForNames()`
+
+Seiya can search **Cloth Equip** or **Saint monster**.
+
+```pseudo
+function ResolveSeiyaSearch_PreferSaintForNames():
+  if not HaveAnyBronzeClothAccessSoon():   // no Cloth in hand, no Kiki, no Seiya equip line ready
+    AddToHand(ChooseBronzeClothForPlan())
+  else:
+    AddToHand(ChooseSaintToIncreaseDistinctNamesFirst())
+```
+
+### `Use_ClothDiscardSearch_SaintLv4()`
+
+```pseudo
+function Use_ClothDiscardSearch_SaintLv4():
+  cloth = ChooseClothToDiscard_MinOpportunityCost()
+  Discard(cloth)
+  Search(ChooseSaintLv4ToMaximizeDistinctNamesOrSurvival())
+```
+
+**ChooseClothToDiscard_MinOpportunityCost()**:
+- Prefer discarding Cloths that are **least useful to equip right now**.
+- If you already have a “must-equip” Cloth for a matchup (e.g. `922100043` vs a key face-up threat), keep it.
+
+### `UseKiki_EquipBestClothFromDeckOrGY()`
+
+```pseudo
+function UseKiki_EquipBestClothFromDeckOrGY():
+  Discard(922100011)
+  targetSaint = ChooseEquipTargetSaint()
+  cloth = ChooseClothToEquip_FromDeckOrGY(targetSaint)
+  Equip(cloth, targetSaint)
+```
+
+**ChooseEquipTargetSaint()**:
+- If you want to preserve 3 bodies: prefer equipping **Shun** (harder to attack around).
+- If you want pressure: prefer **Seiya** or **Ikki**.
+- If you expect targeting removal: prefer **Shiryu + Dragon Cloth**.
+
+**ChooseClothToEquip_FromDeckOrGY()** (simple priority):
+- If you need interaction: `922100043` (Cygnus) > `922100042` (Dragon)
+- If you need survival: `922100042` (Dragon) > `922100044` (Andromeda on Shun)
+- If you need pressure: `922100045` (Phoenix) > `922100041` (Pegasus)
+
+### `Activate_RaiseYourCosmos()`
+
+```pseudo
+function Activate_RaiseYourCosmos():
+  sendId = ChooseSaintToSendToGY()
+  SendFromDeckToGY(sendId)
+  addId = ChooseDifferentNameSaintToAdd(sendId)
+  AddToHand(addId)
+```
+
+**ChooseSaintToSendToGY()**:
+- Default: send `922100004` (Ikki) if you foresee revival lines.
+- If you specifically need Cloths in GY quickly: plan for `922100006` (Ichi) lines later.
+
+---
+
+## Equip choice policies (one-step scoring)
+
+### Go-first value equip (`EquipChoice_GoFirstValue`)
+
+```pseudo
+function EquipChoice_GoFirstValue():
+  if NeedEquipForVerdict():
+    Equip(best_defensive_or_interactive_cloth)
+    return
+
+  // already have Verdict live: choose best “board stickiness”
+  if HaveSaint(922100003): Equip(922100044, 922100003) if possible    // Shun + Andromeda lock-ish
+  else if HaveSaint(922100001): Equip(922100042, 922100001) if possible // Shiryu + Dragon anti-target
+  else if HaveSaint(922100002): Equip(922100043, 922100002) if possible // Hyoga + Cygnus control
+  else Equip(922100042, BestSaint) if possible
+```
+
+### Go-second pressure equip (`EquipChoice_GoSecondPressure`)
+
+```pseudo
+function EquipChoice_GoSecondPressure():
+  if HaveSaint(922100000): Equip(922100041, 922100000) if possible  // Seiya + Pegasus: multi-attacks & damage
+  else if HaveSaint(922100004): Equip(922100045, 922100004) if possible // Ikki + Phoenix: stickiness + pop
+  else Equip(922100045, BestAttackerSaint) if possible
+```
+
+---
+
+## Counter Trap activation policies (literal)
+
+### `922100101` Crystal Wall
+
+```pseudo
+on EVENT_CHAINING:
+  if ChainTargetsAnyOfMySaints() and Duel.IsChainNegatable():
+    Activate(922100101)
+```
+
+### `922100103` The Pope’s Verdict
+
+```pseudo
+on EVENT_CHAINING:
+  if OpponentActivatesSpellOrTrap() and Duel.IsChainNegatable() and HasEquippedSaint():
+    if ThreatTierOfChain() >= A:
+      Activate(922100103)
+```
+
+### `922100082` Athena Exclamation
+
+```pseudo
+on EVENT_CHAINING:
+  if Duel.IsChainNegatable() and CountDistinctSaintNamesOnField() >= 3:
+    if ThreatTierOfChain() >= A:
+      Activate(922100082)
+```
+
+---
+
+## Notes / implementation tips
+
+- Many Saints (Seiya/Shiryu/Hyoga/Shun/Ikki) have “pay 500 LP: equip a Cloth from hand/GY” **and then** apply an **Extra Deck lock**. Since this deck has **no Extra Deck**, the lock is free; the bot can treat that equip as “always safe”.
+- Always preserve the invariant:
+  - if you have (or will set) `922100103`, keep **HasEquippedSaint == true** before ending your turn.
+- Try to keep `CountDistinctSaintNamesOnField() >= 3` when holding `922100082` set, even if that means choosing a weaker attacker.
+
+
+================================================================================
+--- end embedded guide ---
+*/
+
 namespace WindBot.Game.AI.Decks
 {
     [Deck("SaintSeiyaBronzeOnly", "AI_SaintSeiyaBronzeOnly", "Normal")]
     public class SaintSeiyaBronzeOnlyExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 2;
-        private const string BuildTag = "2026-05-05T13:00Z-v2-summon-fix";
+        // Guide coverage notes (embedded MD is the full spec):
+        // - Not modeled: full go-second macro loop, Battle-Phase Hyoga trigger, S/A "threat tier" without chain metadata,
+        //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
+        // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
+
+        private const int BuildVersion = 9;
+        private const string BuildTag = "2026-05-06T15:30Z-v9-jabu-hand-ss";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -94,15 +550,25 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.BondOfBrotherhood, ActivateBond);
             AddExecutor(ExecutorType.Activate, CardId.AthenasSanctuary, ActivateSanctuary);
 
+            // Equip online early (guide: Verdict / board shell)
+            AddExecutor(ExecutorType.Activate, CardId.Kiki, ResolveKikiActivate);
+
             // Starters / consistency
             AddExecutor(ExecutorType.Activate, CardId.AthenasCall, ActivateAthenasCall);
             AddExecutor(ExecutorType.Summon, CardId.Seiya, SummonSeiya);
             AddExecutor(ExecutorType.Activate, CardId.Seiya, ResolveSeiyaEffect);
             AddExecutor(ExecutorType.Activate, CardId.RaiseYourCosmos, ActivateRaiseYourCosmos);
             foreach (var cloth in Cloths)
-                AddExecutor(ExecutorType.Activate, cloth, ActivateClothDiscardSearch);
+                AddExecutor(ExecutorType.Activate, cloth, ResolveClothActivate);
 
-            // Extenders
+            // Pay-LP equip (Bronze Saints — guide: safe Extra lock in Main-only deck)
+            AddExecutor(ExecutorType.Activate, CardId.Shiryu, ResolveShiryuActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Hyoga, ResolveHyogaActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Shun, ResolveShunActivate);
+
+            // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
+            AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
+            AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
             AddExecutor(ExecutorType.Summon, CardId.Shun, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Shiryu, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Hyoga, SummonSaintLv4);
@@ -113,9 +579,6 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Summon, CardId.Ichi, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Mu, SummonMu);
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
-            AddExecutor(ExecutorType.Activate, CardId.Kiki, ActivateKikiEquip);
-            AddExecutor(ExecutorType.Summon, CardId.Jabu, SummonJabu);
-            AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
 
             // Setting traps near end of turn
@@ -171,6 +634,204 @@ namespace WindBot.Game.AI.Decks
             return Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id));
         }
 
+        /// <summary>Guide: HasEquippedSaint — Saint with a face-up Cloth equip.</summary>
+        private bool HasEquippedSaint()
+        {
+            return Bot.MonsterZone.Any(m =>
+                m != null
+                && m.IsFaceup()
+                && Saints.Contains(m.Id)
+                && m.EquipCards != null
+                && m.EquipCards.Any(eq => eq != null && eq.IsFaceup() && Cloths.Contains(eq.Id)));
+        }
+
+        /// <summary>Guide: NeedEquipForVerdict — will run Verdict and need an equipped Saint.</summary>
+        private bool NeedEquipForVerdict()
+        {
+            return (Bot.HasInHand(CardId.PopesVerdict) || Bot.HasInSpellZone(CardId.PopesVerdict))
+                   && !HasEquippedSaint();
+        }
+
+        private bool HasStarterInHandBesidesAthenasCall()
+        {
+            return Bot.HasInHand(CardId.Seiya)
+                   || Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id))
+                   || Bot.HasInHand(CardId.RaiseYourCosmos);
+        }
+
+        /// <summary>Guide: ResolveSeiyaSearch — Cloth access "soon" (hand, Kiki, or Seiya+GY equip line).</summary>
+        private bool HasBronzeClothAccessSoon()
+        {
+            if (Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+                return true;
+            if (Bot.HasInHand(CardId.Kiki))
+                return true;
+            if (HasSeiyaFaceup() && HasClothInGraveyard() && Bot.LifePoints >= 500 && HasFreeMainSpellZoneForEquip())
+                return true;
+            return false;
+        }
+
+        /// <summary>aux.Stringid index for "pay 500 LP; equip Cloth" on each Saint (script-dependent).</summary>
+        private static int GetPayEquipStringOption(int monsterId)
+        {
+            switch (monsterId)
+            {
+                case CardId.Seiya: return 2;
+                case CardId.Shun: return 0;
+                case CardId.Shiryu:
+                case CardId.Hyoga:
+                case CardId.Ikki:
+                    return 1;
+                default:
+                    return -1;
+            }
+        }
+
+        private bool IsActivateDescriptionPayEquip(int monsterId)
+        {
+            var opt = GetPayEquipStringOption(monsterId);
+            if (opt < 0)
+                return false;
+            return ActivateDescription == Util.GetStringId(monsterId, opt);
+        }
+
+        /// <summary>Guide: ChooseClothToDiscard_MinOpportunityCost — discard low-tier Cloths first.</summary>
+        private static int ClothDiscardTier(int clothId)
+        {
+            switch (clothId)
+            {
+                case CardId.ClothWolf:
+                case CardId.ClothLionet:
+                case CardId.ClothBear:
+                case CardId.ClothHydra:
+                    return 0;
+                case CardId.ClothPegasus:
+                case CardId.ClothUnicorn:
+                case CardId.ClothPhoenix:
+                    return 1;
+                case CardId.ClothAndromeda:
+                case CardId.ClothDragon:
+                case CardId.ClothCygnus:
+                    return 2;
+                default:
+                    return 1;
+            }
+        }
+
+        private bool ThisClothIsPreferredDiscardAmongHandCloths()
+        {
+            var inHand = Bot.Hand.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (inHand.Count <= 1)
+                return true;
+            var best = inHand.Min(c => ClothDiscardTier(c.Id));
+            return ClothDiscardTier(Card.Id) <= best;
+        }
+
+        /// <summary>Kiki equips from Deck or GY — bitmask Deck|Grave.</summary>
+        private bool ClothAccessibleFromDeckOrGraveyard(int clothId)
+        {
+            return Bot.GetRemainingCount(clothId, (int)(CardLocation.Deck | CardLocation.Grave)) > 0;
+        }
+
+        /// <summary>Ikki's ignition equip only selects from Hand or GY.</summary>
+        private bool ClothAccessibleFromHandOrGraveyard(int clothId)
+        {
+            return Bot.HasInHand(clothId)
+                   || Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(clothId));
+        }
+
+        private bool HasFreeMainSpellZoneForEquip()
+        {
+            for (var i = 0; i < 5; i++)
+                if (Bot.SpellZone[i] == null)
+                    return true;
+            return false;
+        }
+
+        /// <summary>Bronze Saint → matching Cloth for synergy (Mu/Kiki have no pairing).</summary>
+        private static int? ClothMatchingSaint(int saintMonsterId)
+        {
+            switch (saintMonsterId)
+            {
+                case CardId.Seiya: return CardId.ClothPegasus;
+                case CardId.Shiryu: return CardId.ClothDragon;
+                case CardId.Hyoga: return CardId.ClothCygnus;
+                case CardId.Shun: return CardId.ClothAndromeda;
+                case CardId.Ikki: return CardId.ClothPhoenix;
+                case CardId.Jabu: return CardId.ClothUnicorn;
+                case CardId.Ichi: return CardId.ClothHydra;
+                case CardId.Geki: return CardId.ClothBear;
+                case CardId.Ban: return CardId.ClothLionet;
+                case CardId.Nachi: return CardId.ClothWolf;
+                default: return null;
+            }
+        }
+
+        /// <summary>Inverse map: Cloth sent from field to GY → prefer that Saint for delayed re-equip.</summary>
+        private static int? PreferredSaintIdForCloth(int clothId)
+        {
+            switch (clothId)
+            {
+                case CardId.ClothPegasus: return CardId.Seiya;
+                case CardId.ClothDragon: return CardId.Shiryu;
+                case CardId.ClothCygnus: return CardId.Hyoga;
+                case CardId.ClothAndromeda: return CardId.Shun;
+                case CardId.ClothPhoenix: return CardId.Ikki;
+                case CardId.ClothUnicorn: return CardId.Jabu;
+                case CardId.ClothHydra: return CardId.Ichi;
+                case CardId.ClothBear: return CardId.Geki;
+                case CardId.ClothLionet: return CardId.Ban;
+                case CardId.ClothWolf: return CardId.Nachi;
+                default: return null;
+            }
+        }
+
+        private int[] BuildSaintTargetPriorityForClothReequip(int clothId)
+        {
+            var order = new List<int>();
+            var pref = PreferredSaintIdForCloth(clothId);
+            if (pref.HasValue)
+                order.Add(pref.Value);
+            foreach (var id in Saints)
+                if (!order.Contains(id))
+                    order.Add(id);
+            return order.ToArray();
+        }
+
+        private int[] BuildIkkiEquipClothPriority()
+        {
+            var order = new List<int> { CardId.ClothPhoenix };
+            foreach (var id in Cloths)
+                if (id != CardId.ClothPhoenix)
+                    order.Add(id);
+            return order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
+        }
+
+        private int[] BuildKikiClothPriorityForTarget(ClientCard saintTarget)
+        {
+            var preferred = saintTarget != null ? ClothMatchingSaint(saintTarget.Id) : null;
+            var fallback = new[]
+            {
+                CardId.ClothCygnus,
+                CardId.ClothDragon,
+                CardId.ClothAndromeda,
+                CardId.ClothPhoenix,
+                CardId.ClothPegasus,
+                CardId.ClothUnicorn,
+                CardId.ClothHydra,
+                CardId.ClothBear,
+                CardId.ClothLionet,
+                CardId.ClothWolf
+            };
+            var ordered = new List<int>();
+            if (preferred.HasValue && ClothAccessibleFromDeckOrGraveyard(preferred.Value))
+                ordered.Add(preferred.Value);
+            foreach (var id in fallback)
+                if (!ordered.Contains(id))
+                    ordered.Add(id);
+            return ordered.ToArray();
+        }
+
         private bool HasSeiyaFaceup()
         {
             return Bot.MonsterZone.Any(c => c != null && c.IsFaceup() && c.IsCode(CardId.Seiya));
@@ -190,6 +851,22 @@ namespace WindBot.Game.AI.Decks
             return CardId.Seiya;
         }
 
+        /// <summary>
+        /// Deck → hand L4 Saint picks (Cloth discard, Seiya, Athena's Call, Raise Your Cosmos).
+        /// With a Saint already out, Jabu is a free Special Summon + Cloth from GY — grab him first if still in Deck.
+        /// </summary>
+        private int ChooseLv4SaintForDeckSearch()
+        {
+            var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
+            if (ControlAnySaint()
+                && Bot.GetMonsterCount() < 5
+                && !onField.Contains(CardId.Jabu)
+                && !Bot.HasInHand(CardId.Jabu)
+                && Bot.GetRemainingCount(CardId.Jabu, 3) > 0)
+                return CardId.Jabu;
+            return ChooseSaintToMaximizeDistinct();
+        }
+
         private bool ActivateSanctuary()
         {
             if (!IsMainPhase())
@@ -199,17 +876,83 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
+        private bool ResolveSeiyaEquipLegality()
+        {
+            return Bot.LifePoints >= 500 && HasFreeMainSpellZoneForEquip() && HasClothInGraveyard();
+        }
+
+        private int[] BuildPayEquipClothOrder(int saintMonsterId)
+        {
+            var list = new List<int>();
+            var pref = ClothMatchingSaint(saintMonsterId);
+            if (pref.HasValue)
+                list.Add(pref.Value);
+            foreach (var id in Cloths)
+                if (!list.Contains(id))
+                    list.Add(id);
+            return list.ToArray();
+        }
+
+        private bool ResolveSeiyaEquipFromGy()
+        {
+            if (!ResolveSeiyaEquipLegality())
+                return false;
+            var order = BuildPayEquipClothOrder(CardId.Seiya);
+            var gyOnly = order.Where(id => Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(id))).ToArray();
+            if (gyOnly.Length == 0)
+                return false;
+            AI.SelectCard(gyOnly);
+            return true;
+        }
+
+        private bool ResolveSeiyaDeckSearch()
+        {
+            if (!HasBronzeClothAccessSoon())
+            {
+                AI.SelectCard(new[]
+                {
+                    CardId.ClothCygnus,
+                    CardId.ClothDragon,
+                    CardId.ClothAndromeda,
+                    CardId.ClothPhoenix,
+                    CardId.ClothPegasus
+                });
+                return true;
+            }
+            AI.SelectCard(ChooseLv4SaintForDeckSearch());
+            return true;
+        }
+
+        private bool ResolvePayEquipSaint(int saintMonsterId)
+        {
+            if (!IsMainPhase())
+                return false;
+            if (Bot.LifePoints < 500)
+                return false;
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+            var order = BuildPayEquipClothOrder(saintMonsterId);
+            var filtered = order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
+            if (filtered.Length == 0)
+                return false;
+            AI.SelectCard(filtered);
+            return true;
+        }
+
         private bool ActivateAthenasCall()
         {
             if (!IsMainPhase())
                 return false;
 
-            // If we are empty, Kiki is high value to turn on equips quickly.
+            // Guide: empty field → Kiki if NeedEquipForVerdict or no other starter in hand.
             if (FieldIsEmpty() && Bot.GetRemainingCount(CardId.Kiki, 3) > 0)
             {
-                TrySendCustomChat(0);
-                AI.SelectCard(CardId.Kiki);
-                return true;
+                if (NeedEquipForVerdict() || !HasStarterInHandBesidesAthenasCall())
+                {
+                    TrySendCustomChat(0);
+                    AI.SelectCard(CardId.Kiki);
+                    return true;
+                }
             }
 
             // Prefer Seiya as the best starter if available.
@@ -221,7 +964,7 @@ namespace WindBot.Game.AI.Decks
             }
 
             TrySendCustomChat(0);
-            AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            AI.SelectCard(ChooseLv4SaintForDeckSearch());
             return true;
         }
 
@@ -271,33 +1014,80 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveSeiyaEffect()
         {
+            var d = ActivateDescription;
+            var seiya = CardId.Seiya;
+
+            // Hand — Stringid 1: SS if you control no monsters.
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d == Util.GetStringId(seiya, 1) || d == -1)
+                    return FieldIsEmpty() && Bot.GetMonsterCount() < 5;
+                return false;
+            }
+
+            if ((Card.Location & CardLocation.MonsterZone) == 0 || !Card.IsCode(seiya))
+                return false;
+
             if (!IsMainPhase())
                 return false;
 
-            // If we have no Cloth access in hand, search a Cloth first.
-            if (!Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+            // Field — Stringid 2: pay 500; equip Cloth from GY (explicit description only).
+            if (d == Util.GetStringId(seiya, 2))
+                return ResolveSeiyaEquipFromGy();
+
+            // Field — on Normal/Special Summon: add Cloth or Saint (Stringid 0 in script).
+            // Custom / Ignis often sends an ActivateDescription that does NOT match Util.GetStringId(id,0)
+            // (that helper is only id*16+n). Any other field activation is treated as this search.
+            return ResolveSeiyaDeckSearch();
+        }
+
+        /// <summary>
+        /// Bronze Cloth: hand ignition (discard → search L4 Saint), GY trigger (target Saint → re-equip next Standby),
+        /// and Standby Phase equip resolution on the registered Cloth in GY.
+        /// </summary>
+        private bool ResolveClothActivate()
+        {
+            if (!Cloths.Contains(Card.Id))
+                return false;
+
+            if ((Card.Location & CardLocation.Hand) != 0)
+                return ActivateClothDiscardFromHand();
+
+            if ((Card.Location & CardLocation.Grave) != 0)
             {
-                AI.SelectCard(new[]
+                if (Duel.Phase == DuelPhase.Standby)
                 {
-                    CardId.ClothCygnus,
-                    CardId.ClothDragon,
-                    CardId.ClothAndromeda,
-                    CardId.ClothPhoenix,
-                    CardId.ClothPegasus
-                });
-                return true;
+                    if (!HasFreeMainSpellZoneForEquip())
+                        return false;
+                    return true;
+                }
+
+                return ActivateClothSentFromFieldToGyReequip();
             }
 
-            // Otherwise, search a Saint to increase distinct names.
-            AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            return false;
+        }
+
+        private bool ActivateClothSentFromFieldToGyReequip()
+        {
+            // "If this face-up Equip in S/T Zone is sent to the GY: target 1 Saint you control; next Standby Phase equip this card."
+            if (!ControlAnySaint())
+                return false;
+
+            AI.SelectCard(BuildSaintTargetPriorityForClothReequip(Card.Id));
             return true;
         }
 
-        private bool ActivateClothDiscardSearch()
+        private bool ActivateClothDiscardFromHand()
         {
             // Cloths: "Discard this card; add 1 Level 4 Saint monster from Deck to hand."
             // Only do this in Main Phase, and only if it helps reach 3 distinct names or fix an empty board.
             if (!IsMainPhase())
+                return false;
+
+            if (!ThisClothIsPreferredDiscardAmongHandCloths())
                 return false;
 
             if (FieldIsEmpty())
@@ -308,7 +1098,7 @@ namespace WindBot.Game.AI.Decks
 
             if (DistinctSaintNamesOnField() < 3)
             {
-                AI.SelectCard(ChooseSaintToMaximizeDistinct());
+                AI.SelectCard(ChooseLv4SaintForDeckSearch());
                 return true;
             }
 
@@ -316,7 +1106,7 @@ namespace WindBot.Game.AI.Decks
             // If Seiya is already established but we have no Cloth in GY, discard a Cloth to seed GY.
             if (HasSeiyaFaceup() && !HasClothInGraveyard())
             {
-                AI.SelectCard(ChooseSaintToMaximizeDistinct());
+                AI.SelectCard(ChooseLv4SaintForDeckSearch());
                 return true;
             }
 
@@ -334,14 +1124,23 @@ namespace WindBot.Game.AI.Decks
             // Send Ikki by default for revival lines.
             AI.SelectCard(CardId.Ikki);
             // Add a different-name Saint to hand.
-            AI.SelectNextCard(ChooseSaintToMaximizeDistinct());
+            AI.SelectNextCard(ChooseLv4SaintForDeckSearch());
             return true;
+        }
+
+        private bool ResolveKikiActivate()
+        {
+            if ((Card.Location & CardLocation.Hand) != 0)
+                return ActivateKikiEquip();
+            if ((Card.Location & CardLocation.Grave) != 0 && Duel.Phase == DuelPhase.Standby)
+                return Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id));
+            return false;
         }
 
         private bool ActivateKikiEquip()
         {
             // Kiki (hand): discard -> equip a Cloth from Deck/GY to a Saint you control.
-            // We mainly use this proactively going second or when we want Verdict live.
+            // Guide: key line to turn on Verdict (NeedEquipForVerdict).
             if (!IsMainPhase())
                 return false;
 
@@ -360,17 +1159,50 @@ namespace WindBot.Game.AI.Decks
             TrySendCustomChat(2, target.Name);
             AI.SelectCard(target);
 
-            // Cloth choice priority: interaction > survival > pressure
-            AI.SelectNextCard(new[]
-            {
-                CardId.ClothCygnus,
-                CardId.ClothDragon,
-                CardId.ClothAndromeda,
-                CardId.ClothPhoenix,
-                CardId.ClothPegasus
-            });
+            AI.SelectNextCard(BuildKikiClothPriorityForTarget(target));
 
             return true;
+        }
+
+        private bool ResolveShiryuActivate()
+        {
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (ActivateDescription != Util.GetStringId(CardId.Shiryu, 0) && ActivateDescription != -1)
+                    return false;
+                if (Duel.Player == 0)
+                    return false;
+                return Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
+            }
+            if (!IsMainPhase())
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (IsActivateDescriptionPayEquip(CardId.Shiryu) || ActivateDescription == -1)
+                return ResolvePayEquipSaint(CardId.Shiryu);
+            return false;
+        }
+
+        private bool ResolveHyogaActivate()
+        {
+            if (!IsMainPhase())
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (IsActivateDescriptionPayEquip(CardId.Hyoga) || ActivateDescription == -1)
+                return ResolvePayEquipSaint(CardId.Hyoga);
+            return false;
+        }
+
+        private bool ResolveShunActivate()
+        {
+            if (!IsMainPhase())
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (ActivateDescription == Util.GetStringId(CardId.Shun, 0) || ActivateDescription == -1)
+                return ResolvePayEquipSaint(CardId.Shun);
+            return false;
         }
 
         private bool SummonMu()
@@ -383,7 +1215,11 @@ namespace WindBot.Game.AI.Decks
             if (!IsMainPhase())
                 return false;
 
-            // If there are Cloths in GY, Mu is strong to refuel.
+            // Stringid 1: discard Mu; search Athena's Sanctuary - Reforged (handled by engine if legal).
+            if (ActivateDescription == Util.GetStringId(CardId.Mu, 1))
+                return false;
+
+            // Stringid 0: on summon — add Cloths from GY.
             if (Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
             {
                 AI.SelectCard(Cloths);
@@ -393,31 +1229,73 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool SummonJabu()
-        {
-            return IsMainPhase() && ControlAnySaint();
-        }
-
-        private bool ResolveJabuEffect()
+        /// <summary>Some WindBot builds route hand ignition SS through SpSummon.</summary>
+        private bool SpSummonJabuFromHandIfBridged()
         {
             if (!IsMainPhase())
                 return false;
+            if ((Card.Location & CardLocation.Hand) == 0)
+                return false;
+            return ControlAnySaint() && Bot.GetMonsterCount() < 5;
+        }
 
-            // Prefer recovering an important Cloth from GY if any.
-            var clothInGy = Bot.Graveyard.FirstOrDefault(c => c != null && Cloths.Contains(c.Id));
-            if (clothInGy != null)
+        private bool ResolveJabuActivate()
+        {
+            // Hand — Stringid 0: ignition SS if you control a Saint (only ignition from hand on this card).
+            if ((Card.Location & CardLocation.Hand) != 0)
             {
-                AI.SelectCard(clothInGy);
-                return true;
+                if (!IsMainPhase())
+                    return false;
+                return ControlAnySaint() && Bot.GetMonsterCount() < 5;
             }
 
-            return false;
+            // Material-from-GY line — leave to engine/default unless extended later.
+            if ((Card.Location & CardLocation.Grave) != 0)
+                return false;
+
+            // Monster zone — Stringid 1: optional after SP Summon — add 1 Cloth from GY, then discard (handled by engine).
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (!IsMainPhase())
+                return false;
+            // Stringid 2: sent as material — leave unhandled here.
+            if (ActivateDescription == Util.GetStringId(CardId.Jabu, 2))
+                return false;
+
+            var clothInGy = Bot.Graveyard.FirstOrDefault(c => c != null && Cloths.Contains(c.Id));
+            if (clothInGy == null)
+                return false;
+            AI.SelectCard(clothInGy);
+            return true;
         }
 
         private bool ResolveIkkiEffect()
         {
-            // Ikki revive is generally useful if we have a Saint to discard and need bodies.
             if (!IsMainPhase())
+                return false;
+
+            var d = ActivateDescription;
+
+            // Field: pay 500 LP; equip 1 "Cloth" from Hand or GY (Stringid 1).
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (d != -1 && d != Util.GetStringId(CardId.Ikki, 1))
+                    return false;
+                if (Bot.LifePoints < 500)
+                    return false;
+                if (!HasFreeMainSpellZoneForEquip())
+                    return false;
+                var clothOrder = BuildIkkiEquipClothPriority();
+                if (clothOrder.Length == 0)
+                    return false;
+                AI.SelectCard(clothOrder);
+                return true;
+            }
+
+            // GY: discard 1 "Saint" → Special Summon (Stringid 0).
+            if ((Card.Location & CardLocation.Grave) == 0)
+                return false;
+            if (d != -1 && d != Util.GetStringId(CardId.Ikki, 0))
                 return false;
 
             if (DistinctSaintNamesOnField() >= 3)
@@ -448,23 +1326,25 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateCrystalWall()
         {
-            // "when opponent targets your Saints" — we rely on the card's own activation legality;
-            // keep it conservative: only during opponent's turn.
-            return Duel.Player != 0;
+            // Guide: when a chain targets your Saints (Tier S/A interaction).
+            if (Duel.Player == 0)
+                return false;
+            return Bot.MonsterZone.Any(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
         }
 
         private bool ActivatePopesVerdict()
         {
-            // Spell/Trap negate. Card will only be activatable if equip condition is satisfied.
+            // Guide: 103 when equipped Saint shell is live (engine also gates).
             TrySendCustomChat(4);
-            return Duel.Player != 0;
+            return Duel.Player != 0 && HasEquippedSaint();
         }
 
         private bool ActivateAthenaExclamation()
         {
-            // Counter trap; card will only be activatable if "3 distinct Saints" condition is met.
+            // Guide: 082 when ≥3 distinct names and meaningful interaction (engine also gates legality).
             TrySendCustomChat(3);
-            return Duel.Player != 0;
+            return Duel.Player != 0 && DistinctSaintNamesOnField() >= 3;
         }
 
         private bool SpellSetPolicy()
@@ -476,6 +1356,12 @@ namespace WindBot.Game.AI.Decks
             // Prefer keeping Cloths in hand for discard-search instead of setting.
             if (Cloths.Contains(Card.Id))
                 return false;
+
+            if (Card.IsCode(CardId.PopesVerdict))
+                return ControlAnySaint() || HasEquippedSaint();
+
+            if (Card.IsCode(CardId.AthenaExclamation))
+                return DistinctSaintNamesOnField() >= 3 || Bot.GetHandCount() >= 6;
 
             return DefaultSpellSet();
         }
