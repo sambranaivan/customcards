@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 9;
-        private const string BuildTag = "2026-05-06T15:30Z-v9-jabu-hand-ss";
+        private const int BuildVersion = 11;
+        private const string BuildTag = "2026-05-06T19:05Z-v11-def-summon-eval";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -569,14 +569,15 @@ namespace WindBot.Game.AI.Decks
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
-            AddExecutor(ExecutorType.Summon, CardId.Shun, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Shiryu, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Hyoga, SummonSaintLv4);
+            // Normal Summon priority ≈ ATK (WindBot tries executors in registration order).
             AddExecutor(ExecutorType.Summon, CardId.Ikki, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Nachi, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Ban, SummonSaintLv4);
+            AddExecutor(ExecutorType.Summon, CardId.Hyoga, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Geki, SummonSaintLv4);
+            AddExecutor(ExecutorType.Summon, CardId.Shiryu, SummonSaintLv4);
+            AddExecutor(ExecutorType.Summon, CardId.Ban, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Ichi, SummonSaintLv4);
+            AddExecutor(ExecutorType.Summon, CardId.Shun, SummonSaintLv4);
+            AddExecutor(ExecutorType.Summon, CardId.Nachi, SummonSaintLv4);
             AddExecutor(ExecutorType.Summon, CardId.Mu, SummonMu);
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
@@ -591,6 +592,38 @@ namespace WindBot.Game.AI.Decks
         public override bool OnSelectHand()
         {
             return true; // prefer going first
+        }
+
+        /// <summary>
+        /// Never Normal Set Level 4 Saints here: we need face-up names / effects. Defensive posture is FaceUpDefence via <see cref="OnSelectPosition"/>.
+        /// </summary>
+        public override bool OnSelectMonsterSummonOrSet(ClientCard card)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// WindBot maps the AI to <c>Duel.Fields[0]</c>; turn player index follows <c>Duel.Player</c> (0 = our turn).
+        /// Block burning reactive protection Quick-Plays during an open Main Phase on our own turn.
+        /// </summary>
+        public override bool OnPreActivate(ClientCard card)
+        {
+            if (card != null
+                && (card.IsCode(CardId.AwakeningOfTheCosmos) || card.IsCode(CardId.BondOfBrotherhood))
+                && IsOpenOwnMainPhaseNoChain())
+                return false;
+            return base.OnPreActivate(card);
+        }
+
+        private bool ChainIsEmpty()
+        {
+            return Duel.CurrentChain == null || Duel.CurrentChain.Count == 0;
+        }
+
+        /// <summary>Open Main1/Main2 on our turn with no chain — typical "beginner" misuse window for protection QPs.</summary>
+        private bool IsOpenOwnMainPhaseNoChain()
+        {
+            return Duel.Player == 0 && IsMainPhase() && ChainIsEmpty();
         }
 
         private void TrySendCustomChat(int index, params object[] args)
@@ -991,6 +1024,19 @@ namespace WindBot.Game.AI.Decks
             if (DistinctSaintNamesOnField() < 3)
                 return true;
 
+            // Competent line: do not "skip" Normal Summon while hand still carries Level 4 Saints and MMZ is open.
+            int lv4InHand = Bot.Hand.Count(c => Lv4Saints.Contains(c.Id));
+            if (lv4InHand >= 2 && Bot.GetMonsterCount() <= 3)
+                return true;
+
+            if (NeedEquipForVerdict() && Bot.GetMonsterCount() < 5)
+                return true;
+
+            if (!HasEquippedSaint()
+                && Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id))
+                && Bot.GetMonsterCount() < 4)
+                return true;
+
             if (Bot.GetHandCount() >= 5)
                 return true;
 
@@ -1001,12 +1047,41 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>
+        /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF mode walls better (or solo / behind-on-ATK lines).
+        /// </summary>
+        private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions)
+        {
+            if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
+                return false;
+
+            int enemyBestAtk = Util.GetBestAttack(Enemy);
+
+            // Classic wall: loses as attacker (ATK) but survives battle when defending (DEF vs their best ATK).
+            if (enemyBestAtk > atkStat && enemyBestAtk <= defStat)
+                return true;
+
+            // Solo body (no other monsters yet): do not leave ATK into their best attacker if DEF is legal.
+            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= atkStat)
+                return true;
+
+            // Multi-monster: any visible attacker beats our printed ATK — DEF avoids an unfavourable crash when attacked.
+            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > atkStat))
+                return true;
+
+            return false;
+        }
+
         public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
         {
-            // If we are behind on board, allow summoning in defence to reduce damage taken.
-            // (This matches the user's observation: the AI "wants" defence when enemy has a big monster.)
-            bool enemyHasBigger = Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > Card.Attack);
-            if (enemyHasBigger && positions.Contains(CardPosition.FaceUpDefence))
+            var named = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
+            if (named != null && named.Attack == 0 && positions != null && positions.Contains(CardPosition.FaceUpDefence))
+                return CardPosition.FaceUpDefence;
+
+            int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
+            int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
+
+            if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
             return base.OnSelectPosition(cardId, positions);
@@ -1207,7 +1282,15 @@ namespace WindBot.Game.AI.Decks
 
         private bool SummonMu()
         {
-            return IsMainPhase() && Bot.GetHandCount() > 0;
+            if (!IsMainPhase())
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+            if (!ControlAnySaint())
+                return false;
+            if (!Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+                return false;
+            return Bot.GetHandCount() > 0;
         }
 
         private bool ResolveMuEffect()
@@ -1310,16 +1393,15 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateAwakening()
         {
-            // Prefer using protection as a response to opponent pressure; allow during opponent turn.
-            if (Duel.Player == 0)
+            // Save for reactive windows — never burn during open Main on our turn (OnPreActivate also enforces).
+            if (IsOpenOwnMainPhaseNoChain())
                 return false;
             return true;
         }
 
         private bool ActivateBond()
         {
-            // Use primarily when responding to opponent effects.
-            if (Duel.Player == 0)
+            if (IsOpenOwnMainPhaseNoChain())
                 return false;
             return true;
         }

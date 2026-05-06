@@ -8725,3 +8725,1457 @@ No cambia por sí solo el comportamiento del deck: **el ejecutor C# no lee norma
 El **tercer argumento** del atributo `[Deck("Nombre", "AI_Archivo", "Easy|Normal")]` es otra cosa: es la **dificultad interna del ejecutor** que compilás en la DLL (p.ej. ramas “Easy” vs “Normal” si el código las usa). Es independiente del número en `bots.json`.
 
 En resumen: **`bots.json` → difficulty para UI/selección del bot; `.cs` `[Deck]` → modo del ejecutor si está implementado.**
+
+---
+
+_**User**_
+
+excelente, ahora estoy viendo comportamientos de principiante, como no gastar todas las normal summons, o invocar a un monstruo mas debil de los oponentes en modo de ataque cuando no tengo otros montruos en campo, activar cartas de proteccion de juego rapido en mi propio turno, por favor añade un set de jugadas "normales" para evitar este compartamiento de novato
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants to enhance the WindBot executor's behavior to prevent basic errors. The WindBot executor should avoid common mistakes like not using all summons, summoning weaker monsters unnecessarily, and activating protection cards inappropriately during their own turn. To improve behavior, it needs to follow standard play patterns.
+
+Key areas to examine:
+- SummonSaintLv4 / SummonSeiya / positioning logic - already includes OnSelectPosition for defense when enemy is larger
+- Spell/trap activation for Awakening, Bond - currently ActivateAwakening returns false when Duel.Player == 0 (their turn) The WindBot executor needs clarification on Duel.Player semantics to improve behavior.
+
+Key areas to examine:
+- Normal summon policies: when to summon weak monsters vs skip summon to preserve NS
+- OnSelectPosition: extend logic for solo weak monster vs strong opponent field
+- Quick-play spells during own turn: AwakeningOfTheCosmos (922100086), BondOfBrotherhood (922100092) - make them reactive only on opponent's turn unless specific proactive cases The user identifies "not spending all normal summons" as a beginner mistake, meaning players either waste summons on weak monsters or fail to use them when beneficial. This implies encouraging aggressive use of normal summons when advantageous, such as to reach 3 names or extend the board, rather than saving them unnecessarily. The term "gastar" may mean "waste" in Latin American Spanish, suggesting the issue is about correct usage, not just quantity. Beginner behaviors often include not using all normal summons and wasting them on weak monsters. Players should use summons strategically to develop the board or reach 3 names, rather than saving them unnecessarily. Summoning weaker monsters in attack mode against stronger opponents should trigger defense mode instead. Activating Quick-Play protection cards during ones own turn is inappropriate and should be reserved for opponents turns. These behaviors need to be corrected to improve gameplay. 1. **Summon policies**: Increase willingness to normal summon when there are spare opportunities, such as having a hand with monsters and fewer than three distinct names. Currently, SummonSaintLv4 returns false in many cases; slightly loosen these conditions when facing a hand brick.
+
+2. **Beginner mistake interpretation**: "Not spending all normal summons" likely refers to either wasting summons on weak monsters too early or failing to use them when beneficial. This suggests encouraging more aggressive use of normal summons to develop the board or reach three names, rather than hoarding them unnecessarily. - **Use Normal Summon** strategically, especially when hand has Lv4 monsters and fewer than 3 distinct names, to develop the board effectively.
+- **Positioning logic** should default to **defense** when a single monster is weaker than the opponents strongest attack monster.
+- **OnSelectPosition** should prioritize defense when summoning the only monster in a chain and the opponent has a stronger attack monster.
+- **Awakening / Bond activation** should be restricted to opponent's turn only, avoiding use during ones own turn. The WindBot executor should only activate Quick-Play spells like AwakeningOfTheCosmos (922100086) and BondOfBrotherhood (922100092) during the opponent's turn or when chaining to an opponent's monster effect, avoiding proactive activation during its own Main Phase. This prevents inappropriate use of protection cards during the bot's own turn. 
+
+The current logic `if (Duel.Player == 0) return false` for ActivateAwakening suggests that the bot should activate these spells when it's the opponent's turn (Duel.Player != 0). Clarification on Duel.Player semantics is needed to ensure proper timing. 
+
+- Quick-play spells should only be activated on opponents turn or when chaining to opponent's effects.
+- BondOfBrotherhood (922100092) specifically activates when chaining to opponent monster effects, mainly during opponent's turn.
+- Avoid proactive activation during Main Phase</details></think>
+
+_**Agent (default)**_
+
+Revisando el ejecutor para afinar decisiones de invocación, posiciones y uso de Quick-Play de protección.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+In WindBot, Duel.Player typically uses Player 0 as the local bot player, with Duel being triggered during the bot's turn. Player 0 is typically the local bot player, so ActivateAwakening returns false during the bot's turn, which prevents activation on the bot's own turn.
+
+However, the user reports that quick-play effects still trigger during their own turn, possibly because:
+- Duel.Player semantics may be inverted
+- Awakening/Bond effects activate during Main Phase when Duel.Player  0
+- The phase check doesn't distinguish between Battle Phase and Main Phase
+
+To fix this, ActivateAwakening and ActivateBond should:
+- Only activate when Duel.Phase is not Main1/Main2 for the opponent
+- Possibly also check that the current phase is not Battle Phase or End Phase</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\.agents\skills\windbot-executor-creator\executor-template.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+I'll implement SummonSaintLv4 and SummonSeiya to expand NS usage. - Track effective normals left using Bot.GetSpellsPlayedCount(), Duel.Turn, or ClientField for normal summon tracking
+- WindBot doesn't expose normals cleanly, so prioritize strongest available Lv4 monsters through summon order in AddExecutor
+- Place Ikki/Hyoga higher than Ban/Ichi in summon priority
+- Fix OnSelectPosition to address weak monster in attack solo issue
+- Loosen SummonSaintLv4 conditions when Bot.CanSummonMonster is assumed and DistinctSaintNamesOnField < 3 When there are at least three distinct Saint names on field and it's still Main Phase, consider skipping unnecessary summons. However, avoid wasting summons on beginner-level plays. Use Normal Summon if another distinct-name Lv4 is in hand and field space.
+
+- Develop board unless opponent threatens lethal swing next BP
+- Use Normal Summon if another distinct-name Lv4 is in hand and field space
+- Skip unnecessary summons when conditions aren't met
+- Prioritize helpful summons over wasteful ones When there are at least three distinct Saint names on the field, normal summon if the hand is cluttered (5 cards) or contains cloth cards. Avoid skipping normal summons in these cases. Also, prioritize stronger saints like Ikki over Ban when selecting summon order, since WindBot evaluates summon executors sequentially. The current summon order is: Shun, Shiryu, Hyoga, Ikki, Nachi, Ban, Geki, Ichi. - Reorder SummonSaintLv4 and SummonSeiya executors by descending ATK values: Ikki (1800), Hyoga (1600), Seiya (1700), Shiryu (1500), Shun (1300).
+- Place Seiya summon first separately due to its high ATK and strategic value.
+- Adjust summon priority to favor stronger monsters like Ikki and Hyoga over others such as Shun or Nachi.
+- Use ATK data from card IDs to inform executor ordering, prioritizing monsters with higher offensive capabilities. When fewer than four monsters are on the field and there are less than four distinct Saint names, summon a Lv4 Saint from hand if available. Prioritize summons when fewer than three distinct Saints are present on the field. For aggressive play, reorder summon priority as: Ikki, Hyoga, Seiya, Shiryu, Shun, Nachi, Geki, Ichi, Ban. Use ATK data to adjust executor order, favoring stronger monsters. Even with three distinct Saint names on the field, summon an additional Lv4 if the hand is full of monsters to avoid wasted Normal Summons.  
+SummonSeiya should be allowed during Main Phase when strategically viablecurrently always enabled in MP, which is acceptable.  
+Avoid wasting Normal Summons on Mu if hand count is high; add ControlAnySaint() check before summoning Mu.  
+Enhance OnSelectPosition to select optimal monster positioning based on attack values and enemy threats. When selecting position, the summoned monster may not yet be on the field, so use `Bot.GetMonsterCount()` to determine if placing the first monster. A new monster is being summoned if `Bot.MonsterZone.All(c => c == null || c.Equals(Card))` is true, indicating no monsters are currently on the field. This ensures proper positioning logic for the first monster. When OnSelectPosition is called, the summoned monster may not yet be on the field, so use `Bot.GetMonsterCount()` to determine if placing the first monster. A new monster is being summoned if `Bot.MonsterZone.All(c => c == null || c.Equals(Card))` is true, indicating no monsters are currently on the field.
+
+To handle positioning safely, check if the enemy has a face-up monster with ATK greater than the summoned monster's ATK, and if the bot had no other monsters before the summon (`botBodies <= 1`). This ensures proper positioning logic for the first monster.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch">
+<details>
+<summary>Tool use: **web_fetch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/Duel.cs"
+}
+```
+Result:
+
+```json
+{
+  "markdown": "using System.Collections.Generic; \nusing YGOSharp.OCGWrapper.Enums; \n \nnamespace WindBot.Game \n{ \n public class Duel \n { \n public bool IsFirst { get; set; } \n public bool IsNewRule { get; set; } \n public bool IsNewRule2020 { get; set; } \n \n public ClientField[] Fields { get; private set; } \n \n public int Turn { get; set; } \n public int Player { get; set; } \n public DuelPhase Phase { get; set; } \n public MainPhase MainPhase { get; set; } \n public BattlePhase BattlePhase { get; set; } \n \n public int LastChainPlayer { get; set; } \n public CardLocation LastChainLocation { get; set; } \n public IList CurrentChain { get; set; } \n public IList CurrentChainInfo { get; set; } \n public IList ChainTargets { get; set; } \n public IList LastChainTargets { get; set; } \n public IList ChainTargetOnly { get; set; } \n public int LastSummonPlayer { get; set; } \n public IList SummoningCards { get; set; } \n public IList LastSummonedCards { get; set; } \n public int SolvingChainIndex { get; set; } \n public IList NegatedChainIndexList { get; set; } \n \n public Duel() \n { \n Fields = new ClientField[2]; \n Fields[0] = new ClientField(); \n Fields[1] = new ClientField(); \n LastChainPlayer = -1; \n LastChainLocation = 0; \n CurrentChain = new List (); \n CurrentChainInfo = new List (); \n ChainTargets = new List (); \n LastChainTargets = new List (); \n ChainTargetOnly = new List (); \n LastSummonPlayer = -1; \n SummoningCards = new List (); \n LastSummonedCards = new List (); \n SolvingChainIndex = 0; \n NegatedChainIndexList = new List (); \n MainPhase = new MainPhase(); \n BattlePhase = new BattlePhase(); \n } \n \n public ClientCard GetCard(int player, CardLocation loc, int seq) \n { \n return GetCard(player, (int)loc, seq, 0); \n } \n \n public ClientCard GetCard(int player, int loc, int seq, int subSeq) \n { \n if (player \u003c 0 || player \u003e 1) \n return null; \n \n bool isXyz = (loc \u0026 0x80) != 0; \n CardLocation location = (CardLocation)(loc \u0026 0x7f); \n \n IList cards = null; \n switch (location) \n { \n case CardLocation.Deck: \n cards = Fields[player].Deck; \n break; \n case CardLocation.Hand: \n cards = Fields[player].Hand; \n break; \n case CardLocation.MonsterZone: \n cards = Fields[player].MonsterZone; \n break; \n case CardLocation.SpellZone: \n cards = Fields[player].SpellZone; \n break; \n case CardLocation.Grave: \n cards = Fields[player].Graveyard; \n break; \n case CardLocation.Removed: \n cards = Fields[player].Banished; \n break; \n case CardLocation.Extra: \n cards = Fields[player].ExtraDeck; \n break; \n } \n if (cards == null) \n return null; \n \n if (seq \u003e= cards.Count) \n return null; \n \n if (isXyz) \n { \n ClientCard card = cards[seq]; \n if (card == null || subSeq \u003e= card.Overlays.Count) \n return null; \n return new ClientCard(card.Overlays[subSeq], CardLocation.Overlay, 0, 0); \n } \n \n return cards[seq]; \n } \n \n public void AddCard(CardLocation loc, int cardId, int player, int seq, int pos) \n { \n ClientCard card = new ClientCard(cardId, loc, seq, pos); \n AddCard(loc, card, player, seq, pos, cardId); \n } \n \n public void AddCard(CardLocation loc, ClientCard card, int player, int seq, int pos, int id) \n { \n card.Location = loc; \n card.Sequence = seq; \n card.Position = pos; \n card.Controller = player; \n card.SetId(id); \n switch (loc) \n { \n case CardLocation.Hand: \n Fields[player].Hand.Add(card); \n break; \n case CardLocation.Grave: \n Fields[player].Graveyard.Add(card); \n break; \n case CardLocation.Removed: \n Fields[player].Banished.Add(card); \n break; \n case CardLocation.MonsterZone: \n Fields[player].MonsterZone[seq] = card; \n break; \n case CardLocation.SpellZone: \n Fields[player].SpellZone[seq] = card; \n break; \n case CardLocation.Deck: \n Fields[player].Deck.Add(card); \n break; \n case CardLocation.Extra: \n Fields[player].ExtraDeck.Add(card); \n break; \n } \n } \n \n public void RemoveCard(CardLocation loc, ClientCard card, int player, int seq) \n { \n switch (loc) \n { \n case CardLocation.Hand: \n Fields[player].Hand.Remove(card); \n break; \n case CardLocation.Grave: \n Fields[player].Graveyard.Remove(card); \n break; \n case CardLocation.Removed: \n Fields[player].Banished.Remove(card); \n break; \n case CardLocation.MonsterZone: \n Fields[player].MonsterZone[seq] = null; \n break; \n case CardLocation.SpellZone: \n Fields[player].SpellZone[seq] = null; \n break; \n case CardLocation.Deck: \n Fields[player].Deck.Remove(card); \n break; \n case CardLocation.Extra: \n Fields[player].ExtraDeck.Remove(card); \n break; \n } \n } \n \n public int GetLocalPlayer(int player) \n { \n return IsFirst ? player : 1 - player; \n } \n \n public ClientCard GetCurrentSolvingChainCard() \n { \n if (SolvingChainIndex == 0 || SolvingChainIndex \u003e CurrentChain.Count) return null; \n return CurrentChain[SolvingChainIndex - 1]; \n } \n \n public ChainInfo GetCurrentSolvingChainInfo() \n { \n if (SolvingChainIndex == 0 || SolvingChainIndex \u003e CurrentChainInfo.Count) return null; \n return CurrentChainInfo[SolvingChainIndex - 1]; \n } \n \n public bool IsCurrentSolvingChainNegated() \n { \n return SolvingChainIndex \u003e 0 \u0026\u0026 NegatedChainIndexList.Contains(SolvingChainIndex); \n } \n } \n}",
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/Duel.cs"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch"><details>
+<summary>Tool use: **web_fetch**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.cs",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot",
+  "pattern": "Bot\\s*="
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot",
+  "pattern": "Bot\\s*=",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+WindBot references an external DLL named SaintSeiyaBronzeOnlyExecutor, which inherits from Executor. The bot property is derived from DefaultExecutor.</details></think>
+
+_**Agent (default)**_
+
+Implementando políticas “jugadas normales”: revisando el executor actual para aplicar los cambios.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "SummonSaintLv4|OnSelectPosition|ActivateAwakening|ActivateBond|AddExecutor"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs",
+  "pattern": "SummonSaintLv4|OnSelectPosition|ActivateAwakening|ActivateBond|AddExecutor",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor",
+  "pattern": "SummonSaint|OnSelectPosition|Awakening|Bond|AddExecutor"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor",
+  "pattern": "SummonSaint|OnSelectPosition|Awakening|Bond|AddExecutor",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+I see the issue now. `ActivateAwakening` and `ActivateBond` use `Duel.`</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "*.cs",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards",
+  "pattern": "TurnPlayer|Fields\\[0\\]|Bot\\.Controller"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards",
+  "pattern": "TurnPlayer|Fields\\[0\\]|Bot\\.Controller",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+WindBot sources may not be located within the repository.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch">
+<details>
+<summary>Tool use: **web_fetch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/AI/Executor.cs"
+}
+```
+Result:
+
+```json
+{
+  "markdown": "using System; \nusing System.Collections.Generic; \nusing System.Linq; \nusing YGOSharp.OCGWrapper.Enums; \nusing WindBot; \nusing WindBot.Game; \nusing WindBot.Game.AI; \n \nnamespace WindBot.Game.AI \n{ \n public abstract class Executor \n { \n public string Deck { get; set; } \n public Duel Duel { get; private set; } \n public IList Executors { get; private set; } \n public GameAI AI { get; private set; } \n public AIUtil Util { get; private set; } \n \n protected ExecutorType Type { get; private set; } \n protected ClientCard Card { get; private set; } \n protected int ActivateDescription { get; private set; } \n protected int CurrentTiming { get; private set; } \n \n protected ClientField Bot { get; private set; } \n protected ClientField Enemy { get; private set; } \n \n protected Executor(GameAI ai, Duel duel) \n { \n Duel = duel; \n AI = ai; \n Util = new AIUtil(duel); \n Executors = new List (); \n \n Bot = Duel.Fields[0]; \n Enemy = Duel.Fields[1]; \n } \n \n public virtual int OnRockPaperScissors() \n { \n return Program.Rand.Next(1, 4); \n } \n \n public virtual bool OnSelectHand() \n { \n return Program.Rand.Next(2) \u003e 0; \n } \n \n /// \n /// Called when the AI has to decide if it should attack \n /// \n /// List of monsters that can attcack. \n /// List of monsters of enemy. \n /// A new BattlePhaseAction containing the action to do. \n public virtual BattlePhaseAction OnBattle(IList attackers, IList defenders) \n { \n // For overriding \n return null; \n } \n \n /// \n /// Called when the AI has to decide which card to attack first \n /// \n /// List of monsters that can attcack. \n /// List of monsters of enemy. \n /// The card to attack first. \n public virtual ClientCard OnSelectAttacker(IList attackers, IList defenders) \n { \n // For overriding \n return null; \n } \n \n public virtual BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList defenders) \n { \n // Overrided in DefaultExecutor \n return null; \n } \n \n public virtual bool OnPreBattleBetween(ClientCard attacker, ClientCard defender) \n { \n // Overrided in DefaultExecutor \n return true; \n } \n \n public virtual bool OnPreActivate(ClientCard card) \n { \n // Overrided in DefaultExecutor \n return true; \n } \n \n public virtual void OnChaining(int player, ClientCard card) \n { \n // For overriding \n } \n \n public virtual void OnChainSolved(int chainIndex) \n { \n // For overriding \n } \n \n public virtual void OnChainEnd() \n { \n // For overriding \n } \n \n public virtual void OnReceivingAnnouce(int player, int data) \n { \n // For overriding \n } \n \n public virtual void OnNewPhase() \n { \n // Some AI need do something on new phase \n } \n public virtual void OnNewTurn() \n { \n // Some AI need do something on new turn \n } \n \n public virtual void OnDraw(int player) \n { \n // Some AI need do something on draw \n } \n \n /// \n /// Called when a PlayerHint is received (e.g. effect description add/remove; can be used to track \"once per turn\" usage). \n /// \n /// Player index \n /// Hint type, see PlayerHintType (DescAdd=6, DescRemove=7) \n /// Effect description id (peffect-\u003edescription) \n public virtual void OnPlayerHint(int player, int hintType, int description) \n { \n // For overriding \n } \n \n /// \n /// Called when a zone hint is received. \n /// \n /// Player index. \n /// Zone data (hinted zones, bit field). \n public virtual void OnHintZone(int player, int zone) \n { \n // For overriding \n } \n \n public virtual void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation) \n { \n // Some AI need do something on card's moving \n } \n \n public virtual IList OnSelectCard(IList cards, int min, int max, int hint, bool cancelable) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectSum(IList cards, int sum, int min, int max, int hint, bool mode) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectFusionMaterial(IList cards, int min, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectSynchroMaterial(IList cards, int sum, int min, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectXyzMaterial(IList cards, int min, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectLinkMaterial(IList cards, int min, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectRitualTribute(IList cards, int sum, int min, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnSelectPendulumSummon(IList cards, int max) \n { \n // For overriding \n return null; \n } \n \n public virtual IList OnCardSorting(IList cards) \n { \n // For overriding \n return null; \n } \n \n public virtual void OnSelectChain(IList cards) \n { \n return; \n } \n \n public virtual bool OnSelectYesNo(int desc) \n { \n return true; \n } \n \n public virtual int OnSelectOption(IList options) \n { \n return -1; \n } \n \n public virtual int OnSelectPlace(int cardId, int player, CardLocation location, int available) \n { \n // For overriding \n return 0; \n } \n \n public virtual CardPosition OnSelectPosition(int cardId, IList positions) \n { \n // Overrided in DefaultExecutor \n return 0; \n } \n \n public virtual bool OnSelectBattleReplay() \n { \n // Overrided in DefaultExecutor \n return false; \n } \n \n /// \n /// Called when the executor type is SummonOrSet \n /// \n /// True if select to set the monster. \n public virtual bool OnSelectMonsterSummonOrSet(ClientCard card) \n { \n // Overrided in DefaultExecutor \n return false; \n } \n \n /// \n /// Called when bot is going to annouce a card \n /// \n /// Available card's ids. \n /// Card's id to annouce. \n public virtual int OnAnnounceCard(IList avail) \n { \n // For overriding \n return 0; \n } \n \n /// \n /// Called when card is successfully special summoned. \n /// Used on monsters that can only special summoned once per turn. \n /// \n public virtual void OnSpSummoned() \n { \n // For overriding \n return; \n } \n \n /// \n /// Set global variables Type, Card, ActivateDescription for Executor \n /// \n public void SetCard(ExecutorType type, ClientCard card, int description, int timing = -1) \n { \n Type = type; \n Card = card; \n ActivateDescription = description; \n CurrentTiming = timing; \n } \n \n /// \n /// Do the action for the card if func return true. \n /// \n public void AddExecutor(ExecutorType type, int cardId, Func func) \n { \n Executors.Add(new CardExecutor(type, cardId, func)); \n } \n \n /// \n /// Do the action for the card if available. \n /// \n public void AddExecutor(ExecutorType type, int cardId) \n { \n Executors.Add(new CardExecutor(type, cardId, null)); \n } \n \n /// \n /// Do the action for every card if func return true. \n /// \n public void AddExecutor(ExecutorType type, Func func) \n { \n Executors.Add(new CardExecutor(type, -1, func)); \n } \n \n /// \n /// Do the action for every card if no other Executor is added to it. \n /// \n public void AddExecutor(ExecutorType type) \n { \n Executors.Add(new CardExecutor(type, -1, DefaultNoExecutor)); \n } \n \n private bool DefaultNoExecutor() \n { \n return Executors.All(exec =\u003e exec.Type != Type || exec.CardId != Card.Id); \n } \n } \n}",
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/AI/Executor.cs"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch"><details>
+<summary>Tool use: **web_fetch**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Error fetching URL, status code: 404 Not Found
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch"><details>
+<summary>Tool use: **web_fetch**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Error fetching URL, status code: 404 Not Found
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch"><details>
+<summary>Tool use: **web_fetch**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+In WindBot, player 0 is consistently designated as the "AI player" because the Executor.cs code always assigns Bot = Fields[0].</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch">
+<details>
+<summary>Tool use: **web_fetch**</summary>
+
+
+Parameters:
+
+```json
+{
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/AI/DefaultExecutor.cs"
+}
+```
+Result:
+
+```json
+{
+  "markdown": "using System; \nusing System.Collections.Generic; \nusing System.Linq; \nusing YGOSharp.OCGWrapper.Enums; \nusing WindBot; \nusing WindBot.Game; \nusing WindBot.Game.AI; \n \nnamespace WindBot.Game.AI \n{ \n public abstract class DefaultExecutor : Executor \n { \n protected class _CardId \n { \n public const int JizukirutheStarDestroyingKaiju = 63941210; \n public const int ThunderKingtheLightningstrikeKaiju = 48770333; \n public const int DogorantheMadFlameKaiju = 93332803; \n public const int RadiantheMultidimensionalKaiju = 28674152; \n public const int GadarlatheMysteryDustKaiju = 36956512; \n public const int KumongoustheStickyStringKaiju = 29726552; \n public const int GamecieltheSeaTurtleKaiju = 55063751; \n public const int SuperAntiKaijuWarMachineMechaDogoran = 84769941; \n \n public const int SandaionTheTimelord = 33015627; \n public const int GabrionTheTimelord = 6616912; \n public const int MichionTheTimelord = 7733560; \n public const int ZaphionTheTimelord = 28929131; \n public const int HailonTheTimelord = 34137269; \n public const int RaphionTheTimelord = 60222213; \n public const int SadionTheTimelord = 65314286; \n public const int MetaionTheTimelord = 74530899; \n public const int KamionTheTimelord = 91712985; \n public const int LazionTheTimelord = 92435533; \n \n public const int LeftArmofTheForbiddenOne = 7902349; \n public const int RightLegofTheForbiddenOne = 8124921; \n public const int LeftLegofTheForbiddenOne = 44519536; \n public const int RightArmofTheForbiddenOne = 70903634; \n public const int ExodiaTheForbiddenOne = 33396948; \n \n public const int UltimateConductorTytanno = 18940556; \n public const int ElShaddollConstruct = 20366274; \n public const int AllyOfJusticeCatastor = 26593852; \n \n public const int DupeFrog = 46239604; \n public const int MaraudingCaptain = 2460565; \n \n public const int BlackRoseDragon = 73580471; \n public const int JudgmentDragon = 57774843; \n public const int TopologicTrisbaena = 72529749; \n public const int EvilswarmExcitonKnight = 46772449; \n public const int HarpiesFeatherDuster = 18144506; \n public const int DarkMagicAttack = 2314238; \n public const int MysticalSpaceTyphoon = 5318639; \n public const int CosmicCyclone = 8267140; \n public const int GalaxyCyclone = 5133471; \n public const int BookOfMoon = 14087893; \n public const int CompulsoryEvacuationDevice = 94192409; \n public const int CallOfTheHaunted = 97077563; \n public const int Scapegoat = 73915051; \n public const int BreakthroughSkill = 78474168; \n public const int SolemnJudgment = 41420027; \n public const int SolemnWarning = 84749824; \n public const int SolemnStrike = 40605147; \n public const int TorrentialTribute = 53582587; \n public const int EvenlyMatched = 15693423; \n public const int HeavyStorm = 19613556; \n public const int HammerShot = 26412047; \n public const int DarkHole = 53129443; \n public const int Raigeki = 12580477; \n public const int SmashingGround = 97169186; \n public const int PotOfDesires = 35261759; \n public const int AllureofDarkness = 1475311; \n public const int DimensionalBarrier = 83326048; \n public const int InterruptedKaijuSlumber = 99330325; \n \n public const int ChickenGame = 67616300; \n public const int SantaClaws = 46565218; \n \n public const int CastelTheSkyblasterMusketeer = 82633039; \n public const int CrystalWingSynchroDragon = 50954680; \n public const int NumberS39UtopiaTheLightning = 56832966; \n public const int Number39Utopia = 84013237; \n public const int UltimayaTzolkin = 1686814; \n public const int MekkKnightCrusadiaAstram = 21887175; \n public const int HamonLordofStrikingThunder = 32491822; \n \n public const int MoonMirrorShield = 19508728; \n public const int PhantomKnightsFogBlade = 25542642; \n \n public const int VampireFraeulein = 6039967; \n public const int InjectionFairyLily = 79575620; \n \n public const int BlueEyesChaosMAXDragon = 55410871; \n \n public const int AshBlossom = 14558127; \n public const int MaxxC = 23434538; \n public const int LockBird = 94145021; \n public const int GhostOgreAndSnowRabbit = 59438930; \n public const int GhostBelle = 73642296; \n public const int EffectVeiler = 97268402; \n public const int GhostMournerMoonlitChill = 52038441; \n public const int ArtifactLancea = 34267821; \n public const int DimensionShifter = 91800273; \n public const int NibiruThePrimalBeing = 27204311; \n public const int MulcharmyPurulia = 84192580; \n public const int MulcharmyFuwalos = 42141493; \n public const int MulcharmyNyalus = 87126721; \n \n public const int CalledByTheGrave = 24224830; \n public const int CrossoutDesignator = 65681983; \n public const int InfiniteImpermanence = 10045474; \n public const int GalaxySoldier = 46659709; \n public const int MacroCosmos = 30241314; \n public const int UpstartGoblin = 70368879; \n public const int CyberEmergency = 60600126; \n public const int TheAgentOfCreationVenus = 64734921; \n \n public const int EaterOfMillions = 63845230; \n \n public const int InvokedPurgatrio = 12307878; \n public const int ChaosAncientGearGiant = 51788412; \n public const int UltimateAncientGearGolem = 12652643; \n \n public const int RedDragonArchfiend = 70902743; \n \n public const int ImperialOrder = 61740673; \n public const int RoyalDecreel = 51452091; \n public const int NaturalExterio = 99916754; \n public const int NaturiaBeast = 33198837; \n public const int SwordsmanLV7 = 37267041; \n public const int AntiSpellFragrance = 58921041; \n public const int Number41BagooskatheTerriblyTiredTapir = 90590303; \n public const int SkillDrain = 82732705; \n \n public const int DimensionalFissure = 81674782; \n public const int BanisheroftheRadiance = 94853057; \n public const int BanisheroftheLight = 61528025; \n public const int KashtiraAriseHeart = 48626373; \n public const int MaskedHERODarkLaw = 58481572; \n \n public const int VaylantzWorld_ShinraBansho = 49568943; \n public const int VaylantzWorld_KonigWissen = 75952542; \n public const int DivineArsenalAAZEUS_SkyThunder = 90448279; \n public const int LightningStorm = 14532163; \n public const int MistakenArrest = 4227096; \n public const int ThunderKingRaiOh = 71564252; \n public const int ThunderDragonColossus = 15291624; \n public const int DeckLockdown = 1149109; \n public const int DoomZDestruction = 80320877; \n public const int Mistake = 59305593; \n \n public const int BelialMarquisOfDarkness = 33655493; \n public const int ChirubiméPrincessOfAutumnLeaves = 87294988; \n public const int PerformapalBarokuriboh = 19050066; \n public const int LabrynthArchfiend = 48745395; \n public const int HarpiesPetDragonFearsomeFireBlast = 4991081; \n public const int DynaHeroFurHire = 25123713; \n public const int Hieracosphinx = 82260502; \n public const int SpeedroidPassinglider = 26420373; \n public const int TyrOfTheNordicChampions = 2333365; \n public const int ValkyrianKnight = 99348756; \n public const int Victoria = 75162696; \n public const int MadolcheChouxvalier = 75363626; \n public const int LadyOfD = 67511500; \n public const int MermailAbysslung = 95466842; \n public const int HarpiesPetBabyDragon = 6924874; \n public const int HandHoldingGenie = 94535485; \n public const int GolemDragon = 9666558; \n public const int TwilightRoseKnight = 2986553; \n public const int PerformapalThunderhino = 70458081; \n public const int MiracleFlipper = 131182; \n public const int Decoyroid = 25034083; \n public const int AltergeistFifinellag = 12977245; \n public const int BatterymanD = 55401221; \n public const int Watthopper = 61380658; \n public const int EgyptianGodSlime = 42166000; \n public const int DinowrestlerChimeraTWrextle = 22900219; \n public const int DinowrestlerGigaSpinosavate = 58672736; \n public const int ScarredWarrior = 45298492; \n public const int SharkFortress = 50449881; \n public const int HeroicChampionClaivesolish = 97453744; \n public const int GhostrickAlucard = 75367227; \n public const int DinowrestlerKingTWrextle = 77967790; \n public const int NumberF0UtopicFutureZexal = 41522092; \n \n public const int PerformapalMissDirector = 92932860; \n public const int AncientWarriorsMasterfulSunMou = 40140448; \n public const int AncientWarriorsVirtuousLiuXuan = 40428851; \n public const int CommandKnight = 10375182; \n public const int HunterOwl = 51962254; \n public const int RokketRecharger = 5969957; \n public const int EmissaryOfTheOasis = 6103294; \n public const int Zuttomozaurus = 24454387; \n public const int Otoshidamashi = 14957440; \n public const int NaturiaMosquito = 17285476; \n public const int RescueACEHydrant = 37617348; \n public const int MeizenTheBattleNinja = 11825276; \n public const int VindikiteRGenex = 73483491; \n public const int PrincessCologne = 75574498; \n public const int Number48ShadowLich = 1426714; \n public const int PhantomToken = 1426715; \n public const int DuelLinkDragonTheDuelDragon = 60025883; \n public const int DuelDragonToken = 60025884; \n public const int SeleneQueenOfTheMasterMagicians = 45819647; \n public const int TheWingedDragonofRaSphereMode = 10000080; \n public const int SelettriceVaalmonica = 23093373; \n public const int PerformageTrapezeWitch = 33206889; \n public const int PoseidraTheStormingAtlantean = 99193444; \n \n public const int RockOfTheVanquisher = 28168628; \n public const int SpiralDischarge = 29477860; \n public const int GaiaTheDragonChampion = 66889139; \n public const int CrusadiaVanguard = 55312487; \n public const int GladiatorBeastDomitianus = 33652635; \n public const int PatricianOfDarkness = 19153634; \n public const int DictatorOfD = 66961194; \n \n public const int LoThePrayersOfTheVoicelessVoice = 25801745; \n public const int BarrierOfTheVoicelessVoice = 98477480; \n \n public const int DiabellzeOfTheOriginalSin = 53765052; \n public const int PotOfExtravagance = 49238328; \n } \n \n protected class _Setcode \n { \n public const int Watt = 0xe; \n public const int Speedroid = 0x2016; \n public const int EarthboundImmortal = 0x1021; \n public const int Naturia = 0x2a; \n public const int Nordic = 0x42; \n public const int TimeLord = 0x4a; \n \n public const int Harpie = 0x64; \n public const int Madolche = 0x71; \n public const int Ghostrick = 0x8d; \n public const int OddEyes = 0x99; \n public const int Performapal = 0x9f; \n public const int Performage = 0xc6; \n public const int BlueEyes = 0xdd; \n public const int FurHire = 0x114; \n public const int Altergeist = 0x103; \n public const int Crusadia = 0x116; \n public const int Danger = 0x11e; \n public const int Endymion = 0x12a; \n public const int AncientWarriors = 0x137; \n public const int RescueACE = 0x18b; \n public const int VanquishSoul = 0x195; \n public const int Horus = 0x19d; \n } \n \n protected DefaultExecutor(GameAI ai, Duel duel) \n : base(ai, duel) \n { \n AddExecutor(ExecutorType.Activate, _CardId.ChickenGame, DefaultChickenGame); \n AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_ShinraBansho, DefaultVaylantzWorld_ShinraBansho); \n AddExecutor(ExecutorType.Activate, _CardId.VaylantzWorld_KonigWissen, DefaultVaylantzWorld_KonigWissen); \n AddExecutor(ExecutorType.Activate, _CardId.SantaClaws); \n AddExecutor(ExecutorType.SpellSet, DefaultSetForDiabellze); \n } \n \n protected int lightningStormOption = -1; \n Dictionary calledbytheGraveIdCountMap = new Dictionary (); \n List crossoutDesignatorIdList = new List (); \n int mistakenArrestAffectedCount = 0; \n /// \n /// List of effect IDs that have been resolved this turn. \n /// \n protected List resolvedEffectIdList = new List (); \n /// \n /// List of effect IDs that have been resolved by enemy this turn. \n /// \n protected List enemyResolvedEffectIdList = new List (); \n \n /// Columns 0-4 on Bot's field negated by Infinite Impermanence (enemy's col converted to ours: 4-col). Cleared at turn start. \n protected List infiniteImpermanenceNegatedColumns = new List (); \n \n /// \n /// Defined: \n /// if monster with code as KEY, other monsters with rules as VALUE won't be targeted for attack. \n /// \n protected Dictionary \u003e DefenderProtectRule = new Dictionary \u003e { \n {_CardId.BelialMarquisOfDarkness, defender =\u003e defender.IsFaceup()}, \n {_CardId.ChirubiméPrincessOfAutumnLeaves, defender =\u003e defender.HasRace(CardRace.Plant)}, \n {_CardId.PerformapalBarokuriboh, defender =\u003e true}, \n {_CardId.LabrynthArchfiend, defender =\u003e defender.HasRace(CardRace.Fiend) \u0026\u0026 !defender.IsCode(_CardId.LabrynthArchfiend)}, \n {_CardId.HarpiesPetDragonFearsomeFireBlast, defender =\u003e defender.Level \u003c= 6 \u0026\u0026 defender.HasSetcode(_Setcode.Harpie)}, \n {_CardId.DynaHeroFurHire, defender =\u003e defender.HasSetcode(_Setcode.FurHire)}, \n {_CardId.Hieracosphinx, defender =\u003e defender.IsFacedown()}, \n {_CardId.SpeedroidPassinglider, defender =\u003e defender.HasSetcode(_Setcode.Speedroid)}, \n {_CardId.TyrOfTheNordicChampions, defender =\u003e defender.HasSetcode(_Setcode.Nordic)}, \n {_CardId.ValkyrianKnight, defender =\u003e defender.HasRace(CardRace.Warrior) \u0026\u0026 !defender.IsCode(_CardId.ValkyrianKnight)}, \n {_CardId.Victoria, defender =\u003e defender.HasRace(CardRace.Fairy)}, \n {_CardId.MadolcheChouxvalier, defender =\u003e defender.HasSetcode(_Setcode.Madolche) \u0026\u0026 !defender.IsCode(_CardId.MadolcheChouxvalier)}, \n {_CardId.LadyOfD, defender =\u003e defender.HasRace(CardRace.Dragon)}, \n {_CardId.MermailAbysslung, defender =\u003e defender.HasAttribute(CardAttribute.Water)}, \n {_CardId.HarpiesPetBabyDragon, defender =\u003e defender.HasSetcode(_Setcode.Harpie) \u0026\u0026 !defender.IsCode(_CardId.HarpiesPetBabyDragon)}, \n {_CardId.HandHoldingGenie, defender =\u003e true}, \n {_CardId.GolemDragon, defender =\u003e defender.HasRace(CardRace.Dragon)}, \n {_CardId.MaraudingCaptain, defender =\u003e defender.HasRace(CardRace.Warrior)}, \n {_CardId.TwilightRoseKnight, defender =\u003e defender.HasRace(CardRace.Plant)}, \n {_CardId.PerformapalThunderhino, defender =\u003e defender.HasSetcode(_Setcode.Performapal)}, \n {_CardId.MiracleFlipper, defender =\u003e defender.IsFaceup()}, \n {_CardId.Decoyroid, defender =\u003e defender.IsFaceup()}, \n {_CardId.DupeFrog, defender =\u003e true}, \n {_CardId.AltergeistFifinellag, defender =\u003e defender.HasSetcode(_Setcode.Altergeist)}, \n {_CardId.BatterymanD, defender =\u003e defender.HasRace(CardRace.Thunder) \u0026\u0026 !defender.IsCode(_CardId.BatterymanD)}, \n {_CardId.Watthopper, defender =\u003e defender.HasSetcode(_Setcode.Watt) \u0026\u0026 defender.IsFaceup()}, \n \n {_CardId.EgyptianGodSlime, defender =\u003e true}, \n {_CardId.DinowrestlerChimeraTWrextle, defender =\u003e true}, \n {_CardId.DinowrestlerGigaSpinosavate, defender =\u003e true}, \n {_CardId.ScarredWarrior, defender =\u003e defender.HasRace(CardRace.Warrior) \u0026\u0026 defender.IsFaceup()}, \n {_CardId.SharkFortress, defender =\u003e true}, \n {_CardId.HeroicChampionClaivesolish, defender =\u003e true}, \n {_CardId.GhostrickAlucard, defender =\u003e defender.HasSetcode(_Setcode.Ghostrick) || defender.IsFacedown()}, \n {_CardId.MekkKnightCrusadiaAstram, defender =\u003e true}, \n {_CardId.DinowrestlerKingTWrextle, defender =\u003e true}, \n {_CardId.NumberF0UtopicFutureZexal, defender =\u003e true} \n }; \n \n /// \n /// Defined: \n /// if monster with KEY on field, and meet VALUE(monster, all monster), it cannot be targeted for attack. \n /// \n protected Dictionary, bool\u003e\u003e DefenderInvisbleRule = new Dictionary, bool\u003e\u003e { \n {_CardId.UltimayaTzolkin, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasType(CardType.Synchro))}, \n {_CardId.PerformapalMissDirector, (defender, list) =\u003e list.Any(monster =\u003e monster.HasSetcode(_Setcode.OddEyes))}, \n {_CardId.AncientWarriorsMasterfulSunMou, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasSetcode(_Setcode.AncientWarriors))}, \n {_CardId.AncientWarriorsVirtuousLiuXuan, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasSetcode(_Setcode.AncientWarriors))}, \n {_CardId.CommandKnight, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender))}, \n {_CardId.HunterOwl, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasAttribute(CardAttribute.Wind))}, \n {_CardId.RokketRecharger, (defender, list) =\u003e list.Any(monster =\u003e monster.IsExtraCard() \u0026\u0026 monster.HasAttribute(CardAttribute.Dark))}, \n {_CardId.EmissaryOfTheOasis, (defender, list) =\u003e list.Any(monster =\u003e monster.HasType(CardType.Normal) \u0026\u0026 monster.Level \u003c= 3)}, \n {_CardId.Zuttomozaurus, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasRace(CardRace.Dinosaur))}, \n {_CardId.Otoshidamashi, (defender, list) =\u003e list.Any(monster =\u003e !monster.HasType(CardType.Tuner))}, \n {_CardId.NaturiaMosquito, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.HasSetcode(_Setcode.Naturia))}, \n {_CardId.RescueACEHydrant, (defender, list) =\u003e list.Any(monster =\u003e !monster.IsCode(_CardId.RescueACEHydrant) \u0026\u0026 monster.HasSetcode(_Setcode.RescueACE))}, \n \n {_CardId.MeizenTheBattleNinja, (defender, list) =\u003e list.Any(monster =\u003e monster.IsFacedown())}, \n {_CardId.VindikiteRGenex, (defender, list) =\u003e true}, \n {_CardId.PrincessCologne, (defender, list) =\u003e list.Any(monster =\u003e !monster.Equals(defender))}, \n {_CardId.Number48ShadowLich, (defender, list) =\u003e list.Any(monster =\u003e monster.IsCode(_CardId.PhantomToken))}, \n {_CardId.DuelLinkDragonTheDuelDragon, (defender, list) =\u003e list.Any(monster =\u003e monster.IsCode(_CardId.DuelDragonToken))}, \n {_CardId.SeleneQueenOfTheMasterMagicians, (defender, list) =\u003e list.Any(monster =\u003e monster.HasSetcode(_Setcode.Endymion))}, \n \n {_CardId.TheWingedDragonofRaSphereMode, (defender, list) =\u003e true}, \n {_CardId.SelettriceVaalmonica, (defender, list) =\u003e list.Any(monster =\u003e !monster.IsCode(_CardId.SelettriceVaalmonica))}, \n {_CardId.PerformageTrapezeWitch, (defender, list) =\u003e list.Any(monster =\u003e !monster.IsCode(_CardId.PerformageTrapezeWitch) \u0026\u0026 monster.HasSetcode(_Setcode.Performage))}, \n {_CardId.PoseidraTheStormingAtlantean, (defender, list) =\u003e list.Any(monster =\u003e !monster.IsCode(_CardId.PoseidraTheStormingAtlantean))} \n }; \n \n /// \n /// Decide which card should the attacker attack. \n /// \n /// Card that attack. \n /// Cards that defend. \n /// BattlePhaseAction including the target, or null (in this situation, GameAI will check the next attacker) \n public override BattlePhaseAction OnSelectAttackTarget(ClientCard attacker, IList defenders) \n { \n foreach (ClientCard defender in defenders) \n { \n attacker.RealPower = attacker.Attack; \n defender.RealPower = defender.GetDefensePower(); \n if (!OnPreBattleBetween(attacker, defender)) \n continue; \n \n if (attacker.RealPower \u003e defender.RealPower || (attacker.RealPower \u003e= defender.RealPower \u0026\u0026 attacker.IsLastAttacker \u0026\u0026 defender.IsAttack())) \n return AI.Attack(attacker, defender); \n } \n \n if (attacker.CanDirectAttack) \n return AI.Attack(attacker, null); \n \n return null; \n } \n \n /// \n /// Decide whether to declare attack between attacker and defender. \n /// Can be overrided to update the RealPower of attacker for cards like Honest. \n /// \n /// Card that attack. \n /// Card that defend. \n /// false if the attack shouldn't be done. \n public override bool OnPreBattleBetween(ClientCard attacker, ClientCard defender) \n { \n if (!attacker.IsMonsterHasPreventActivationEffectInBattle()) \n { \n if (defender.IsMonsterInvincible() \u0026\u0026 defender.IsDefense()) \n return false; \n \n if (defender.IsMonsterDangerous()) \n { \n bool canIgnoreIt = !attacker.IsDisabled() \u0026\u0026 ( \n attacker.IsCode(_CardId.UltimateConductorTytanno) \u0026\u0026 defender.IsDefense() || \n attacker.IsCode(_CardId.ElShaddollConstruct) \u0026\u0026 defender.IsSpecialSummoned || \n attacker.IsCode(_CardId.AllyOfJusticeCatastor) \u0026\u0026 !defender.HasAttribute(CardAttribute.Dark)); \n if (!canIgnoreIt) \n return false; \n } \n \n if (defender.EquipCards.Any(equip =\u003e equip.IsCode(_CardId.MoonMirrorShield) \u0026\u0026 !equip.IsDisabled())) \n return false; \n \n if (!defender.IsDisabled()) \n { \n if (defender.IsCode(_CardId.MekkKnightCrusadiaAstram) \u0026\u0026 defender.IsAttack() \u0026\u0026 attacker.IsSpecialSummoned) \n defender.RealPower += attacker.Attack; \n \n if (defender.IsCode(_CardId.CrystalWingSynchroDragon) \u0026\u0026 defender.IsAttack() \u0026\u0026 attacker.Level \u003e= 5) \n defender.RealPower += attacker.Attack; \n \n if (defender.IsCode(_CardId.AllyOfJusticeCatastor) \u0026\u0026 !attacker.HasAttribute(CardAttribute.Dark)) \n return false; \n \n if (defender.IsCode(_CardId.NumberS39UtopiaTheLightning) \u0026\u0026 defender.IsAttack() \u0026\u0026 defender.HasXyzMaterial(2, _CardId.Number39Utopia)) \n defender.RealPower = 5000; \n \n if (defender.IsCode(_CardId.VampireFraeulein)) \n defender.RealPower += (Enemy.LifePoints \u003e 3000) ? 3000 : (Enemy.LifePoints - 100); \n \n if (defender.IsCode(_CardId.InjectionFairyLily) \u0026\u0026 Enemy.LifePoints \u003e 2000) \n defender.RealPower += 3000; \n } \n } \n \n if (!defender.IsMonsterHasPreventActivationEffectInBattle()) \n { \n if (attacker.IsCode(_CardId.NumberS39UtopiaTheLightning) \u0026\u0026 !attacker.IsDisabled() \u0026\u0026 attacker.HasXyzMaterial(2, _CardId.Number39Utopia)) \n attacker.RealPower = 5000; \n \n if (attacker.IsCode(_CardId.EaterOfMillions) \u0026\u0026 !attacker.IsDisabled()) \n attacker.RealPower = 9999; \n \n if (attacker.IsMonsterInvincible()) \n attacker.RealPower = 9999; \n \n if (attacker.EquipCards.Any(equip =\u003e equip.IsCode(_CardId.MoonMirrorShield) \u0026\u0026 !equip.IsDisabled())) \n attacker.RealPower = defender.RealPower + 100; \n } \n \n foreach (ClientCard protecter in Enemy.GetMonsters()) \n { \n if (!protecter.IsDisabled() \u0026\u0026 protecter != defender) \n { \n Func defenderRule = card =\u003e false; \n if (DefenderProtectRule.TryGetValue(protecter.Id, out defenderRule)) \n { \n if (defenderRule(defender)) return false; \n } \n } \n } \n \n if (attacker.EquipCards.Any(equip =\u003e equip.IsCode(_CardId.MoonMirrorShield) \u0026\u0026 !equip.IsDisabled())) \n attacker.RealPower = defender.RealPower + 100; \n \n if (!defender.IsDisabled()) \n { \n Func, bool\u003e defenderRule = (card, monsterList) =\u003e false; \n if (DefenderInvisbleRule.TryGetValue(defender.Id, out defenderRule)) \n { \n if (defenderRule(defender, Enemy.GetMonsters())) return false; \n } \n } \n \n if (Enemy.GetMonsters().Any(monster =\u003e !monster.Equals(defender) \u0026\u0026 monster.IsCode(_CardId.HamonLordofStrikingThunder) \u0026\u0026 !monster.IsDisabled() \u0026\u0026 monster.IsDefense())) \n return false; \n \n if (defender.OwnTargets.Any(card =\u003e card.IsCode(_CardId.PhantomKnightsFogBlade) \u0026\u0026 !card.IsDisabled())) \n return false; \n \n if (defender.HasSetcode(_Setcode.EarthboundImmortal) \u0026\u0026 !defender.IsDisabled()) \n return false; \n \n bool attackHighestMonster = \n Enemy.HasInMonstersZone(_CardId.RockOfTheVanquisher, true) \u0026\u0026 Enemy.GetMonsters().Any(card =\u003e card.HasSetcode(_Setcode.VanquishSoul)) || \n Enemy.HasInMonstersZone(_CardId.GladiatorBeastDomitianus, true) || Enemy.HasInMonstersZone(_CardId.PatricianOfDarkness) || \n Enemy.HasInMonstersZone(_CardId.DictatorOfD, true) \u0026\u0026 Enemy.GetMonsters().Any(card =\u003e card.HasSetcode(_Setcode.BlueEyes)); \n if (attackHighestMonster) \n { \n if (defender.HasPosition(CardPosition.FaceDown)) \n return false; \n if (Enemy.GetMonsters().Any(card =\u003e card.IsFaceup() \u0026\u0026 card.Attack \u003e defender.Attack)) \n return false; \n } \n \n if (Enemy.HasInSpellZone(_CardId.SpiralDischarge, true) \u0026\u0026 Enemy.HasInMonstersZone(_CardId.GaiaTheDragonChampion) \u0026\u0026 !defender.IsCode(_CardId.GaiaTheDragonChampion)) \n return false; \n \n if (Enemy.HasInSpellZone(_CardId.CrusadiaVanguard, true) \u0026\u0026 Enemy.GetMonsters().Any(card =\u003e card.HasSetcode(_Setcode.Crusadia) \u0026\u0026 card.HasType(CardType.Link)) \u0026\u0026 !defender.HasType(CardType.Link)) \n return false; \n \n if (defender.IsCode(_CardId.RescueACEHydrant) \u0026\u0026 !defender.IsDisabled() \u0026\u0026 Enemy.GetMonsters().Any(monster =\u003e monster.HasSetcode(_Setcode.RescueACE) \u0026\u0026 !monster.IsCode(_CardId.RescueACEHydrant))) \n return false; \n \n if (Enemy.HasInSpellZone(_CardId.BarrierOfTheVoicelessVoice, true) \u0026\u0026 Enemy.HasInMonstersZone(_CardId.LoThePrayersOfTheVoicelessVoice, faceUp: true) \n \u0026\u0026 Enemy.GetMonsters().Any(card =\u003e card.HasType(CardType.Ritual) \u0026\u0026 card.IsFaceup()) \u0026\u0026 !defender.HasType(CardType.Ritual)) \n return false; \n \n return true; \n } \n \n public override bool OnPreActivate(ClientCard card) \n { \n ClientCard LastChainCard = Util.GetLastChainCard(); \n if (LastChainCard != null \u0026\u0026 Duel.Phase == DuelPhase.Standby \u0026\u0026 \n LastChainCard.IsCode( \n _CardId.SandaionTheTimelord, \n _CardId.GabrionTheTimelord, \n _CardId.MichionTheTimelord, \n _CardId.ZaphionTheTimelord, \n _CardId.HailonTheTimelord, \n _CardId.RaphionTheTimelord, \n _CardId.SadionTheTimelord, \n _CardId.MetaionTheTimelord, \n _CardId.KamionTheTimelord, \n _CardId.LazionTheTimelord \n )) \n return false; \n if ((card.Location == CardLocation.Hand || card.Location == CardLocation.SpellZone \u0026\u0026 card.IsFacedown()) \u0026\u0026 \n (card.IsSpell() \u0026\u0026 DefaultSpellWillBeNegated() || card.IsTrap() \u0026\u0026 DefaultTrapWillBeNegated())) \n return false; \n return true; \n } \n \n /// \n /// Called when the AI has to select a card position. \n /// \n /// Id of the card to position on the field. \n /// List of available positions. \n /// Selected position, or 0 if no position is set for this card. \n public override CardPosition OnSelectPosition(int cardId, IList positions) \n { \n YGOSharp.OCGWrapper.NamedCard cardData = YGOSharp.OCGWrapper.NamedCard.Get(cardId); \n if (cardData != null) \n { \n if (cardData.Attack == 0) \n return CardPosition.FaceUpDefence; \n } \n return 0; \n } \n \n public override bool OnSelectBattleReplay() \n { \n if (Bot.BattlingMonster == null) \n return false; \n List defenders = new List (Duel.Fields[1].GetMonsters()); \n defenders.Sort(CardContainer.CompareDefensePower); \n defenders.Reverse(); \n BattlePhaseAction result = OnSelectAttackTarget(Bot.BattlingMonster, defenders); \n if (result != null \u0026\u0026 result.Action == BattlePhaseAction.BattleAction.Attack) \n { \n return true; \n } \n return false; \n } \n \n /// \n /// Set when this card can't beat the enemies \n /// \n public override bool OnSelectMonsterSummonOrSet(ClientCard card) \n { \n return card.Level \u003c= 4 \u0026\u0026 Bot.GetMonsters().Count(m =\u003e m.IsFaceup()) == 0 \u0026\u0026 Util.IsAllEnemyBetterThanValue(card.Attack, true); \n } \n \n /// \n /// Called when the AI has to select one or more cards. \n /// \n /// List of available cards. \n /// Minimal quantity. \n /// Maximal quantity. \n /// The hint message of the select. \n /// True if you can return an empty list. \n /// A new list containing the selected cards. \n public override IList OnSelectCard(IList cards, int min, int max, int hint, bool cancelable) \n { \n // wordaround for Dogmatika Alba Zoa \n int albaZoaCount = Bot.ExtraDeck.Count / 2; \n if (!cancelable \u0026\u0026 min == albaZoaCount \u0026\u0026 max == albaZoaCount \n \u0026\u0026 Duel.Player == 1 \u0026\u0026 (Duel.Phase == DuelPhase.Main1 || Duel.Phase == DuelPhase.Main2) \u0026\u0026 cards.All(card =\u003e \n card.Controller == 0 \u0026\u0026 (card.Location == CardLocation.Hand || card.Location == CardLocation.Extra))) \n { \n Logger.DebugWriteLine(\"Dogmatika Alba Zoa solved\"); \n List extraDeck = new List (Bot.ExtraDeck); \n int shuffleCount = extraDeck.Count; \n while (shuffleCount-- \u003e 1) \n { \n int index = Program.Rand.Next(extraDeck.Count); \n ClientCard tempCard = extraDeck[shuffleCount]; \n extraDeck[shuffleCount] = extraDeck[index]; \n extraDeck[index] = tempCard; \n } \n \n return Util.CheckSelectCount(extraDeck, cards, min, max); \n } \n \n return null; \n } \n \n public override void OnPlayerHint(int player, int hintType, int description) \n { \n base.OnPlayerHint(player, hintType, description); \n if (player != 0 \u0026\u0026 player != 1) \n return; \n ClientField field = (player == 0) ? Bot : Enemy; \n if (hintType == (int)PlayerHintType.DescAdd) \n field.HintDescriptions.Add(description); \n else if (hintType == (int)PlayerHintType.DescRemove) \n field.HintDescriptions.Remove(description); \n } \n \n public override void OnHintZone(int player, int zone) \n { \n base.OnHintZone(player, zone); \n ChainInfo currentChainInfo = Duel.GetCurrentSolvingChainInfo(); \n if (currentChainInfo != null) { \n if (currentChainInfo.IsCode(_CardId.InfiniteImpermanence)) { \n // Zone bit mapping: 0x100=col0, 0x200=col1, 0x400=col2, 0x800=col3, 0x1000=col4. \n for (int i = 0; i \u003c= 4; i++) \n { \n if ((zone \u0026 (0x100 \u003c\u003c i)) == 0) \n continue; \n if (currentChainInfo.ActivatePlayer == 0) \n { \n infiniteImpermanenceNegatedColumns.Add(i); \n } \n else \n { \n infiniteImpermanenceNegatedColumns.Add(4 - i); \n } \n } \n } \n } \n } \n \n public override void OnReceivingAnnouce(int player, int data) \n { \n if (player == 1 \u0026\u0026 data == Util.GetStringId(_CardId.LightningStorm, 0) || data == Util.GetStringId(_CardId.LightningStorm, 1)) \n { \n lightningStormOption = data - Util.GetStringId(_CardId.LightningStorm, 0); \n } \n \n base.OnReceivingAnnouce(player, data); \n } \n \n public override void OnChainSolved(int chainIndex) \n { \n ChainInfo currentChain = Duel.GetCurrentSolvingChainInfo(); \n if (currentChain != null \u0026\u0026 !Duel.IsCurrentSolvingChainNegated()) \n { \n if (currentChain.IsActivateCode(_CardId.LockBird)) \n { \n resolvedEffectIdList.Add(_CardId.LockBird); \n } \n if (currentChain.ActivatePlayer == 1) \n { \n if (currentChain.IsActivateCode(_CardId.MaxxC)) \n enemyResolvedEffectIdList.Add(_CardId.MaxxC); \n if (currentChain.IsActivateCode(_CardId.MulcharmyPurulia)) \n enemyResolvedEffectIdList.Add(_CardId.MulcharmyPurulia); \n if (currentChain.IsActivateCode(_CardId.MulcharmyFuwalos)) \n enemyResolvedEffectIdList.Add(_CardId.MulcharmyFuwalos); \n if (currentChain.IsActivateCode(_CardId.MulcharmyNyalus)) \n enemyResolvedEffectIdList.Add(_CardId.MulcharmyNyalus); \n if (currentChain.IsActivateCode(_CardId.MistakenArrest)) \n { \n if (Duel.Player == 1) \n { \n mistakenArrestAffectedCount = Math.Max(mistakenArrestAffectedCount, 3); \n } else \n { \n mistakenArrestAffectedCount = Math.Max(mistakenArrestAffectedCount, 2); \n } \n } \n } \n } \n } \n \n public override void OnChainEnd() \n { \n lightningStormOption = -1; \n base.OnChainEnd(); \n } \n \n /// \n /// Reset variables for new turn. \n /// \n public override void OnNewTurn() \n { \n infiniteImpermanenceNegatedColumns.Clear(); \n resolvedEffectIdList.Clear(); \n enemyResolvedEffectIdList.Clear(); \n if (Duel.Turn \u003c= 1) \n { \n calledbytheGraveIdCountMap.Clear(); \n mistakenArrestAffectedCount = 0; \n } \n mistakenArrestAffectedCount = Math.Max(mistakenArrestAffectedCount - 1, 0); \n List keyList = calledbytheGraveIdCountMap.Keys.ToList(); \n foreach (int dic in keyList) \n { \n if (calledbytheGraveIdCountMap[dic] \u003e 0) \n { \n calledbytheGraveIdCountMap[dic] -= 1; \n } \n } \n crossoutDesignatorIdList.Clear(); \n \n base.OnNewTurn(); \n } \n \n public override void OnMove(ClientCard card, int previousControler, int previousLocation, int currentControler, int currentLocation) \n { \n if (card != null) \n { \n ClientCard currentSolvingChain = Duel.GetCurrentSolvingChainCard(); \n if (currentSolvingChain != null \u0026\u0026 currentLocation == (int)CardLocation.Removed) \n { \n int originId = card.Id; \n if (card.Data != null) \n { \n if (card.Data.Alias \u003e 0) originId = card.Data.Alias; \n else originId = card.Id; \n } \n if (currentSolvingChain.IsCode(_CardId.CalledByTheGrave)) \n { \n calledbytheGraveIdCountMap[originId] = 2; \n } \n if (currentSolvingChain.IsCode(_CardId.CrossoutDesignator)) \n { \n crossoutDesignatorIdList.Add(originId); \n } \n } \n } \n base.OnMove(card, previousControler, previousLocation, currentControler, currentLocation); \n } \n \n /// \n /// Destroy face-down cards first, in our turn. \n /// \n protected bool DefaultMysticalSpaceTyphoon() \n { \n if (Duel.CurrentChain.Any(card =\u003e card.IsCode(_CardId.MysticalSpaceTyphoon))) \n { \n return false; \n } \n \n List spells = Enemy.GetSpells(); \n if (spells.Count == 0) \n return false; \n \n ClientCard selected = Enemy.SpellZone.GetFloodgate(); \n \n if (selected == null) \n { \n if (Duel.Player == 0) \n selected = spells.FirstOrDefault(card =\u003e card.IsFacedown()); \n if (Duel.Player == 1) \n selected = spells.FirstOrDefault(card =\u003e card.HasType(CardType.Continuous) || card.HasType(CardType.Equip) || card.HasType(CardType.Field)); \n } \n \n if (selected == null) \n return false; \n AI.SelectCard(selected); \n return true; \n } \n \n /// \n /// Destroy face-down cards first, in our turn. \n /// \n protected bool DefaultCosmicCyclone() \n { \n foreach (ClientCard card in Duel.CurrentChain) \n if (card.IsCode(_CardId.CosmicCyclone)) \n return false; \n return (Bot.LifePoints \u003e 1000) \u0026\u0026 DefaultMysticalSpaceTyphoon(); \n } \n \n /// \n /// Activate if avail. \n /// \n protected bool DefaultGalaxyCyclone() \n { \n List spells = Enemy.GetSpells(); \n if (spells.Count == 0) \n return false; \n \n ClientCard selected = null; \n \n if (Card.Location == CardLocation.Grave) \n { \n selected = Util.GetBestEnemySpell(true); \n } \n else \n { \n selected = spells.FirstOrDefault(card =\u003e card.IsFacedown()); \n } \n \n if (selected == null) \n return false; \n \n AI.SelectCard(selected); \n return true; \n } \n \n /// \n /// Set the highest ATK level 4+ effect enemy monster. \n /// \n protected bool DefaultBookOfMoon() \n { \n if (Util.IsAllEnemyBetter(true)) \n { \n ClientCard monster = Enemy.GetMonsters().GetHighestAttackMonster(true); \n if (monster != null \u0026\u0026 monster.HasType(CardType.Effect) \u0026\u0026 !monster.HasType(CardType.Link) \u0026\u0026 (monster.HasType(CardType.Xyz) || monster.Level \u003e 4)) \n { \n AI.SelectCard(monster); \n return true; \n } \n } \n return false; \n } \n \n /// \n /// Return problematic monster, and if this card become target, return any enemy monster. \n /// \n protected bool DefaultCompulsoryEvacuationDevice() \n { \n ClientCard target = Util.GetProblematicEnemyMonster(0, true); \n if (target != null) \n { \n AI.SelectCard(target); \n return true; \n } \n if (Util.IsChainTarget(Card)) \n { \n ClientCard monster = Util.GetBestEnemyMonster(false, true); \n if (monster != null) \n { \n AI.SelectCard(monster); \n return true; \n } \n } \n return false; \n } \n \n /// \n /// Revive the best monster when we don't have better one in field. \n /// \n protected bool DefaultCallOfTheHaunted() \n { \n if (!Util.IsAllEnemyBetter(true)) \n return false; \n ClientCard selected = Bot.Graveyard.GetMatchingCards(card =\u003e card.IsCanRevive()).OrderByDescending(card =\u003e card.Attack).FirstOrDefault(); \n AI.SelectCard(selected); \n return true; \n } \n \n /// \n /// Default Scapegoat effect \n /// \n protected bool DefaultScapegoat() \n { \n if (DefaultSpellWillBeNegated()) return false; \n if (Duel.Player == 0) return false; \n if (Duel.Phase == DuelPhase.End) return true; \n if (DefaultOnBecomeTarget()) return true; \n if (Duel.Phase \u003e DuelPhase.Main1 \u0026\u0026 Duel.Phase \u003c DuelPhase.Main2) \n { \n if (Enemy.HasInMonstersZone(new[] \n { \n _CardId.UltimateConductorTytanno, \n _CardId.InvokedPurgatrio, \n _CardId.ChaosAncientGearGiant, \n _CardId.UltimateAncientGearGolem, \n _CardId.RedDragonArchfiend \n }, true)) return false; \n if (Util.GetTotalAttackingMonsterAttack(1) \u003e= Bot.LifePoints) return true; \n } \n return false; \n } \n /// \n /// Always active in opponent's turn. \n /// \n protected bool DefaultMaxxC() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n return Duel.Player == 1; \n } \n /// \n /// Always disable opponent's effect except some cards like UpstartGoblin \n /// \n protected bool DefaultAshBlossomAndJoyousSpring() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n int[] ignoreList = { \n _CardId.MacroCosmos, \n _CardId.UpstartGoblin, \n _CardId.CyberEmergency, \n _CardId.TheAgentOfCreationVenus \n }; \n if (Util.GetLastChainCard().IsCode(ignoreList)) \n return false; \n if (Util.GetLastChainCard().HasSetcode(_Setcode.Danger) \u0026\u0026 Util.GetLastChainCard().Location == CardLocation.Hand) // Danger! archtype hand effect \n return false; \n return Duel.LastChainPlayer == 1; \n } \n /// \n /// Always activate unless the activating card is disabled \n /// \n protected bool DefaultGhostOgreAndSnowRabbit() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n if (Util.GetLastChainCard() != null \u0026\u0026 Util.GetLastChainCard().IsDisabled()) \n return false; \n return DefaultTrap(); \n } \n /// \n /// Always disable opponent's effect \n /// \n protected bool DefaultGhostBelleAndHauntedMansion() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n return DefaultTrap(); \n } \n /// \n /// Same as DefaultBreakthroughSkill \n /// \n protected bool DefaultEffectVeiler() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n ClientCard LastChainCard = Util.GetLastChainCard(); \n if (LastChainCard != null \u0026\u0026 (LastChainCard.IsCode(_CardId.GalaxySoldier) \u0026\u0026 Enemy.Hand.Count \u003e= 3 \n || LastChainCard.IsCode(_CardId.EffectVeiler, _CardId.InfiniteImpermanence))) \n return false; \n return DefaultBreakthroughSkill(); \n } \n /// \n /// Chain common hand traps \n /// \n protected bool DefaultCalledByTheGrave() \n { \n int[] targetList = \n { \n _CardId.MaxxC, \n _CardId.LockBird, \n _CardId.GhostOgreAndSnowRabbit, \n _CardId.AshBlossom, \n _CardId.GhostBelle, \n _CardId.EffectVeiler, \n _CardId.ArtifactLancea \n }; \n if (Duel.LastChainPlayer == 1) \n { \n foreach (int id in targetList) \n { \n if (Util.GetLastChainCard().IsCode(id)) \n { \n AI.SelectCard(id); \n return UniqueFaceupSpell(); \n } \n } \n } \n return false; \n } \n /// \n /// Default InfiniteImpermanence effect \n /// \n protected bool DefaultInfiniteImpermanence() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n // TODO: disable s \u0026 t \n ClientCard LastChainCard = Util.GetLastChainCard(); \n if (LastChainCard != null \u0026\u0026 (LastChainCard.IsCode(_CardId.GalaxySoldier) \u0026\u0026 Enemy.Hand.Count \u003e= 3 \n || LastChainCard.IsCode(_CardId.EffectVeiler, _CardId.InfiniteImpermanence))) \n return false; \n return DefaultDisableMonster(); \n } \n /// \n /// Chain the enemy monster, or disable monster like Rescue Rabbit. \n /// \n protected bool DefaultBreakthroughSkill() \n { \n if (!DefaultUniqueTrap()) \n return false; \n return DefaultDisableMonster(); \n } \n /// \n /// Chain the enemy monster, or disable monster like Rescue Rabbit. \n /// \n protected bool DefaultDisableMonster() \n { \n if (Duel.Player == 1) \n { \n ClientCard target = Enemy.MonsterZone.GetShouldBeDisabledBeforeItUseEffectMonster(); \n if (target != null) \n { \n AI.SelectCard(target); \n return true; \n } \n } \n \n ClientCard LastChainCard = Util.GetLastChainCard(); \n \n if (LastChainCard != null \u0026\u0026 LastChainCard.Controller == 1 \u0026\u0026 LastChainCard.Location == CardLocation.MonsterZone \u0026\u0026 \n !LastChainCard.IsDisabled() \u0026\u0026 !LastChainCard.IsShouldNotBeTarget() \u0026\u0026 !LastChainCard.IsShouldNotBeSpellTrapTarget()) \n { \n AI.SelectCard(LastChainCard); \n return true; \n } \n \n if (Bot.BattlingMonster != null \u0026\u0026 Enemy.BattlingMonster != null) \n { \n if (!Enemy.BattlingMonster.IsDisabled() \u0026\u0026 Enemy.BattlingMonster.IsCode(_CardId.EaterOfMillions)) \n { \n AI.SelectCard(Enemy.BattlingMonster); \n return true; \n } \n } \n \n if (Duel.Phase == DuelPhase.BattleStart \u0026\u0026 Duel.Player == 1 \u0026\u0026 \n Enemy.HasInMonstersZone(_CardId.NumberS39UtopiaTheLightning, true)) \n { \n AI.SelectCard(_CardId.NumberS39UtopiaTheLightning); \n return true; \n } \n \n return false; \n } \n \n /// \n /// Activate only except this card is the target or we summon monsters. \n /// \n protected bool DefaultSolemnJudgment() \n { \n return !Util.IsChainTargetOnly(Card) \u0026\u0026 !(Duel.Player == 0 \u0026\u0026 Duel.LastChainPlayer == -1) \u0026\u0026 !DefaultOnlyHorusSpSummoning() \u0026\u0026 DefaultTrap(); \n } \n \n /// \n /// Activate only except we summon monsters. \n /// \n protected bool DefaultSolemnWarning() \n { \n return (Bot.LifePoints \u003e 2000) \u0026\u0026 !(Duel.Player == 0 \u0026\u0026 Duel.LastChainPlayer == -1) \u0026\u0026 !DefaultOnlyHorusSpSummoning() \u0026\u0026 DefaultTrap(); \n } \n \n /// \n /// Activate only except we summon monsters. \n /// \n protected bool DefaultSolemnStrike() \n { \n return (Bot.LifePoints \u003e 1500) \u0026\u0026 !(Duel.Player == 0 \u0026\u0026 Duel.LastChainPlayer == -1) \u0026\u0026 !DefaultOnlyHorusSpSummoning() \u0026\u0026 DefaultTrap(); \n } \n \n /// \n /// Check whether only Horus monster is special summoning. \n /// If returning true, should not negate the special summon since it can be special summoned again. \n /// \n /// \n protected bool DefaultOnlyHorusSpSummoning() \n { \n if (Duel.SummoningCards.Count != 0) \n { \n bool notOnlyHorusFlag = false; \n foreach (ClientCard card in Duel.SummoningCards) \n { \n if (!card.HasSetcode(_Setcode.Horus) || card.LastLocation != CardLocation.Grave) \n { \n notOnlyHorusFlag = true; \n break; \n } \n } \n return !notOnlyHorusFlag; \n } \n return false; \n } \n \n /// \n /// Activate when all enemy monsters have better ATK. \n /// \n protected bool DefaultTorrentialTribute() \n { \n return !Util.HasChainedTrap(0) \u0026\u0026 Util.IsAllEnemyBetter(true); \n } \n \n /// \n /// Activate enemy have more S\u0026T. \n /// \n protected bool DefaultHeavyStorm() \n { \n return Bot.GetSpellCount() \u003c Enemy.GetSpellCount(); \n } \n \n /// \n /// Activate before other winds, if enemy have more than 2 S\u0026T. \n /// \n protected bool DefaultHarpiesFeatherDusterFirst() \n { \n return Enemy.GetSpellCount() \u003e= 2; \n } \n \n /// \n /// Activate when one enemy monsters have better ATK. \n /// \n protected bool DefaultHammerShot() \n { \n return Util.IsOneEnemyBetter(true); \n } \n \n /// \n /// Activate when one enemy monsters have better ATK or DEF. \n /// \n protected bool DefaultDarkHole() \n { \n return Util.IsOneEnemyBetter(); \n } \n \n /// \n /// Activate when one enemy monsters have better ATK or DEF. \n /// \n protected bool DefaultRaigeki() \n { \n return Util.IsOneEnemyBetter(); \n } \n \n /// \n /// Activate when one enemy monsters have better ATK or DEF. \n /// \n protected bool DefaultSmashingGround() \n { \n return Util.IsOneEnemyBetter(); \n } \n \n /// \n /// Activate when we have more than 15 cards in deck. \n /// \n protected bool DefaultPotOfDesires() \n { \n return Bot.Deck.Count \u003e 15; \n } \n \n /// \n /// Set traps only and avoid block the activation of other cards. \n /// \n protected bool DefaultSpellSet() \n { \n return (Card.IsTrap() || Card.HasType(CardType.QuickPlay) || DefaultSpellMustSetFirst()) \u0026\u0026 Bot.GetSpellCountWithoutField() \u003c 4; \n } \n \n /// \n /// Summon with no tribute, or with tributes ATK lower. \n /// \n protected bool DefaultMonsterSummon() \n { \n if (Card.Level \u003c= 4) \n return true; \n \n if (!UniqueFaceupMonster()) \n return false; \n int tributecount = (int)Math.Ceiling((Card.Level - 4.0d) / 2.0d); \n for (int j = 0; j \u003c 7; ++j) \n { \n ClientCard tributeCard = Bot.MonsterZone[j]; \n if (tributeCard == null) continue; \n if (tributeCard.GetDefensePower() \u003c Card.Attack) \n tributecount--; \n } \n return tributecount \u003c= 0; \n } \n \n /// \n /// Activate when we have no field. \n /// \n protected bool DefaultField() \n { \n return Bot.SpellZone[5] == null; \n } \n \n /// \n /// Turn if all enemy is better. \n /// \n protected bool DefaultMonsterRepos() \n { \n if (Card.IsMonsterInvincible()) \n return Card.IsDefense(); \n \n if (Card.Attack == 0) \n { \n if (Card.IsFaceup() \u0026\u0026 Card.IsAttack()) \n return true; \n if (Card.IsFaceup() \u0026\u0026 Card.IsDefense()) \n return false; \n } \n \n if (Enemy.HasInMonstersZone(_CardId.BlueEyesChaosMAXDragon, true) \u0026\u0026 \n Card.IsAttack() \u0026\u0026 (4000 - Card.Defense) * 2 \u003e (4000 - Card.Attack)) \n return false; \n if (Enemy.HasInMonstersZone(_CardId.BlueEyesChaosMAXDragon, true) \u0026\u0026 \n Card.IsDefense() \u0026\u0026 Card.IsFaceup() \u0026\u0026 \n (4000 - Card.Defense) * 2 \u003e (4000 - Card.Attack)) \n return true; \n \n bool enemyBetter = Util.IsAllEnemyBetter(); \n if (Card.IsAttack() \u0026\u0026 enemyBetter) \n return true; \n if (Card.IsDefense() \u0026\u0026 !enemyBetter \u0026\u0026 (Card.Attack \u003e= Card.Defense || Card.Attack \u003e= Util.GetBestPower(Enemy))) \n return true; \n \n return false; \n } \n \n /// \n /// If spell will be negated \n /// \n protected bool DefaultSpellWillBeNegated() \n { \n return (Bot.HasInSpellZone(_CardId.ImperialOrder, true, true) || Enemy.HasInSpellZone(_CardId.ImperialOrder, true)) \u0026\u0026 !Util.ChainContainsCard(_CardId.ImperialOrder) \n || DefaultCheckWhetherCardIsNegated(Card); \n } \n \n /// \n /// If trap will be negated \n /// \n protected bool DefaultTrapWillBeNegated() \n { \n return (Bot.HasInSpellZone(_CardId.RoyalDecreel, true, true) || Enemy.HasInSpellZone(_CardId.RoyalDecreel, true)) \u0026\u0026 !Util.ChainContainsCard(_CardId.RoyalDecreel) \n || DefaultCheckWhetherCardIsNegated(Card); \n } \n \n /// \n /// If spell must set first to activate \n /// \n protected bool DefaultSpellMustSetFirst() \n { \n return Bot.HasInSpellZone(_CardId.AntiSpellFragrance, true, true) || Enemy.HasInSpellZone(_CardId.AntiSpellFragrance, true); \n } \n \n /// \n /// if spell/trap is the target or enermy activate HarpiesFeatherDuster \n /// \n protected bool DefaultOnBecomeTarget() \n { \n if (Util.IsChainTarget(Card)) return true; \n int[] destroyAllList = \n { \n _CardId.EvilswarmExcitonKnight, \n _CardId.BlackRoseDragon, \n _CardId.JudgmentDragon, \n _CardId.TopologicTrisbaena, \n _CardId.EvenlyMatched, \n _CardId.DivineArsenalAAZEUS_SkyThunder \n }; \n int[] destroyAllMonsterList = \n { \n _CardId.DarkHole, \n _CardId.InterruptedKaijuSlumber \n }; \n int[] destroyAllOpponentMonsterList = \n { \n _CardId.Raigeki \n }; \n int[] destroyAllOpponentSpellList = \n { \n _CardId.HarpiesFeatherDuster, \n _CardId.DarkMagicAttack \n }; \n \n if (Util.ChainContainsCard(destroyAllList)) return true; \n if (Enemy.HasInSpellZone(destroyAllOpponentSpellList, true) \u0026\u0026 Card.Location == CardLocation.SpellZone) return true; \n if (Util.ChainContainsCard(destroyAllMonsterList) \u0026\u0026 Card.Location == CardLocation.MonsterZone) return true; \n if (Duel.CurrentChain.Any(c =\u003e c.Controller == 1 \u0026\u0026 c.IsCode(destroyAllOpponentMonsterList)) \u0026\u0026 Card.Location == CardLocation.MonsterZone) return true; \n if (lightningStormOption == 0 \u0026\u0026 Card.Location == CardLocation.MonsterZone \u0026\u0026 Card.IsAttack()) return true; \n if (lightningStormOption == 1 \u0026\u0026 Card.Location == CardLocation.SpellZone) return true; \n // TODO: ChainContainsCard(id, player) \n return false; \n } \n /// \n /// Chain enemy activation or summon. \n /// \n protected bool DefaultTrap() \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n return (Duel.LastChainPlayer == -1 \u0026\u0026 Duel.LastSummonPlayer != 0) || Duel.LastChainPlayer == 1; \n } \n \n /// \n /// Activate when avail and no other our trap card in this chain or face-up. \n /// \n protected bool DefaultUniqueTrap() \n { \n if (Util.HasChainedTrap(0)) \n return false; \n \n return UniqueFaceupSpell(); \n } \n \n /// \n /// Check no other our spell or trap card with same name face-up. \n /// \n protected bool UniqueFaceupSpell() \n { \n return !Bot.GetSpells().Any(card =\u003e card.IsCode(Card.Id) \u0026\u0026 card.IsFaceup()); \n } \n \n /// \n /// Check no other our monster card with same name face-up. \n /// \n protected bool UniqueFaceupMonster() \n { \n return !Bot.GetMonsters().Any(card =\u003e card.IsCode(Card.Id) \u0026\u0026 card.IsFaceup()); \n } \n \n /// \n /// Dumb way to avoid the bot chain in mess. \n /// \n protected bool DefaultDontChainMyself() \n { \n if (Type != ExecutorType.Activate) \n return true; \n if (Executors.Any(exec =\u003e exec.Type == Type \u0026\u0026 exec.CardId == Card.Id)) \n return false; \n return Duel.LastChainPlayer != 0; \n } \n \n /// \n /// Draw when we have lower LP, or destroy it. Can be overrided. \n /// \n protected bool DefaultChickenGame() \n { \n if (Executors.Count(exec =\u003e exec.Type == Type \u0026\u0026 exec.CardId == Card.Id) \u003e 1) \n return false; \n if (Card.IsFacedown()) \n return true; \n if (Bot.LifePoints \u003c= 1000) \n return false; \n if (Bot.LifePoints \u003c= Enemy.LifePoints \u0026\u0026 ActivateDescription == Util.GetStringId(_CardId.ChickenGame, 0)) \n return true; \n if (Bot.LifePoints \u003e Enemy.LifePoints \u0026\u0026 ActivateDescription == Util.GetStringId(_CardId.ChickenGame, 1)) \n return true; \n return false; \n } \n \n /// \n /// Draw when we have Dark monster in hand,and banish random one. Can be overrided. \n /// \n protected bool DefaultAllureofDarkness() \n { \n ClientCard target = Bot.Hand.FirstOrDefault(card =\u003e card.HasAttribute(CardAttribute.Dark)); \n return target != null; \n } \n \n /// \n /// Clever enough. \n /// \n protected bool DefaultDimensionalBarrier() \n { \n const int RITUAL = 0; \n const int FUSION = 1; \n const int SYNCHRO = 2; \n const int XYZ = 3; \n const int PENDULUM = 4; \n if (Duel.Player != 0) \n { \n List monsters = Enemy.GetMonsters(); \n int[] levels = new int[13]; \n bool tuner = false; \n bool nontuner = false; \n foreach (ClientCard monster in monsters) \n { \n if (!monster.HasType(CardType.Xyz | CardType.Link)) \n { \n if (monster.HasType(CardType.Tuner)) tuner = true; \n else nontuner = true; \n if (!monster.HasType(CardType.Token)) levels[monster.Level] = levels[monster.Level] + 1; \n } \n \n if (monster.IsOneForXyz()) \n { \n AI.SelectOption(XYZ); \n return true; \n } \n } \n if (tuner \u0026\u0026 nontuner) \n { \n AI.SelectOption(SYNCHRO); \n return true; \n } \n for (int i=1; i\u003c=12; i++) \n { \n if (levels[i]\u003e1) \n { \n AI.SelectOption(XYZ); \n return true; \n } \n } \n ClientCard l = Enemy.SpellZone[6]; \n ClientCard r = Enemy.SpellZone[7]; \n if (l != null \u0026\u0026 r != null \u0026\u0026 l.LScale != r.RScale) \n { \n AI.SelectOption(PENDULUM); \n return true; \n } \n } \n ClientCard lastchaincard = Util.GetLastChainCard(); \n if (Duel.LastChainPlayer == 1 \u0026\u0026 lastchaincard != null \u0026\u0026 !lastchaincard.IsDisabled() \n \u0026\u0026 (lastchaincard.HasType(CardType.Spell | CardType.Trap) || lastchaincard.Location == CardLocation.MonsterZone)) \n { \n if (lastchaincard.HasType(CardType.Ritual)) \n { \n AI.SelectOption(RITUAL); \n return true; \n } \n if (lastchaincard.HasType(CardType.Fusion)) \n { \n AI.SelectOption(FUSION); \n return true; \n } \n if (lastchaincard.HasType(CardType.Synchro)) \n { \n AI.SelectOption(SYNCHRO); \n return true; \n } \n if (lastchaincard.HasType(CardType.Xyz)) \n { \n AI.SelectOption(XYZ); \n return true; \n } \n if (lastchaincard.IsFusionSpell()) \n { \n AI.SelectOption(FUSION); \n return true; \n } \n } \n if (Util.IsChainTarget(Card)) \n { \n AI.SelectOption(XYZ); \n return true; \n } \n return false; \n } \n \n /// \n /// Clever enough \n /// \n protected bool DefaultInterruptedKaijuSlumber() \n { \n if (Card.Location == CardLocation.Grave) \n { \n AI.SelectCard( \n _CardId.GamecieltheSeaTurtleKaiju, \n _CardId.KumongoustheStickyStringKaiju, \n _CardId.GadarlatheMysteryDustKaiju, \n _CardId.RadiantheMultidimensionalKaiju, \n _CardId.DogorantheMadFlameKaiju, \n _CardId.ThunderKingtheLightningstrikeKaiju, \n _CardId.JizukirutheStarDestroyingKaiju \n ); \n return true; \n } \n \n if (DefaultDarkHole()) \n { \n AI.SelectCard( \n _CardId.JizukirutheStarDestroyingKaiju, \n _CardId.ThunderKingtheLightningstrikeKaiju, \n _CardId.DogorantheMadFlameKaiju, \n _CardId.RadiantheMultidimensionalKaiju, \n _CardId.GadarlatheMysteryDustKaiju, \n _CardId.KumongoustheStickyStringKaiju, \n _CardId.GamecieltheSeaTurtleKaiju \n ); \n AI.SelectNextCard( \n _CardId.SuperAntiKaijuWarMachineMechaDogoran, \n _CardId.GamecieltheSeaTurtleKaiju, \n _CardId.KumongoustheStickyStringKaiju, \n _CardId.GadarlatheMysteryDustKaiju, \n _CardId.RadiantheMultidimensionalKaiju, \n _CardId.DogorantheMadFlameKaiju, \n _CardId.ThunderKingtheLightningstrikeKaiju \n ); \n return true; \n } \n \n return false; \n } \n \n /// \n /// Clever enough. \n /// \n protected bool DefaultKaijuSpsummon() \n { \n IList kaijus = new[] { \n _CardId.JizukirutheStarDestroyingKaiju, \n _CardId.GadarlatheMysteryDustKaiju, \n _CardId.GamecieltheSeaTurtleKaiju, \n _CardId.RadiantheMultidimensionalKaiju, \n _CardId.KumongoustheStickyStringKaiju, \n _CardId.ThunderKingtheLightningstrikeKaiju, \n _CardId.DogorantheMadFlameKaiju, \n _CardId.SuperAntiKaijuWarMachineMechaDogoran \n }; \n foreach (ClientCard monster in Enemy.GetMonsters()) \n { \n if (monster.IsCode(kaijus)) \n return Card.GetDefensePower() \u003e monster.GetDefensePower(); \n } \n ClientCard card = Enemy.MonsterZone.GetFloodgate(); \n if (card != null) \n { \n AI.SelectCard(card); \n return true; \n } \n card = Enemy.MonsterZone.GetDangerousMonster(); \n if (card != null) \n { \n AI.SelectCard(card); \n return true; \n } \n card = Util.GetOneEnemyBetterThanValue(Card.GetDefensePower()); \n if (card != null) \n { \n AI.SelectCard(card); \n return true; \n } \n return false; \n } \n \n /// \n /// Summon when we don't have monster attack higher than enemy's. \n /// \n protected bool DefaultNumberS39UtopiaTheLightningSummon() \n { \n int bestBotAttack = Util.GetBestAttack(Bot); \n return Util.IsOneEnemyBetterThanValue(bestBotAttack, false); \n } \n \n /// \n /// Activate if the card is attack pos, and its attack is below 5000, when the enemy monster is attack pos or not useless faceup defense pos \n /// \n protected bool DefaultNumberS39UtopiaTheLightningEffect() \n { \n return Card.IsAttack() \u0026\u0026 Card.Attack \u003c 5000 \u0026\u0026 (Enemy.BattlingMonster.IsAttack() || Enemy.BattlingMonster.IsFacedown() || Enemy.BattlingMonster.GetDefensePower() \u003e= Card.Attack); \n } \n \n /// \n /// Summon when it can and should use effect. \n /// \n protected bool DefaultEvilswarmExcitonKnightSummon() \n { \n int selfCount = Bot.GetMonsterCount() + Bot.GetSpellCount() + Bot.GetHandCount(); \n int oppoCount = Enemy.GetMonsterCount() + Enemy.GetSpellCount() + Enemy.GetHandCount(); \n return (selfCount - 1 \u003c oppoCount) \u0026\u0026 DefaultEvilswarmExcitonKnightEffect(); \n } \n \n /// \n /// Activate when we have less cards than enemy's, or the atk sum of we is lower than enemy's. \n /// \n protected bool DefaultEvilswarmExcitonKnightEffect() \n { \n int selfCount = Bot.GetMonsterCount() + Bot.GetSpellCount(); \n int oppoCount = Enemy.GetMonsterCount() + Enemy.GetSpellCount(); \n \n if (selfCount \u003c oppoCount) \n return true; \n \n int selfAttack = Bot.GetMonsters().Sum(monster =\u003e (int?)monster.GetDefensePower()) ?? 0; \n int oppoAttack = Enemy.GetMonsters().Sum(monster =\u003e (int?)monster.GetDefensePower()) ?? 0; \n \n return selfAttack \u003c oppoAttack; \n } \n \n /// \n /// Summon in main2, or when the attack of we is lower than enemy's, but not when enemy have monster higher than 2500. \n /// \n protected bool DefaultStardustDragonSummon() \n { \n int selfBestAttack = Util.GetBestAttack(Bot); \n int oppoBestAttack = Util.GetBestPower(Enemy); \n return (selfBestAttack \u003c= oppoBestAttack \u0026\u0026 oppoBestAttack \u003c= 2500) || Util.IsTurn1OrMain2(); \n } \n \n /// \n /// Negate enemy's destroy effect, and revive from grave. \n /// \n protected bool DefaultStardustDragonEffect() \n { \n return (Card.Location == CardLocation.Grave) || Duel.LastChainPlayer == 1; \n } \n \n /// \n /// Summon when enemy have card which we must solve. \n /// \n protected bool DefaultCastelTheSkyblasterMusketeerSummon() \n { \n return Util.GetProblematicEnemyCard() != null; \n } \n \n /// \n /// Bounce the problematic enemy card. Ignore the 1st effect. \n /// \n protected bool DefaultCastelTheSkyblasterMusketeerEffect() \n { \n if (ActivateDescription == Util.GetStringId(_CardId.CastelTheSkyblasterMusketeer, 0)) \n return false; \n ClientCard target = Util.GetProblematicEnemyCard(); \n if (target != null) \n { \n AI.SelectCard(0); \n AI.SelectNextCard(target); \n return true; \n } \n return false; \n } \n \n /// \n /// Summon when it should use effect, or when the attack of we is lower than enemy's, but not when enemy have monster higher than 3000. \n /// \n protected bool DefaultScarlightRedDragonArchfiendSummon() \n { \n int selfBestAttack = Util.GetBestAttack(Bot); \n int oppoBestAttack = Util.GetBestPower(Enemy); \n return (selfBestAttack \u003c= oppoBestAttack \u0026\u0026 oppoBestAttack \u003c= 3000) || DefaultScarlightRedDragonArchfiendEffect(); \n } \n \n protected bool DefaultTimelordSummon() \n { \n return Bot.GetMonsterCount() == 0; \n } \n \n /// \n /// Activate when we have less monsters than enemy, or when enemy have more than 3 monsters. \n /// \n protected bool DefaultScarlightRedDragonArchfiendEffect() \n { \n int selfCount = Bot.GetMonsters().Count(monster =\u003e !monster.Equals(Card) \u0026\u0026 monster.IsSpecialSummoned \u0026\u0026 monster.HasType(CardType.Effect) \u0026\u0026 monster.Attack \u003c= Card.Attack); \n int oppoCount = Enemy.GetMonsters().Count(monster =\u003e monster.IsSpecialSummoned \u0026\u0026 monster.HasType(CardType.Effect) \u0026\u0026 monster.Attack \u003c= Card.Attack); \n return selfCount \u003c= oppoCount \u0026\u0026 oppoCount \u003e 0 || oppoCount \u003e= 3; \n } \n \n /// \n /// Clever enough. \n /// \n protected bool DefaultHonestEffect() \n { \n if (Card.Location == CardLocation.Hand) \n { \n if (DefaultCheckWhetherCardIsNegated(Card)) return false; \n return Bot.BattlingMonster.IsAttack() \u0026\u0026 \n ((Bot.BattlingMonster.Attack \u003c Enemy.BattlingMonster.Attack) || Bot.BattlingMonster.Attack \u003e= Enemy.LifePoints \n || ((Bot.BattlingMonster.Attack \u003c Enemy.BattlingMonster.Defense) \u0026\u0026 (Bot.BattlingMonster.Attack + Enemy.BattlingMonster.Attack \u003e Enemy.BattlingMonster.Defense))); \n } \n \n return Util.IsTurn1OrMain2(); \n } \n \n /// \n /// Always activate \n /// \n protected bool DefaultVaylantzWorld_ShinraBansho() \n { \n if (DefaultSpellWillBeNegated()) { \n return false; \n } \n \n return true; \n } \n \n /// \n /// Select enemy's best monster \n /// \n protected bool DefaultVaylantzWorld_KonigWissen() \n { \n if (DefaultSpellWillBeNegated()) { \n return false; \n } \n \n List monsters = Enemy.GetMonsters(); \n if (monsters.Count == 0) { \n return false; \n } \n \n List targetList = new List (); \n List floodgateCards = monsters \n .Where(card =\u003e card?.Data != null \u0026\u0026 card.IsFloodgate() \u0026\u0026 card.IsFaceup() \u0026\u0026 !card.IsShouldNotBeTarget()) \n .OrderByDescending(card =\u003e card.Attack).ToList(); \n List dangerousCards = monsters \n .Where(card =\u003e card?.Data != null \u0026\u0026 card.IsMonsterDangerous() \u0026\u0026 card.IsFaceup() \u0026\u0026 !card.IsShouldNotBeTarget()) \n .OrderByDescending(card =\u003e card.Attack).ToList(); \n List attackOrderedCards = monsters \n .Where(card =\u003e card?.Data != null \u0026\u0026 card.HasType(CardType.Monster) \u0026\u0026 card.IsFaceup() \u0026\u0026 card.IsShouldNotBeTarget()) \n .OrderByDescending(card =\u003e card.Attack).ToList(); \n \n targetList.AddRange(floodgateCards); \n targetList.AddRange(dangerousCards); \n targetList.AddRange(attackOrderedCards); \n \n if (targetList?.Count \u003e 0) \n { \n AI.SelectCard(targetList); \n return true; \n } \n \n return false; \n } \n \n protected bool DefaultCheckWhetherCardIsNegated(ClientCard card) \n { \n if (card == null) return true; \n if (card.Data == null) return card.IsDisabled(); \n int originId = card.Data.Alias; \n if (originId == 0) originId = card.Data.Id; \n return crossoutDesignatorIdList.Contains(originId) \n || (calledbytheGraveIdCountMap.ContainsKey(originId) \u0026\u0026 calledbytheGraveIdCountMap[originId] \u003e 0) \n || (card.IsDisabled() \u0026\u0026 ((int)card.Location \u0026 (int)CardLocation.Onfield) \u003e 0); \n } \n \n protected bool DefaultCheckWhetherCardIdIsNegated(int cardId) \n { \n return crossoutDesignatorIdList.Contains(cardId) \n || (calledbytheGraveIdCountMap.ContainsKey(cardId) \u0026\u0026 calledbytheGraveIdCountMap[cardId] \u003e 0); \n } \n \n protected int GetCalledbytheGraveIdCount(int cardId) \n { \n if (!calledbytheGraveIdCountMap.ContainsKey(cardId)) return 0; \n return calledbytheGraveIdCountMap[cardId]; \n } \n \n \n protected virtual bool DefaultSetForDiabellze() \n { \n if (Card == null) return false; \n if (Card.Id == _CardId.PotOfExtravagance) return false; \n if (Enemy.HasInMonstersZone(_CardId.DiabellzeOfTheOriginalSin, true, faceUp: true) \u0026\u0026 Card.HasType(CardType.Spell) \u0026\u0026 !Card.HasType(CardType.QuickPlay)) \n { \n if (Bot.SpellZone.Any(c =\u003e c != null \u0026\u0026 Duel.MainPhase.ActivableCards.Contains(c) \u0026\u0026 c.HasType(CardType.Spell) \u0026\u0026 !Card.HasType(CardType.QuickPlay) \u0026\u0026 c.IsFacedown())) \n { \n return false; \n } \n foreach (CardExecutor exec in Executors) \n { \n if (exec.Type == ExecutorType.Activate \u0026\u0026 exec.CardId == Card.Id) \n { \n if (exec.Func == null || exec.Func()) \n { \n return true; \n } \n } \n } \n } \n return false; \n } \n \n /// \n /// Check whether all available spell columns are negated. \n /// \n /// \n protected bool DefaultCheckAllAvailableSpellColumnNegated() \n { \n for (int i = 0; i \u003c 5; i++) { \n // occupied \n if (Bot.SpellZone[i] != null) { \n continue; \n } \n // negated \n if (infiniteImpermanenceNegatedColumns.Contains(i)) { \n continue; \n } \n // have empty column that's not negated \n return false; \n } \n // all columns are negated \n return true; \n } \n \n /// \n /// Check whether the spells will be negated. \n /// \n /// \n /// \n protected bool DefaultCheckWhetherSpellActivateWillBeNegated(ClientCard card) \n { \n if (card == null) return false; \n if (card.Location == CardLocation.SpellZone) \n { \n return infiniteImpermanenceNegatedColumns.Contains(card.Sequence); \n } \n // check whether will be negated by Infinite Impermanence \n return DefaultCheckAllAvailableSpellColumnNegated(); \n } \n \n /// \n /// Check whether bot can search cards from deck. \n /// \n /// \n protected bool DefaultCheckWhetherBotCanSearch() \n { \n if (resolvedEffectIdList.Contains(_CardId.LockBird)) \n return false; \n if (mistakenArrestAffectedCount \u003e 0) \n return false; \n if (Bot.HasInMonstersZone(_CardId.ThunderKingRaiOh, notDisabled: true, faceUp: true) \n || Enemy.HasInMonstersZone(_CardId.ThunderKingRaiOh, notDisabled: true, faceUp: true)) \n return false; \n if (Enemy.HasInMonstersZone(_CardId.ThunderDragonColossus)) \n return false; \n if (Bot.HasInSpellZone(_CardId.DeckLockdown, notDisabled: true, faceUp: true) \n || Enemy.HasInSpellZone(_CardId.DeckLockdown, notDisabled: true, faceUp: true) \n || Bot.HasInSpellZone(_CardId.Mistake, notDisabled: true, faceUp: true) \n || Enemy.HasInSpellZone(_CardId.Mistake, notDisabled: true, faceUp: true)) \n return false; \n if (Enemy.HasInSpellZone(_CardId.DoomZDestruction, notDisabled: true, faceUp: true)) \n return false; \n return true; \n } \n \n /// \n /// Check whether enemy can draw cards. \n /// \n /// \n protected bool DefaultCheckWhetherEnemyCanDraw() \n { \n if (resolvedEffectIdList.Contains(_CardId.LockBird)) \n return false; \n return true; \n } \n } \n} \n",
+  "url": "https://raw.githubusercontent.com/IceYGO/windbot/master/Game/AI/DefaultExecutor.cs"
+}
+```
+User decision: **accepted**
+
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="web_fetch"><details>
+<summary>Tool use: **web_fetch**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "OnPreActivate|QuickPlay"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "OnPreActivate|QuickPlay",
+  "topFiles": [
+    {
+      "matchCount": 4,
+      "uri": "..\\..\\..\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 4
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: C:\Users\user\.cursor\projects\c-Users-user-Documents-DEV-customcards\agent-tools\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+So OnPreActivate in DefaultExecutor only blocks timelords and negate scenarios. For Awakening/Bond cards, if ActivateAwakening returns false, the AddExecutor for Activate may not execute, though there could be another generic Activate handler. The issue might involve SpellSet or Activate from spell zone, where Quick-Play sets can be activated from field during own turn. I'll override OnPreActivate in SaintSeiyaBronzeOnlyExecutor to handle these cases specifically.
+
+- Override OnPreActivate in SaintSeiyaBronzeOnlyExecutor
+- Handle AwakeningOfTheCosmos and BondOfBrotherhood cases
+- Check for potential generic Activate handlers
+- Consider SpellSet and spell zone activation scenarios If the card is an Awakening or Bond card and it's not during the bot's Main Phase or if it's the opponent's turn, then activation is allowed. However, if it's the bot's Main Phase and the card is an Awakening or Bond card, activation should be blocked unless it's needed for a lethal swing or is part of a chain. This prevents unnecessary activation of such cards during the bot's own turn. If the current chain is not empty, pre-activation is allowed. However, if its the bots turn and the chain is empty, and ShouldReserve returns true, then pre-activation is blocked to prevent unnecessary activation of Awakening or Bond cards.
+
+- When the opponent's turn, Duel.Player != 0, ShouldReserve returns false, so OnPreActivate does not block activation.
+- During the bot's Main Phase with an empty chain and ShouldReserve returning true, activation of Awakening or Bond cards is blocked.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "c92210000*.lua",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\script\\unofficial",
+  "pattern": "base\\.atk"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\script\\unofficial",
+  "pattern": "base\\.atk",
+  "topFiles": [],
+  "totalFiles": 0,
+  "totalMatches": 0
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\script\unofficial\c922100004.lua</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "glob": "c92210000[0-9].lua",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\script\\unofficial",
+  "pattern": "-- ATK/DEF:"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "c:\\Users\\user\\Documents\\DEV\\customcards\\script\\unofficial",
+  "pattern": "-- ATK/DEF:",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100003.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100009.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100004.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100006.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100007.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100001.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100005.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100002.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100008.lua"
+    },
+    {
+      "matchCount": 1,
+      "uri": "script/unofficial/c922100000.lua"
+    }
+  ],
+  "totalFiles": 10,
+  "totalMatches": 10
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "GetBestAttack"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "GetBestAttack",
+  "topFiles": [
+    {
+      "matchCount": 3,
+      "uri": "..\\..\\..\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 3
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+The method `Util.GetBestAttack(ClientField)` is available for use. For OnSelectPosition:
+- The method `Util.GetBestAttack(ClientField)` is available for use.
+- `Card.Attack` and `Util.GetBestAttack(Enemy)` are used to compare attack values.
+- `Bot.GetMonsterCount()` is used to determine if there are any monsters on the field.
+- A check is performed to see if all monsters on the field have attack values less than or equal to the current card's attack.
+- The logic considers scenarios where the bot may have no monsters or only weak monsters.
+- The code includes a comment indicating that `Bot.GetMonsterCount()` might return 0 during summon selection if the new monster isn't yet on the field. If no monsters are on the field, the method returns immediately.
+
+- If only one monster is summoned and its stronger than the opponents best attack, face-up defence is chosen.
+- If any enemy monster is stronger than the current card, face-up defence is selected.
+- Otherwise, the base method is called to determine the position. When summoning the second monster, the first one might be weaker, so the logic checks if `Bot.GetMonsterCount() == 0` to ensure no other monsters exist before this summon resolves.  
+- If the enemy's best attack beats the current card's attack and no ally monster can beat it, place the card in defense.
+- A helper method `NoStrongerAllyOnBoardThan(int enemyAtk)` is used to verify if any face-up monster on the board has an attack greater than or equal to the enemy's attack.</details></think>
+
+_**Agent (default)**_
+
+Corrigiendo la lógica: `Duel.Player == 0` coincide con el turno del bot en WindBot estándar (`Bot = Fields[0]`), pero las Quick-Play pueden activarse por otras rutas; añadiendo `OnPreActivate` y endureciendo las condiciones. Mejorando `OnSelectPosition` para tablero vacío y expandiendo el uso de Normal Summon.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\.agents\skills\windbot-executor-creator\SKILL.md</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards\WindBot** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards\WindBot** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: dir "c:\Users\user\Documents\DEV\customcards\WindBot" /s /b 2>nul | findstr /i csproj</summary>
+
+```bash
+dir "c:\Users\user\Documents\DEV\customcards\WindBot" /s /b 2>nul | findstr /i csproj
+```
+
+```
+out-file : Se solicit� a FileStream que abriera un dispositivo que no era un archivo. Si necesita ayuda con 
+dispositivos como 'com1:' o 'lpt1:', llame a CreateFile y utilice constructores FileStream que tomen un identificador 
+del SO como IntPtr.
+En C:\Users\user\AppData\Local\Temp\ps-script-3242b778-73e1-4972-999d-3b9e8b4ea131.ps1: 84 Car�cter: 1
++ dir "c:\Users\user\Documents\DEV\customcards\WindBot" /s /b 2&gt;nul | f ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : OpenError: (:) [Out-File], NotSupportedException
+    + FullyQualifiedErrorId : FileOpenFailure,Microsoft.PowerShell.Commands.OutFileCommand
+ 
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem -Path "c:\Users\user\Documents\DEV\customcards\WindBot" -Recurse -Filter *.csproj | Select-Object -ExpandProperty FullName</summary>
+
+```bash
+Get-ChildItem -Path "c:\Users\user\Documents\DEV\customcards\WindBot" -Recurse -Filter *.csproj | Select-Object -ExpandProperty FullName
+```
+
+```
+C:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+Good - I'll implement edits and msbuild for csproj. - Added helper methods: `IsEmptyChain()`, `IsBotsTurn()` (using IceYGO convention), and `ShouldBlockProactiveProtectionSpells()`.
+- Overrode `OnPreActivate`.
+- Updated `ActivateAwakening` and `ActivateBond` to use stricter conditions: require opponent's turn, non-empty chain, or not Main Phase open.
+- For `ActivateAwakening` with a non-empty chain on our turn, it's rare but allowed.
+- Implemented `AllowReactiveProtectionQuickPlay()` with logic for opponent's turn and executor-specific checks. If `Duel.Player` is 0, it means it's our turn, even during a chain. So for `ActivateAwakening`, block if `Duel.Player == 0` AND `MainPhase` AND `empty chain`.
+
+- Block if: `Duel.Player == 0` AND `MainPhase` AND `empty chain`
+- Otherwise, allow reactive protection quick play.</details></think>
+
+_**Agent (default)**_
+
+Implementando: bloqueando Quick-Play defensivas en Main propio con cadena vacía; reforzando posiciones cuando somos el único monstruo; expandiendo Normal Summon y endureciendo Mu; reordenando prioridad de invocaciones por ATK.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Corrigiendo el error: `Executor.Duel` no existe; usando la propiedad `Duel` de la instancia.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+ActivateAwakening logic:
+- If IsOpenOwnMainPhaseNoChain  false When opponent's turn, Duel.Player != 0 is true  returns true   
+When our turn with chain, ChainIsEmpty is false  !ChainIsEmpty is true  returns true   
+When our turn in open main phase, already returned false at first line   
+In our Battle Phase, IsOpenOwnMainPhaseNoChain is false  second line: Duel.Player != 0 is false, ChainIsEmpty is true  returns false  **Awakening won't activate in our BP**  
+
+- Quick-Play can be used in BP  
+- Sometimes user wants Awakening before damage  
+- User prefers not to use beginner-level logic for own main phase  
+- BP defensive usage may still be acceptable Awakening should be allowed in own Battle Phase on our turn, not blocked entirely.  
+Currently, the logic blocks it by returning false when Duel.Player != 0 (false) and ChainIsEmpty (true).  
+This prevents using Awakening in BP even when desired.  
+Allowing BP activation on our turn with empty chain improves usability. Rare for this deck.
+
+User complained that blocking Battle Phase proactive activation might be too strict.
+
+Refined ActivateAwakening logic:
+- If in open main phase, return false immediately
+- On opponent's turn, return true
+- On own turn, only activate if there's an active chain
+- Remove redundant checks; first condition handles open main phase
+- For own BP with empty chain, expression becomes false || true  true, allowing activation when desired BP with empty chain blocks Awakening, which is problematic during our own Battle Phase when we're still the turn player and controlling the attacker. This prevents using Awakening during the damage step of our own BP, which seems overly restrictive.
+
+During opponent's Battle Phase, Duel.Player = 1 (opponent), so Awakening is correctly allowed.
+
+When we attack and opponent activates Mirror Force, we're in a chain (ChainIsEmpty = false), so Awakening is allowedthis is correct behavior. When our Battle Phase occurs before any chain, blocking Activation might be acceptable for beginner users.
+
+Simplified ActivateAwakening logic:
+- Return false only during open main phase
+- Otherwise, allow activation
+
+Original intent was to block all of our turn, allowing only opponent's turn
+User reported issues, possibly due to Player index being swapped (e.g., ProjectIgnis)
+
+Using hybrid approach:
+- OnPreActivate blocks only IsOpenOwnMainPhaseNoChain for these cards</details></think>
+
+_**Agent (default)**_
+
+Ajustando ActivateAwakening y ActivateBond: la condición `return Duel.Player != 0 || !ChainIsEmpty()` era redundante o demasiado restrictiva. Bloqueando solo Main propio sin cadena y permitiendo el resto de ventanas reactivas.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:m 2>&1</summary>
+
+```bash
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:m 2>&1
+```
+
+```
+Versión de MSBuild 17.12.12+1cce77968 para .NET Framework
+
+c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs(1048,57): error CS8026: La característica "operador de propagación nulo" no está disponible en C# 5. Use la versión de lenguaje 6 u otra superior. [c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj]
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2">
+
+<details><summary>Tool use: **edit_file_v2** • Edit file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+
+</tool-use>
+
+<tool-use data-tool-type="write" data-tool-name="edit_file_v2"><details>
+<summary>Tool use: **edit_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+Bot.Hand.Count might require LINQ functionality for Lv4Saints.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:m 2>&1</summary>
+
+```bash
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\2022\BuildTools\MSBuild\Current\Bin\MSBuild.exe" "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.csproj" /p:Configuration=Release /p:Platform=x86 /v:m 2>&1
+```
+
+```
+Versión de MSBuild 17.12.12+1cce77968 para .NET Framework
+
+  SaintSeiyaBronzeOnlyExecutor -&gt; c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor.dll
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints">
+<details>
+<summary>Tool use: **read_lints**</summary>
+
+
+Parameters:
+
+```json
+{
+  "paths": [
+    "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+  ]
+}
+```
+Result:
+
+```json
+{
+  "linterErrorsByFile": [
+    {
+      "relativeWorkspacePath": "c:\\Users\\user\\Documents\\DEV\\customcards\\WindBot\\Executors\\SaintSeiyaBronzeOnlyExecutor\\SaintSeiyaBronzeOnlyExecutor.cs"
+    }
+  ]
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="read_lints"><details>
+<summary>Tool use: **read_lints**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+Proporcione un resumen conciso para el usuario en espaol, ya que escribi en espaol.</details></think>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor" -Recurse -Filter SaintSeiyaBronzeOnlyExecutor.dll | Select-Object FullName, LastWriteTime</summary>
+
+```bash
+Get-ChildItem "c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor" -Recurse -Filter SaintSeiyaBronzeOnlyExecutor.dll | Select-Object FullName, LastWriteTime
+```
+
+```
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search">
+<details>
+<summary>Tool use: **glob_file_search** • Searched codebase "" • **0** results in **1** directory</summary>
+
+Directory: **c:\Users\user\Documents\DEV\customcards** (0 files)
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="search" data-tool-name="glob_file_search"><details>
+<summary>Tool use: **glob_file_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2">
+<details><summary>Tool use: **run_terminal_command_v2** • Run command: Get-ChildItem -Path "c:\Users\user\Documents\DEV\customcards" -Recurse -Filter "SaintSeiyaBronzeOnlyExecutor.dll" -ErrorAction SilentlyContinue | Select-Object -First 5 FullName</summary>
+
+```bash
+Get-ChildItem -Path "c:\Users\user\Documents\DEV\customcards" -Recurse -Filter "SaintSeiyaBronzeOnlyExecutor.dll" -ErrorAction SilentlyContinue | Select-Object -First 5 FullName
+```
+
+```
+
+
+```
+</details>
+</tool-use>
+
+<tool-use data-tool-type="shell" data-tool-name="run_terminal_command_v2"><details>
+<summary>Tool use: **run_terminal_command_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+Aquí va lo que quedó implementado en **`SaintSeiyaBronzeOnlyExecutor.cs`** (build **v10**, tag `2026-05-06T18:00Z-v10-competent-lines`). MSBuild **Release | x86** compila bien.
+
+### 1. Quick-Play de protección (Awakening / Bond)
+- **`OnPreActivate`**: si la carta es **922100086** o **922100092**, **no** se permite activar en **Main1/Main2 propios con cadena vacía** (`Duel.Player == 0` en WindBot estándar = tu turno).
+- **`ActivateAwakening` / `ActivateBond`**: misma regla por si la ejecución pasa por el ejecutor.
+- Así se evita el gesto de novato de **“me protejo” en mitad del Main abierto**; siguen pudiendo usarse en **turno rival**, **cadena**, **BP**, etc.
+
+### 2. Posiciones al Normal Summon
+- **`OnSelectPosition`**: si **no tienes otros monstruos** (`Bot.GetMonsterCount() == 0`) y el **mejor ATK enemigo** (`Util.GetBestAttack`) es **≥** el ATK del monstruo que colocas, se elige **DEF boca arriba** cuando sea legal.
+- Se mantiene la regla anterior “alguien te supera en ATK → DEF”.
+- Se respeta el caso **ATK 0** como en `DefaultExecutor` vía `NamedCard`.
+
+### 3. Normal Summon “no regalar el NS”
+- Con **≥3 nombres distintos**, sigue habiendo razones para **normal** si: hay **varios Lv4 en mano** y hueco en campo, **NeedEquipForVerdict**, falta **equipo** y llevas **Cloth** en mano, mano grande (≥5), o llevas **Athena Exclamation / Verdict**.
+- **`SummonMu`**: solo si ya controlas un Saint, hay **Cloth en cementerio** y hay hueco (Mu sin Cloths en GY es un NS tirado a la basura).
+
+### 4. Orden de ejecutores de Normal Summon
+- Registrados por **ATK** aproximado: **Ikki → Hyoga → Geki → Shiryu → Ban → Ichi → Shun → Nachi**, para que WindBot intente antes los cuerpos más fuertes cuando hay varias opciones.
+
+Si en tu build de Ignis **`Duel.Player` no es 0 en tu Main** (fork raro), dime y adaptamos `IsOpenOwnMainPhaseNoChain()` a la convención que use tu cliente.
+
+---
+
+_**User**_
+
+tambien evalua la posibilidad de invocar en modo de defensa si fuera necesario
+
+---
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+The user wants to evaluate summoning in defense mode when necessary.
+- Consider defensive summoning scenarios
+- Assess when defensive mode is appropriate
+- Evaluate the effectiveness of defensive summons This relates to WindBot's decision-making process for summoning monsters in attack versus defense positions during Normal Summon and Special Summon sequences.
+
+In Yu-Gi-Oh!, Normal Summoning typically involves choosing a position, which is handled by OnSelectPosition that has already been enhanced.
+
+However, there may also be an OnSelectMonsterSummonOrSet in DefaultExecutor that determines whether to summon or set a monster, potentially with additional paths.
+
+The current SaintSeiyaBronzeOnlyExecutor.cs should be reviewed for:
+- OnSelectPosition - already contains logic
+- OnSelectMonsterSummonOrSet - may require override to prefer defense summoning when appropriate The user wants to summon monsters in defense mode when necessary, which may involve setting them face-down rather than summoning face-up. The `OnSelectMonsterSummonOrSet` method in DefaultExecutor determines whether to summon or set a monster, and its behavior needs clarification. Specifically, if the method returns true, it might indicate setting the monster face-down instead of summoning it face-up. The current implementation checks conditions like level  4, empty field, and enemy strength comparison, but the semantics of "summon or set" must be verified to ensure proper defense mode activation. The goal is to adjust summoning logic so that monsters are summoned in defense mode when appropriate, rather than always being set face-down.
+
+- Clarify the semantics of `OnSelectMonsterSummonOrSet`
+- Ensure monsters are summoned in defense mode when needed
+- Review current logic for summon/set decisions The user wants to expand OnSelectPosition handling and potentially override OnSelectMonsterSummonOrSet to choose between summoning and setting monsters. They plan to review the executor file and search for SummonOrSet in WindBot/DefaultExecutor to understand current behavior and make necessary adjustments for defense mode summoning. The user wants to evaluate summoning in defense mode when necessary, which involves extending the current positioning logic to include defense summoning. This applies to both Normal and Special Summons, including scenarios like summoning from the Graveyard or Hand.
+
+- Extend OnSelectPosition logic to handle defense mode
+- Apply same override logic for Special Summons (e.g., Jabu, Ikki, Seiya)
+- Evaluate when defense summoning is appropriate during Normal and Special Summon sequences When summoning a monster and the board is already occupied but weaker than the enemy, consider summoning in defense mode if the new monster cannot survive an attack or if the enemys maximum attack exceeds the monsters ATK.  
+- If the enemys best attack is greater than or equal to the monsters ATK, and were not clearly winning, summon in defense mode.
+- This applies even if other monsters are present but are weaker or already in defense mode. If the enemy's strongest attacker can beat the monster's ATK, summon it in defense mode, regardless of other monsters on the field. This ensures LP preservation, especially if both monsters are weak. The decision should prioritize defense when the monster cannot survive an attack, even if other monsters are present. The current code already accounts for defense mode by checking if any face-up enemy has higher attack than the monster being summoned. This means it switches to defense mode automatically when an enemy monster is strictly stronger, covering multi-monster scenarios.
+
+The logic in `OnSelectPosition` evaluates whether to return `CardPosition.FaceUpDefence` based on whether any enemy monster on the field has a higher attack value than the monster being summoned. This ensures that defense mode is activated even when multiple enemies are present, as long as one of them is stronger than the summoning monster.</details></think>
+
+_**Agent (default)**_
+
+Revisando la lógica actual de posición y si debemos cubrir `OnSelectMonsterSummonOrSet` u otros flujos.
+
+
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: c:\Users\user\Documents\DEV\customcards\WindBot\Executors\SaintSeiyaBronzeOnlyExecutor\SaintSeiyaBronzeOnlyExecutor.cs</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search">
+<details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+
+Parameters:
+
+```json
+{
+  "caseInsensitive": false,
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "OnSelectMonsterSummonOrSet|SummonOrSet"
+}
+```
+Additional data:
+
+```json
+{
+  "isPruned": true,
+  "outputMode": "content",
+  "path": "C:\\Users\\user\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt",
+  "pattern": "OnSelectMonsterSummonOrSet|SummonOrSet",
+  "topFiles": [
+    {
+      "matchCount": 1,
+      "uri": "..\\..\\..\\.cursor\\projects\\c-Users-user-Documents-DEV-customcards\\agent-tools\\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt"
+    }
+  ],
+  "totalFiles": 1,
+  "totalMatches": 1
+}
+```
+Status: **completed**
+
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="unknown" data-tool-name="ripgrep_raw_search"><details>
+<summary>Tool use: **ripgrep_raw_search**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2">
+<details><summary>Tool use: **read_file_v2** • Read file: C:\Users\user\.cursor\projects\c-Users-user-Documents-DEV-customcards\agent-tools\7bcca0a7-5ef1-4a30-8a91-d39adc660733.txt</summary>
+
+</details>
+</tool-use>
+
+<tool-use data-tool-type="read" data-tool-name="read_file_v2"><details>
+<summary>Tool use: **read_file_v2**</summary>
+
+</details></tool-use>
+
+_**Agent (default)**_
+
+<think><details><summary>Thought Process</summary>
+`OnSelectMonsterSummonOrSet` returns **true** to set a monster face-down, and **false** to perform a normal face-up summon, with `OnSelectPosition` then determining the monster's ATK/DEF stats. When enemy attack is greater than our attack, attacking in ATK mode results in loss and damage, while DEF mode uses defense values. If defense is sufficient to withstand the attack, we survive.
+
+Smarter rule:
+- Compare enemy attack to **Card.Attack** (battle if in atk position)
+- Compare enemy attack to **Card.Defense** (battle if in def position)
+
+Prefer DEF position if it allows survival (enemyBestAtk < Card.Defense) over ATK position which would result in death.
+
+Simplified threat check:
+- Attack position loses battle if enemy has atk >= our atk when attacking
+- Defense position survives if enemyBestAtk < Card.Defense When the opponent attacks, they compare their attack to our defense if we're in defense position.
+
+If **enemyBestAtk > Card.Attack**: we're threatened in attack mode (they can destroy us).
+
+If **enemyBestAtk <= Card.Defense**: we're safe in defense mode (they can't destroy us).
+
+If **enemyBestAtk > Card.Defense**: we die regardless of position.
+
+However, if **enemyBestAtk > Card.Attack** but **enemyBestAtk < Card.Defense**: defense is strictly better since it prevents destruction.
+
+- In attack mode: lose if enemy attack is greater than or equal to our attack
+- In defense mode: survive if enemy attack is less than our defense
+- Prefer defense when it provides survival but attack does not
+- Defense reduces risk of destruction in all cases where it's viable Example: Shun 1300/1900 vs enemy 1800  attack mode loses, defense mode survives.
+
+Current logic uses `enemyBestAtk > our atk  DEF`, which works for Shun.
+
+When `enemyBestAtk == atk`: mutual destruction in attack mode; defense may survive if `def > enemy atk`.
+
+In solo branch, `enemyBestAtk >= atk  DEF`, also good.
+
+When `enemyBestAtk < atk` but `enemyBestAtk > def`: unusual case  attacker larger than defense but smaller than attack; prefer attack mode to win, defense mode loses.
+
+Add helper method to determine optimal face-up defense strategy based on ATK/DEF stats and available positions. If the monster is not in Face-Up Defense position, return false.  
+If the enemys best attack exceeds the monster's attack but is less than or equal to its defense, defense is preferred.  
+If the bot has no monsters and the enemys best attack meets or exceeds the monster's attack, choose defense.  
+If any enemy monster in face-up position has an attack greater than the monster's attack, choose defense.  
+Otherwise, do not choose defense. When `enemyBestAtk > atkStat` and `enemyBestAtk <= defStat`, defense is preferred since it prevents destruction.
+
+The condition `enemyHasBigger` already covers cases where any enemy monster has higher attack, so overlapping checks are avoided.
+
+Edge cases include:
+- No face-up enemies, but face-down monsters may still affect `Util.GetBestAttack`
+- Piercing effects are ignored for simplicity
+
+If the summoned monster is fragile and enemyHasBigger considers card attack, it already handles such cases.</details></think>
