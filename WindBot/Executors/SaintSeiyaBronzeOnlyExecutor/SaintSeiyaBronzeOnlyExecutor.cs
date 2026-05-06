@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 11;
-        private const string BuildTag = "2026-05-06T19:05Z-v11-def-summon-eval";
+        private const int BuildVersion = 12;
+        private const string BuildTag = "2026-05-06-v12-discard-mill-search-priorities";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -600,6 +600,14 @@ namespace WindBot.Game.AI.Decks
         public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
             return false;
+        }
+
+        private void PreselectDiscardPreferIchi()
+        {
+            // Some executor builds don't expose OnSelectCard overrides to plugins.
+            // We can still bias upcoming selection prompts by queuing a selection.
+            if (Bot.HasInHand(CardId.Ichi))
+                AI.SelectNextCard(CardId.Ichi);
         }
 
         /// <summary>
@@ -891,6 +899,13 @@ namespace WindBot.Game.AI.Decks
         private int ChooseLv4SaintForDeckSearch()
         {
             var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
+
+            // User strategy: when searching a Saint, prefer Ban for SS lines.
+            if (!onField.Contains(CardId.Ban)
+                && !Bot.HasInHand(CardId.Ban)
+                && Bot.GetRemainingCount(CardId.Ban, 3) > 0)
+                return CardId.Ban;
+
             if (ControlAnySaint()
                 && Bot.GetMonsterCount() < 5
                 && !onField.Contains(CardId.Jabu)
@@ -1349,6 +1364,7 @@ namespace WindBot.Game.AI.Decks
             if (clothInGy == null)
                 return false;
             AI.SelectCard(clothInGy);
+            PreselectDiscardPreferIchi(); // after add-from-GY, effect discards 1
             return true;
         }
 
@@ -1387,7 +1403,11 @@ namespace WindBot.Game.AI.Decks
             if (!Bot.Hand.IsExistingMatchingCard(c => Saints.Contains(c.Id) && c.Id != CardId.Ikki))
                 return false;
 
-            AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            // Ikki revive cost = discard 1 "Saint": prioritize Ichi for discard synergy when available.
+            if (Bot.HasInHand(CardId.Ichi))
+                AI.SelectCard(CardId.Ichi);
+            else
+                AI.SelectCard(ChooseSaintToMaximizeDistinct());
             return true;
         }
 

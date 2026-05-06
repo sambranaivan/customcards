@@ -40,3 +40,4 @@ WindBot/**/*.pdb
 !WindBot/Executors/**/*.pdb
 WindBot/**/obj/
 tools\CardMaker\output\*
+.specstory/
