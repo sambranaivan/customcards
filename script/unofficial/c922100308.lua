@@ -104,7 +104,9 @@ function s.clothmatfilter(c)
 	return c:IsSetCard(SET_BRONZE_CLOTH) and c:IsType(TYPE_EQUIP)
 end
 function s.furcon(e,tp,eg,ep,ev,re,r,rp)
-	return e:GetHandler():GetOverlayGroup():IsExists(s.clothmatfilter,1,nil)
+	local c=e:GetHandler()
+	return c:GetOverlayGroup():IsExists(s.clothmatfilter,1,nil)
+		and c:GetFlagEffect(id)==0
 end
 function s.furcost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
@@ -167,6 +169,7 @@ function s.ovaop(e,tp,eg,ep,ev,re,r,rp)
 	if not c:IsRelateToEffect(e) or not c:IsFaceup() then return end
 	if tc and tc:IsRelateToEffect(e) then
 		Duel.Overlay(c,Group.FromCards(tc))
+		c:RegisterFlagEffect(id,RESET_PHASE+PHASE_END,0,1)
 	end
 end
 
