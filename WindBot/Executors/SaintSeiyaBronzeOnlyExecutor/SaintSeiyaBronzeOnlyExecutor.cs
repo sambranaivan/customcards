@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 19;
-        private const string BuildTag = "2026-05-07-v19-ban-self-ss";
+        private const int BuildVersion = 20;
+        private const string BuildTag = "2026-05-07-v20-activate-ichi-geki-nachi";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -583,6 +583,9 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ban, ResolveBanActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Ichi, ResolveIchiActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Geki, ResolveGekiActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Nachi, ResolveNachiActivate);
 
             // Setting traps near end of turn
             AddExecutor(ExecutorType.SpellSet, SpellSetPolicy);
@@ -1549,6 +1552,155 @@ namespace WindBot.Game.AI.Decks
 
             AI.SelectCard(pick.Value);
             return true;
+        }
+
+        private int? ChooseClothFromHandToDiscard()
+        {
+            var inHand = Bot.Hand.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (inHand.Count == 0)
+                return null;
+            // Discard the least valuable Cloth first (highest tier number).
+            var best = inHand
+                .OrderByDescending(c => ClothDiscardTier(c.Id))
+                .First();
+            return best.Id;
+        }
+
+        private int? ChooseClothFromDeckToSendToGraveyard()
+        {
+            // Prefer sending the matching Cloth for a face-up Bronze Saint we control, if that Cloth isn't in GY yet.
+            foreach (var m in Bot.MonsterZone.Where(c => c != null && c.IsFaceup() && Lv4Saints.Contains(c.Id)))
+            {
+                var match = ClothMatchingSaint(m.Id);
+                if (match.HasValue
+                    && Bot.GetRemainingCount(match.Value, 3) > 0
+                    && !Bot.Graveyard.IsExistingMatchingCard(g => g.IsCode(match.Value)))
+                    return match.Value;
+            }
+
+            // Otherwise seed Phoenix (commonly useful) if available.
+            if (Bot.GetRemainingCount(CardId.ClothPhoenix, 3) > 0)
+                return CardId.ClothPhoenix;
+
+            // Fallback to any Cloth remaining in deck.
+            foreach (var id in Cloths)
+                if (Bot.GetRemainingCount(id, 3) > 0)
+                    return id;
+
+            return null;
+        }
+
+        private int? ChooseClothFromGraveyardToHand()
+        {
+            // Prefer matching Cloth for any face-up Saint we control.
+            foreach (var m in Bot.MonsterZone.Where(c => c != null && c.IsFaceup() && Saints.Contains(c.Id)))
+            {
+                var match = ClothMatchingSaint(m.Id);
+                if (match.HasValue && Bot.Graveyard.IsExistingMatchingCard(g => g.IsCode(match.Value)))
+                    return match.Value;
+            }
+
+            // Otherwise take highest tier Cloth (more flexible utility) first.
+            var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (gy.Count == 0)
+                return null;
+            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+        }
+
+        private int? ChooseClothFromGraveyardToShuffle()
+        {
+            // Prefer shuffling back low-value Cloths (highest tier).
+            var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (gy.Count == 0)
+                return null;
+            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+        }
+
+        private bool ResolveIchiActivate()
+        {
+            var d = ActivateDescription;
+
+            // Field ignition: discard 1 Cloth -> burn 800 (Stringid 0).
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Ichi, 0))
+                    return false;
+
+                var discardCloth = ChooseClothFromHandToDiscard();
+                if (!discardCloth.HasValue)
+                    return false;
+
+                // Heuristic: use burn when we have spare Cloths or it meaningfully closes the game.
+                bool lethalish = Enemy.LifePoints <= 2000;
+                bool spare = Bot.Hand.Count(c => c != null && Cloths.Contains(c.Id)) >= 2;
+                if (!lethalish && !spare)
+                    return false;
+
+                AI.SelectCard(discardCloth.Value);
+                return true;
+            }
+
+            // Trigger in GY: send 1 Cloth from Deck to GY (Stringid 1).
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                if (d != -1 && d != Util.GetStringId(CardId.Ichi, 1))
+                    return false;
+                var send = ChooseClothFromDeckToSendToGraveyard();
+                if (!send.HasValue)
+                    return false;
+                AI.SelectCard(send.Value);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ResolveGekiActivate()
+        {
+            var d = ActivateDescription;
+
+            // On-summon search (Stringid 0): deck has no known Level 5+ Saints in this build, skip to avoid wasting actions.
+            if ((Card.Location & CardLocation.MonsterZone) != 0 && d == Util.GetStringId(CardId.Geki, 0))
+                return false;
+
+            // GY ignition (Stringid 1): add 1 Cloth from GY, then banish self.
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Geki, 1))
+                    return false;
+                var pick = ChooseClothFromGraveyardToHand();
+                if (!pick.HasValue)
+                    return false;
+                AI.SelectCard(pick.Value);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ResolveNachiActivate()
+        {
+            var d = ActivateDescription;
+
+            // Ignition on field (Stringid 1): target 1 Cloth in GY; shuffle; draw 1.
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Nachi, 1))
+                    return false;
+                var pick = ChooseClothFromGraveyardToShuffle();
+                if (!pick.HasValue)
+                    return false;
+                AI.SelectCard(pick.Value);
+                return true;
+            }
+
+            return false;
         }
 
         private bool ActivateAwakening()
