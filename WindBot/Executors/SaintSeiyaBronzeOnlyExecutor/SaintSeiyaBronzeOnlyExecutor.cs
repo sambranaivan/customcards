@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 17;
-        private const string BuildTag = "2026-05-07-v17-preselect-discard-hooks";
+        private const int BuildVersion = 18;
+        private const string BuildTag = "2026-05-07-v18-jabu-normal-set";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -568,6 +568,7 @@ namespace WindBot.Game.AI.Decks
 
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
+            AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
             // Normal Summon priority ≈ ATK (WindBot tries executors in registration order).
             AddExecutor(ExecutorType.Summon, CardId.Ikki, SummonSaintLv4);
@@ -624,6 +625,38 @@ namespace WindBot.Game.AI.Decks
 
             // If even DEF won't wall, set to at least prevent direct attack lines this turn.
             if (enemyBestAtk > card.Defense)
+                return true;
+
+            // Emergency: if we're setting Jabu because we have no better line, allow set even if DEF could wall.
+            if (card.IsCode(CardId.Jabu) && FieldIsEmpty() && !Bot.HasInHand(CardId.Seiya))
+                return true;
+
+            return false;
+        }
+
+        private bool SummonOrSetJabuEmergencyOrDefense()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (Duel.Player != 0)
+                return false;
+            if ((Card.Location & CardLocation.Hand) == 0)
+                return false;
+            if (!Card.IsCode(CardId.Jabu))
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+
+            // If we already control a Saint, prefer Jabu's own Special Summon line instead of Normal.
+            if (ControlAnySaint())
+                return false;
+
+            // Case A (defense): enemy has pressure; setting can prevent direct attacks.
+            if (Enemy.GetMonsterCount() > 0)
+                return true;
+
+            // Case B (emergency): no Seiya in hand and we need to put something on board.
+            if (!Bot.HasInHand(CardId.Seiya) && Bot.GetHandCount() <= 4)
                 return true;
 
             return false;
