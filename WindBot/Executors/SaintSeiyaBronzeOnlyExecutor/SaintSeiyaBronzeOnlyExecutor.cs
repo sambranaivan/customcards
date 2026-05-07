@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 20;
-        private const string BuildTag = "2026-05-07-v20-activate-ichi-geki-nachi";
+        private const int BuildVersion = 23;
+        private const string BuildTag = "2026-05-07-v23-ban-ss-hand-only";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -1532,18 +1532,25 @@ namespace WindBot.Game.AI.Decks
         {
             var d = ActivateDescription;
 
-            // Hand / GY: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself.
-            if ((Card.Location & (CardLocation.Hand | CardLocation.Grave)) != 0)
+            // Hand: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself (hand-only in current script).
+            if ((Card.Location & CardLocation.Hand) != 0)
             {
                 // Let engine legality decide (battle-destroyed event, once/turn, zone space).
                 return true;
+            }
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                // Script was corrected to hand-only; never attempt SS from GY.
+                return false;
             }
 
             // Monster zone: after it is Special Summoned -> target 1 Saint in GY; add to hand (Stringid 1).
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (d != -1 && d != Util.GetStringId(CardId.Ban, 1))
+            // Custom builds may report ActivateDescription inconsistently for delayed triggers.
+            // Block the "material" trigger (Stringid 2) to avoid mis-targeting.
+            if (d == Util.GetStringId(CardId.Ban, 2))
                 return false;
 
             var pick = ChooseSaintToAddFromGraveyard();
@@ -1645,7 +1652,9 @@ namespace WindBot.Game.AI.Decks
             // Trigger in GY: send 1 Cloth from Deck to GY (Stringid 1).
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (d != -1 && d != Util.GetStringId(CardId.Ichi, 1))
+                // Custom builds sometimes report ActivateDescription inconsistently for delayed triggers.
+                // Hard block the "material" trigger (Stringid 2) to avoid selecting from the wrong location.
+                if (d == Util.GetStringId(CardId.Ichi, 2))
                     return false;
                 var send = ChooseClothFromDeckToSendToGraveyard();
                 if (!send.HasValue)
