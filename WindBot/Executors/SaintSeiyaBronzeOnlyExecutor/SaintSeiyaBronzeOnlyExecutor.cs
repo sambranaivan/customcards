@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 18;
-        private const string BuildTag = "2026-05-07-v18-jabu-normal-set";
+        private const int BuildVersion = 19;
+        private const string BuildTag = "2026-05-07-v19-ban-self-ss";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -582,6 +582,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Summon, CardId.Mu, SummonMu);
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
+            AddExecutor(ExecutorType.Activate, CardId.Ban, ResolveBanActivate);
 
             // Setting traps near end of turn
             AddExecutor(ExecutorType.SpellSet, SpellSetPolicy);
@@ -1491,6 +1492,62 @@ namespace WindBot.Game.AI.Decks
                 AI.SelectCard(discard.Value);
             else
                 AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            return true;
+        }
+
+        private int? ChooseSaintToAddFromGraveyard()
+        {
+            var gySaints = Bot.Graveyard.Where(c => c != null && Saints.Contains(c.Id)).ToList();
+            if (gySaints.Count == 0)
+                return null;
+
+            // Prefer cards we don't already have in hand.
+            int[] priority =
+            {
+                CardId.Seiya,
+                CardId.Ichi,
+                CardId.Ikki,
+                CardId.Ban,
+                CardId.Jabu,
+                CardId.Shun,
+                CardId.Hyoga,
+                CardId.Shiryu,
+                CardId.Nachi,
+                CardId.Geki,
+                CardId.Mu,
+                CardId.Kiki
+            };
+
+            foreach (var id in priority)
+                if (!Bot.HasInHand(id) && gySaints.Any(c => c.IsCode(id)))
+                    return id;
+
+            return gySaints[0].Id;
+        }
+
+        private bool ResolveBanActivate()
+        {
+            var d = ActivateDescription;
+
+            // Hand / GY: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself.
+            if ((Card.Location & (CardLocation.Hand | CardLocation.Grave)) != 0)
+            {
+                // Let engine legality decide (battle-destroyed event, once/turn, zone space).
+                return true;
+            }
+
+            // Monster zone: after it is Special Summoned -> target 1 Saint in GY; add to hand (Stringid 1).
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            if (d != -1 && d != Util.GetStringId(CardId.Ban, 1))
+                return false;
+
+            var pick = ChooseSaintToAddFromGraveyard();
+            if (!pick.HasValue)
+                return false;
+
+            AI.SelectCard(pick.Value);
             return true;
         }
 
