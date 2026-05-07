@@ -180,16 +180,37 @@ def _desc(row: CardRow) -> str:
     return (row.effect_text_en or "").strip()
 
 
-def _fetch_card_ids(conn: sqlite3.Connection, card_id: Optional[int] = None) -> list[CardIdRow]:
+def _fetch_card_ids(
+    conn: sqlite3.Connection,
+    *,
+    card_id: Optional[int] = None,
+    from_id: Optional[int] = None,
+    to_id: Optional[int] = None,
+) -> list[CardIdRow]:
     base_sql = "SELECT d.id FROM datas d"
     if card_id is not None:
         rows = conn.execute(base_sql + " WHERE d.id = ? ORDER BY d.id", (card_id,)).fetchall()
     else:
-        rows = conn.execute(base_sql + " ORDER BY d.id").fetchall()
+        where: list[str] = []
+        params: list[int] = []
+        if from_id is not None:
+            where.append("d.id >= ?")
+            params.append(int(from_id))
+        if to_id is not None:
+            where.append("d.id <= ?")
+            params.append(int(to_id))
+        where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+        rows = conn.execute(base_sql + where_sql + " ORDER BY d.id", tuple(params)).fetchall()
     return [CardIdRow(card_id=int(cid)) for (cid,) in rows]
 
 
-def _fetch_cards(conn: sqlite3.Connection, card_id: Optional[int] = None) -> dict[int, CardRow]:
+def _fetch_cards(
+    conn: sqlite3.Connection,
+    *,
+    card_id: Optional[int] = None,
+    from_id: Optional[int] = None,
+    to_id: Optional[int] = None,
+) -> dict[int, CardRow]:
     base_sql = """
         SELECT
           d.id,
@@ -207,7 +228,16 @@ def _fetch_cards(conn: sqlite3.Connection, card_id: Optional[int] = None) -> dic
     if card_id is not None:
         rows = conn.execute(base_sql + " WHERE d.id = ? ORDER BY d.id", (card_id,)).fetchall()
     else:
-        rows = conn.execute(base_sql + " ORDER BY d.id").fetchall()
+        where: list[str] = []
+        params: list[int] = []
+        if from_id is not None:
+            where.append("d.id >= ?")
+            params.append(int(from_id))
+        if to_id is not None:
+            where.append("d.id <= ?")
+            params.append(int(to_id))
+        where_sql = (" WHERE " + " AND ".join(where)) if where else ""
+        rows = conn.execute(base_sql + where_sql + " ORDER BY d.id", tuple(params)).fetchall()
 
     out: dict[int, CardRow] = {}
     for (
@@ -722,7 +752,14 @@ def main() -> None:
     parser.add_argument(
         "--regenerate",
         action="store_true",
+        default=True,
         help="Regenerate outputs even if sets/instagram_output/{id}.png exists.",
+    )
+    parser.add_argument(
+        "--no-regenerate",
+        action="store_false",
+        dest="regenerate",
+        help="Do not regenerate if output already exists (skip existing).",
     )
     parser.add_argument(
         "--card-id",
@@ -730,6 +767,22 @@ def main() -> None:
         default=None,
         metavar="ID",
         help="Process only this card_id (always regenerates that file). Ignores bulk skip logic.",
+    )
+    parser.add_argument(
+        "--from",
+        dest="from_id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Process card_ids >= this value (inclusive). Ignored if --card-id is set.",
+    )
+    parser.add_argument(
+        "--to",
+        dest="to_id",
+        type=int,
+        default=None,
+        metavar="ID",
+        help="Process card_ids <= this value (inclusive). Ignored if --card-id is set.",
     )
     parser.add_argument(
         "--cdb",
@@ -770,7 +823,14 @@ def main() -> None:
     parser.add_argument(
         "--sheet-center-vertical",
         action="store_true",
-        help="Sheet variant: center the (card + text box) block vertically (disables header offset).",
+        default=True,
+        help="Sheet variant: center the (card + text box) block vertically (default: enabled).",
+    )
+    parser.add_argument(
+        "--no-sheet-center-vertical",
+        action="store_false",
+        dest="sheet_center_vertical",
+        help="Sheet variant: disable vertical centering (use header offset).",
     )
     parser.add_argument(
         "--card-dir",
@@ -781,9 +841,9 @@ def main() -> None:
     parser.add_argument(
         "--variant",
         type=str,
-        default="center",
-        choices=["center", "sheet"],
-        help="Output layout variant: center (card centered) or sheet (card left + info panel).",
+        default="both",
+        choices=["center", "sheet", "both"],
+        help="Output layout variant: center, sheet, or both.",
     )
     parser.add_argument(
         "--blur",
@@ -792,6 +852,9 @@ def main() -> None:
         help="Background blur factor (radius = max(width,height)*blur). Default: 0.04 (strong).",
     )
     args = parser.parse_args()
+
+    if args.card_id is None and args.from_id is not None and args.to_id is not None and int(args.from_id) > int(args.to_id):
+        raise SystemExit("--from must be <= --to")
 
     cdb_path = Path(args.cdb)
     if not cdb_path.is_file():
@@ -813,8 +876,18 @@ def main() -> None:
         raise SystemExit(f"--card-dir is not a directory: {card_dir}")
 
     conn = sqlite3.connect(str(cdb_path))
-    cards = _fetch_card_ids(conn, card_id=args.card_id)
-    card_db = _fetch_cards(conn, card_id=args.card_id if args.variant == "sheet" else None)
+    cards = _fetch_card_ids(conn, card_id=args.card_id, from_id=args.from_id, to_id=args.to_id)
+    need_db = args.variant in ("sheet", "both")
+    card_db = (
+        _fetch_cards(
+            conn,
+            card_id=args.card_id if need_db else None,
+            from_id=args.from_id,
+            to_id=args.to_id,
+        )
+        if need_db
+        else {}
+    )
     conn.close()
 
     if args.card_id is not None and not cards:
@@ -827,44 +900,54 @@ def main() -> None:
 
     force_one = args.card_id is not None
 
+    def _should_skip(path: Path) -> bool:
+        return path.exists() and not args.regenerate and not force_one
+
     for row in cards:
-        out_dir = INSTAGRAM_SHEET_OUT_DIR if args.variant == "sheet" else INSTAGRAM_OUT_DIR
-        out_path = out_dir / f"{row.card_id}.png"
-        if out_path.exists() and not args.regenerate and not force_one:
-            skipped_existing += 1
-            continue
-
-        if args.variant == "sheet":
-            composed, msg = _composite_sheet(
-                row.card_id,
-                canvas_w=int(args.sheet_width),
-                canvas_h=int(args.sheet_height),
-                card_render_dir=card_dir,
-                card_db=card_db,
-                blur_factor=float(args.blur),
-                center_vertical=bool(args.sheet_center_vertical),
-            )
-        else:
-            if args.size is not None:
-                cw = ch = int(args.size)
-            else:
-                cw = int(args.center_width)
-                ch = int(args.center_height)
-            composed, msg = _composite_center(
-                row.card_id, canvas_w=cw, canvas_h=ch, card_render_dir=card_dir, blur_factor=float(args.blur)
-            )
-        if composed is None:
-            errors += 1
-            print(f"ERROR card_id={row.card_id} {msg}")
-            continue
-
+        # Track missing art once per card_id (shared background).
         if not (API_OUTPUT_DIR / f"{row.card_id}.png").is_file():
             missing_art += 1
 
-        composed.save(out_path)
-        generated += 1
+        variants = ["center", "sheet"] if args.variant == "both" else [args.variant]
+        for v in variants:
+            out_dir = INSTAGRAM_SHEET_OUT_DIR if v == "sheet" else INSTAGRAM_OUT_DIR
+            out_path = out_dir / f"{row.card_id}.png"
+            if _should_skip(out_path):
+                skipped_existing += 1
+                continue
 
-    final_out_dir = INSTAGRAM_SHEET_OUT_DIR if args.variant == "sheet" else INSTAGRAM_OUT_DIR
+            if v == "sheet":
+                composed, msg = _composite_sheet(
+                    row.card_id,
+                    canvas_w=int(args.sheet_width),
+                    canvas_h=int(args.sheet_height),
+                    card_render_dir=card_dir,
+                    card_db=card_db,
+                    blur_factor=float(args.blur),
+                    center_vertical=bool(args.sheet_center_vertical),
+                )
+            else:
+                if args.size is not None:
+                    cw = ch = int(args.size)
+                else:
+                    cw = int(args.center_width)
+                    ch = int(args.center_height)
+                composed, msg = _composite_center(
+                    row.card_id, canvas_w=cw, canvas_h=ch, card_render_dir=card_dir, blur_factor=float(args.blur)
+                )
+
+            if composed is None:
+                errors += 1
+                print(f"ERROR variant={v} card_id={row.card_id} {msg}")
+                continue
+
+            composed.save(out_path)
+            generated += 1
+
+    final_out_dir = (
+        f"{INSTAGRAM_OUT_DIR} + {INSTAGRAM_SHEET_OUT_DIR}" if args.variant == "both" else
+        (INSTAGRAM_SHEET_OUT_DIR if args.variant == "sheet" else INSTAGRAM_OUT_DIR)
+    )
     print(
         f"cards={len(cards)} generated={generated} skipped_existing={skipped_existing} "
         f"missing_art_used_fallback={missing_art} errors={errors} out_dir={final_out_dir}"
