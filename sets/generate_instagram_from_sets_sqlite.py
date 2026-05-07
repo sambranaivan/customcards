@@ -554,6 +554,7 @@ def _composite_sheet(
     card_db: dict[int, CardRow],
     *,
     blur_factor: float,
+    center_vertical: bool,
 ) -> tuple[Optional[Image.Image], str]:
     art_path = API_OUTPUT_DIR / f"{card_id}.png"
     card_path = card_render_dir / f"{card_id}.png"
@@ -576,7 +577,7 @@ def _composite_sheet(
     # Layout regions
     margin = int(canvas_w * 0.06)
     gap = int(canvas_w * 0.04)
-    header_h = int(canvas_h * 0.18)
+    header_h = 0 if center_vertical else int(canvas_h * 0.18)
     usable_w = canvas_w - margin * 2 - gap
     # Make the text box exactly the same size as the card render by giving each half equal width.
     left_w = usable_w // 2
@@ -767,6 +768,11 @@ def main() -> None:
         help="Sheet variant canvas height (default: 1350).",
     )
     parser.add_argument(
+        "--sheet-center-vertical",
+        action="store_true",
+        help="Sheet variant: center the (card + text box) block vertically (disables header offset).",
+    )
+    parser.add_argument(
         "--card-dir",
         type=str,
         default=str(CARD_RENDER_DIR),
@@ -836,6 +842,7 @@ def main() -> None:
                 card_render_dir=card_dir,
                 card_db=card_db,
                 blur_factor=float(args.blur),
+                center_vertical=bool(args.sheet_center_vertical),
             )
         else:
             if args.size is not None:
