@@ -372,6 +372,41 @@ def _wrap_paragraph(text: str, draw: ImageDraw.ImageDraw, font: ImageFont.ImageF
     return lines
 
 
+def _wrap_sentences_with_bullets(
+    sentences: list[str],
+    *,
+    draw: ImageDraw.ImageDraw,
+    font: ImageFont.ImageFont,
+    max_width: int,
+) -> tuple[list[list[list[str]]], int]:
+    """
+    Wrap each sentence into word-lines, reserving a hanging indent for a bullet on the first line.
+    Returns (sentences_lines, indent_px) where sentences_lines is list[sentence][line][words].
+    """
+    bullet = "●"
+    indent_px = _text_width(draw, f"{bullet} ", font)
+    usable = max(10, max_width - indent_px)
+    out: list[list[list[str]]] = []
+    for s in sentences:
+        out.append(_wrap_paragraph(s, draw, font, usable))
+    return out, indent_px
+
+
+def _measure_bulleted_sentences_height(
+    draw: ImageDraw.ImageDraw,
+    *,
+    sentences_lines: list[list[list[str]]],
+    font: ImageFont.ImageFont,
+    line_gap: int,
+    sentence_gap: int,
+) -> int:
+    bbox = draw.textbbox((0, 0), "Ag", font=font)
+    line_h = (bbox[3] - bbox[1]) + line_gap
+    total_lines = sum(len(lines) for lines in sentences_lines)
+    gaps = max(0, len(sentences_lines) - 1) * sentence_gap
+    return total_lines * line_h + gaps
+
+
 def _measure_text_height(draw: ImageDraw.ImageDraw, lines: list[str], font: ImageFont.ImageFont, line_gap: int) -> int:
     if not lines:
         return 0
@@ -407,6 +442,7 @@ def _fit_fonts_for_panel(
 
     line_gap = max(2, base // 260)
     sep_gap = max(8, base // 90)
+    sentence_gap = max(6, base // 140)  # extra spacing between bullet sentences (larger)
 
     for _ in range(60):
         title_font = _get_font(size=title_size, bold=True)
@@ -417,12 +453,10 @@ def _fit_fonts_for_panel(
         # Wrap title too (rare but possible).
         title_lines = _wrap_text(title, draw, title_font, max_text_w)
         meta_lines = _wrap_text(meta, draw, meta_font, max_text_w)
-        # Forced newlines at ". " then wrap each sentence.
-        paragraphs = _split_sentences_newlines(effect_text)
-        body_lines: list[str] = []
-        for p in paragraphs:
-            wl = _wrap_text(p, draw, body_font, max_text_w)
-            body_lines.extend(wl if wl else [])
+        sentences = _split_sentences_newlines(effect_text)
+        sentences_lines, _indent = _wrap_sentences_with_bullets(
+            sentences, draw=draw, font=body_font, max_width=max_text_w
+        )
 
         needed = 0
         needed += _measure_text_height(draw, title_lines, title_font, line_gap)
@@ -431,10 +465,17 @@ def _fit_fonts_for_panel(
         needed += sep_gap
         needed += _measure_text_height(draw, [effect_label], label_font, line_gap)
         needed += max(4, line_gap)
-        needed += _measure_text_height(draw, body_lines, body_font, line_gap)
+        needed += _measure_bulleted_sentences_height(
+            draw, sentences_lines=sentences_lines, font=body_font, line_gap=line_gap, sentence_gap=sentence_gap
+        )
 
         if needed <= avail_h:
-            return (title_font, meta_font, label_font, body_font, body_lines)
+            # Return the already-split wrapped body lines (flattened as strings for legacy callers).
+            flat: list[str] = []
+            for sent in sentences_lines:
+                for line_words in sent:
+                    flat.append(" ".join(line_words))
+            return (title_font, meta_font, label_font, body_font, flat)
 
         # Prefer shrinking body first (to ensure full effect text fits).
         if body_size > 10:
@@ -642,22 +683,32 @@ def _composite_sheet(
 
     body_bbox = pd.textbbox((0, 0), "Ag", font=body_font)
     body_line_h = (body_bbox[3] - body_bbox[1]) + line_gap
-    # Effect text: forced newline on ". " and justify each line (except last of each paragraph).
-    paragraphs = _split_sentences_newlines(desc)
-    for pi, p in enumerate(paragraphs):
-        wrapped_word_lines = _wrap_paragraph(p, pd, body_font, max_text_w)
-        for li, words in enumerate(wrapped_word_lines):
-            is_last_line = li == len(wrapped_word_lines) - 1
+    # Effect text: split into sentences, each sentence is a bulleted item with extra spacing.
+    sentences = _split_sentences_newlines(desc)
+    sentences_lines, indent_px = _wrap_sentences_with_bullets(
+        sentences, draw=pd, font=body_font, max_width=max_text_w
+    )
+    sentence_gap = max(6, max(panel.width, panel.height) // 140)
+    bullet = "●"
+    for si, lines in enumerate(sentences_lines):
+        for li, words in enumerate(lines):
+            is_last_line = li == len(lines) - 1
+            line_x = x + indent_px
+            line_w = max(10, max_text_w - indent_px)
+
+            if li == 0:
+                pd.text((x, y), bullet, font=body_font, fill=white)
+
             if is_last_line:
-                pd.text((x, y), " ".join(words), font=body_font, fill=white)
+                pd.text((line_x, y), " ".join(words), font=body_font, fill=white)
             else:
                 _draw_justified_line(
-                    pd, x=x, y=y, words=words, font=body_font, fill=white, max_width=max_text_w
+                    pd, x=line_x, y=y, words=words, font=body_font, fill=white, max_width=line_w
                 )
             y += body_line_h
-        # Small extra gap between forced sentences (paragraphs), but avoid trailing gap.
-        if pi != len(paragraphs) - 1:
-            y += max(2, line_gap // 2)
+
+        if si != len(sentences_lines) - 1:
+            y += sentence_gap
 
     out.alpha_composite(panel, (int(panel_x0), int(panel_y0)))
     return (out, "ok")
