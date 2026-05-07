@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 16;
-        private const string BuildTag = "2026-05-07-v16-discard-saint-priority";
+        private const int BuildVersion = 17;
+        private const string BuildTag = "2026-05-07-v17-preselect-discard-hooks";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -674,6 +674,15 @@ namespace WindBot.Game.AI.Decks
         /// </summary>
         public override bool OnPreActivate(ClientCard card)
         {
+            // If an upcoming effect will prompt "discard 1 card", bias the discard selection now.
+            // This is necessary because this plugin build can't override OnSelectCard prompts directly.
+            if (card != null
+                && (card.IsCode(CardId.ClothWolf) || card.IsCode(CardId.ClothLionet))
+                && (card.Location & CardLocation.SpellZone) != 0)
+            {
+                PreselectDiscardSaintPriority();
+            }
+
             if (card != null
                 && (card.IsCode(CardId.AwakeningOfTheCosmos) || card.IsCode(CardId.BondOfBrotherhood))
                 && IsOpenOwnMainPhaseNoChain())
