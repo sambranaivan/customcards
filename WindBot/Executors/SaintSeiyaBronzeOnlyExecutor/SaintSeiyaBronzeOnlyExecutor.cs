@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 15;
-        private const string BuildTag = "2026-05-07-v15-conditional-normal-set";
+        private const int BuildVersion = 16;
+        private const string BuildTag = "2026-05-07-v16-discard-saint-priority";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -629,12 +629,43 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private void PreselectDiscardPreferIchi()
+        private static readonly int[] SaintDiscardPriority =
+        {
+            // User rule: prioritize Ichi, then Ban, then others.
+            CardId.Ichi,
+            CardId.Ikki,
+            CardId.Ban,
+            CardId.Nachi,
+            CardId.Geki,
+            CardId.Jabu,
+            CardId.Shun,
+            CardId.Hyoga,
+            CardId.Shiryu,       
+            CardId.Seiya,
+            CardId.Mu,
+            CardId.Kiki
+        };
+
+        private int? ChooseSaintDiscardFromHand(params int[] excluded)
+        {
+            var excludedSet = new HashSet<int>(excluded ?? new int[0]);
+            foreach (var id in SaintDiscardPriority)
+            {
+                if (excludedSet.Contains(id))
+                    continue;
+                if (Bot.HasInHand(id))
+                    return id;
+            }
+            return null;
+        }
+
+        private void PreselectDiscardSaintPriority(params int[] excluded)
         {
             // Some executor builds don't expose OnSelectCard overrides to plugins.
             // We can still bias upcoming selection prompts by queuing a selection.
-            if (Bot.HasInHand(CardId.Ichi))
-                AI.SelectNextCard(CardId.Ichi);
+            var pick = ChooseSaintDiscardFromHand(excluded);
+            if (pick.HasValue)
+                AI.SelectNextCard(pick.Value);
         }
 
         /// <summary>
@@ -1381,7 +1412,7 @@ namespace WindBot.Game.AI.Decks
             if (clothInGy == null)
                 return false;
             AI.SelectCard(clothInGy);
-            PreselectDiscardPreferIchi(); // after add-from-GY, effect discards 1
+            PreselectDiscardSaintPriority(); // after add-from-GY, effect discards 1
             return true;
         }
 
@@ -1412,9 +1443,10 @@ namespace WindBot.Game.AI.Decks
             if (!Bot.Hand.IsExistingMatchingCard(c => Saints.Contains(c.Id) && c.Id != CardId.Ikki))
                 return false;
 
-            // Ikki revive cost = discard 1 "Saint": prioritize Ichi for discard synergy when available.
-            if (Bot.HasInHand(CardId.Ichi))
-                AI.SelectCard(CardId.Ichi);
+            // Ikki revive cost = discard 1 "Saint": prioritize Ichi, then Ban, then others.
+            var discard = ChooseSaintDiscardFromHand(CardId.Ikki);
+            if (discard.HasValue)
+                AI.SelectCard(discard.Value);
             else
                 AI.SelectCard(ChooseSaintToMaximizeDistinct());
             return true;
