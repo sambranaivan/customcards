@@ -14,7 +14,7 @@
 --
 -- Effect (EN):
 -- If this card attacks an opponent's monster, before damage calculation: Change that opponent's monster to Defense Position, and if you do, negate its effects until the end of your opponent's next turn.
--- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your hand or GY to this card.
+-- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card.
 -- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
 -- You can only use each effect of "Saint - Hyoga of Cygnus" once per turn.
@@ -103,16 +103,16 @@ function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
 		return c:IsFaceup()
 			and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
-			and Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,nil)
+			and Duel.IsExistingMatchingCard(s.eqfilter,tp,LOCATION_GRAVE,0,1,nil)
 	end
-	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
+	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_GRAVE)
 end
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsRelateToEffect(e) or not c:IsFaceup() then return end
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.eqfilter,tp,LOCATION_GRAVE,0,1,1,nil)
 	local tc=g:GetFirst()
 	if not tc then return end
 	if Duel.Equip(tp,tc,c,true) then
