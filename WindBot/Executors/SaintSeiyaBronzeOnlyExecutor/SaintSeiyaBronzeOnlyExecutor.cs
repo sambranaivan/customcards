@@ -447,7 +447,7 @@ on EVENT_CHAINING:
 
 ## Notes / implementation tips
 
-- Many Saints (Seiya/Shiryu/Hyoga/Shun/Ikki) have “pay 500 LP: equip a Cloth from hand/GY” **and then** apply an **Extra Deck lock**. Since this deck has **no Extra Deck**, the lock is free; the bot can treat that equip as “always safe”.
+- Many Saints (Seiya/Shiryu/Hyoga/Shun/Ikki) have “pay 500 LP: equip a Cloth from GY” **and then** apply an **Extra Deck lock**. Since this deck has **no Extra Deck**, the lock is free; the bot can treat that equip as “always safe”.
 - Always preserve the invariant:
   - if you have (or will set) `922100103`, keep **HasEquippedSaint == true** before ending your turn.
 - Try to keep `CountDistinctSaintNamesOnField() >= 3` when holding `922100082` set, even if that means choosing a weaker attacker.
@@ -467,8 +467,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 12;
-        private const string BuildTag = "2026-05-06-v12-discard-mill-search-priorities";
+        private const int BuildVersion = 15;
+        private const string BuildTag = "2026-05-07-v15-conditional-normal-set";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -595,10 +595,37 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Never Normal Set Level 4 Saints here: we need face-up names / effects. Defensive posture is FaceUpDefence via <see cref="OnSelectPosition"/>.
+        /// Allow Normal Set only in "survive" lines (e.g., empty board into a strong attacker),
+        /// otherwise prefer face-up bodies for distinct-name requirements and on-field effects.
         /// </summary>
         public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
+            if (card == null)
+                return false;
+
+            // Default: do not set — we want face-up names/effects.
+            // Exception: if we're facing pressure and need to block direct attacks, setting is acceptable.
+            if (Duel.Player != 0 || !IsMainPhase())
+                return false;
+
+            if (Bot.GetMonsterCount() != 0)
+                return false;
+
+            if (Enemy.GetMonsterCount() == 0)
+                return false;
+
+            // Prefer Seiya face-up as the best starter; don't set it.
+            if (card.IsCode(CardId.Seiya))
+                return false;
+
+            int enemyBestAtk = Util.GetBestAttack(Enemy);
+            if (enemyBestAtk <= 0)
+                return false;
+
+            // If even DEF won't wall, set to at least prevent direct attack lines this turn.
+            if (enemyBestAtk > card.Defense)
+                return true;
+
             return false;
         }
 
@@ -774,11 +801,10 @@ namespace WindBot.Game.AI.Decks
             return Bot.GetRemainingCount(clothId, (int)(CardLocation.Deck | CardLocation.Grave)) > 0;
         }
 
-        /// <summary>Ikki's ignition equip only selects from Hand or GY.</summary>
-        private bool ClothAccessibleFromHandOrGraveyard(int clothId)
+        /// <summary>Pay-500 equip effects for Saints (922100000..004) now equip Cloths from GY only.</summary>
+        private bool ClothAccessibleFromGraveyard(int clothId)
         {
-            return Bot.HasInHand(clothId)
-                   || Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(clothId));
+            return Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(clothId));
         }
 
         private bool HasFreeMainSpellZoneForEquip()
@@ -837,15 +863,6 @@ namespace WindBot.Game.AI.Decks
                 if (!order.Contains(id))
                     order.Add(id);
             return order.ToArray();
-        }
-
-        private int[] BuildIkkiEquipClothPriority()
-        {
-            var order = new List<int> { CardId.ClothPhoenix };
-            foreach (var id in Cloths)
-                if (id != CardId.ClothPhoenix)
-                    order.Add(id);
-            return order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
         }
 
         private int[] BuildKikiClothPriorityForTarget(ClientCard saintTarget)
@@ -980,7 +997,7 @@ namespace WindBot.Game.AI.Decks
             if (!HasFreeMainSpellZoneForEquip())
                 return false;
             var order = BuildPayEquipClothOrder(saintMonsterId);
-            var filtered = order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
+            var filtered = order.Where(ClothAccessibleFromGraveyard).ToArray();
             if (filtered.Length == 0)
                 return false;
             AI.SelectCard(filtered);
@@ -1375,20 +1392,12 @@ namespace WindBot.Game.AI.Decks
 
             var d = ActivateDescription;
 
-            // Field: pay 500 LP; equip 1 "Cloth" from Hand or GY (Stringid 1).
+            // Field: pay 500 LP; equip 1 "Cloth" from GY (Stringid 1).
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
                 if (d != -1 && d != Util.GetStringId(CardId.Ikki, 1))
                     return false;
-                if (Bot.LifePoints < 500)
-                    return false;
-                if (!HasFreeMainSpellZoneForEquip())
-                    return false;
-                var clothOrder = BuildIkkiEquipClothPriority();
-                if (clothOrder.Length == 0)
-                    return false;
-                AI.SelectCard(clothOrder);
-                return true;
+                return ResolvePayEquipSaint(CardId.Ikki);
             }
 
             // GY: discard 1 "Saint" → Special Summon (Stringid 0).
