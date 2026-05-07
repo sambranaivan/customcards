@@ -15,6 +15,7 @@ Composition:
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -288,6 +289,89 @@ def _wrap_text(text: str, draw: ImageDraw.ImageDraw, font: ImageFont.ImageFont, 
     return lines
 
 
+def _split_sentences_newlines(text: str) -> list[str]:
+    """
+    Convert every '. ' into a forced newline (keeping the period).
+    Also normalizes newlines and strips surrounding whitespace.
+    """
+    t = (text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
+    if not t:
+        return []
+    # If the source already has a newline before "Also", remove that break.
+    # We want "... . Also ..." to stay on the same line.
+    t = re.sub(r"\.\s*\n\s*Also\b", ". Also", t)
+    # Forced break after sentence terminator dot-space,
+    # except for ". Also" which should remain on the same line.
+    t = re.sub(r"\.\s+(?!Also\b)", ".\n", t)
+    # Collapse multiple blank lines.
+    parts = [p.strip() for p in t.split("\n")]
+    return [p for p in parts if p]
+
+
+def _text_width(draw: ImageDraw.ImageDraw, text: str, font: ImageFont.ImageFont) -> int:
+    bbox = draw.textbbox((0, 0), text, font=font)
+    return int(bbox[2] - bbox[0])
+
+
+def _draw_justified_line(
+    draw: ImageDraw.ImageDraw,
+    *,
+    x: int,
+    y: int,
+    words: list[str],
+    font: ImageFont.ImageFont,
+    fill: tuple[int, int, int, int],
+    max_width: int,
+) -> None:
+    """
+    Draw a single justified line made from `words`, distributing spaces to fill `max_width`.
+    """
+    if not words:
+        return
+    if len(words) == 1:
+        draw.text((x, y), words[0], font=font, fill=fill)
+        return
+
+    total_words_w = sum(_text_width(draw, w, font) for w in words)
+    gaps = len(words) - 1
+    space_w = _text_width(draw, " ", font)
+    base_total_space = space_w * gaps
+    extra = max(0, max_width - (total_words_w + base_total_space))
+
+    # Distribute extra pixels across gaps.
+    per_gap, rem = divmod(extra, gaps)
+
+    cx = x
+    for i, w in enumerate(words):
+        draw.text((cx, y), w, font=font, fill=fill)
+        cx += _text_width(draw, w, font)
+        if i < gaps:
+            cx += space_w + per_gap + (1 if i < rem else 0)
+
+
+def _wrap_paragraph(text: str, draw: ImageDraw.ImageDraw, font: ImageFont.ImageFont, max_width: int) -> list[list[str]]:
+    """
+    Wrap paragraph into lines of words (no justification applied here).
+    Returns list of lines, each line is list of words.
+    """
+    words = (text or "").split()
+    if not words:
+        return []
+    lines: list[list[str]] = []
+    cur: list[str] = []
+    for w in words:
+        trial_words = cur + [w]
+        trial = " ".join(trial_words)
+        if _text_width(draw, trial, font) <= max_width or not cur:
+            cur = trial_words
+        else:
+            lines.append(cur)
+            cur = [w]
+    if cur:
+        lines.append(cur)
+    return lines
+
+
 def _measure_text_height(draw: ImageDraw.ImageDraw, lines: list[str], font: ImageFont.ImageFont, line_gap: int) -> int:
     if not lines:
         return 0
@@ -333,7 +417,12 @@ def _fit_fonts_for_panel(
         # Wrap title too (rare but possible).
         title_lines = _wrap_text(title, draw, title_font, max_text_w)
         meta_lines = _wrap_text(meta, draw, meta_font, max_text_w)
-        body_lines = _wrap_text(effect_text, draw, body_font, max_text_w)
+        # Forced newlines at ". " then wrap each sentence.
+        paragraphs = _split_sentences_newlines(effect_text)
+        body_lines: list[str] = []
+        for p in paragraphs:
+            wl = _wrap_text(p, draw, body_font, max_text_w)
+            body_lines.extend(wl if wl else [])
 
         needed = 0
         needed += _measure_text_height(draw, title_lines, title_font, line_gap)
@@ -509,7 +598,7 @@ def _composite_sheet(
     if not desc:
         desc = "(No text)"
 
-    title_font, meta_font, label_font, body_font, body_lines = _fit_fonts_for_panel(
+    title_font, meta_font, label_font, body_font, _ = _fit_fonts_for_panel(
         pd,
         width=panel.width,
         height=panel.height,
@@ -553,9 +642,22 @@ def _composite_sheet(
 
     body_bbox = pd.textbbox((0, 0), "Ag", font=body_font)
     body_line_h = (body_bbox[3] - body_bbox[1]) + line_gap
-    for bl in body_lines:
-        pd.text((x, y), bl, font=body_font, fill=white)
-        y += body_line_h
+    # Effect text: forced newline on ". " and justify each line (except last of each paragraph).
+    paragraphs = _split_sentences_newlines(desc)
+    for pi, p in enumerate(paragraphs):
+        wrapped_word_lines = _wrap_paragraph(p, pd, body_font, max_text_w)
+        for li, words in enumerate(wrapped_word_lines):
+            is_last_line = li == len(wrapped_word_lines) - 1
+            if is_last_line:
+                pd.text((x, y), " ".join(words), font=body_font, fill=white)
+            else:
+                _draw_justified_line(
+                    pd, x=x, y=y, words=words, font=body_font, fill=white, max_width=max_text_w
+                )
+            y += body_line_h
+        # Small extra gap between forced sentences (paragraphs), but avoid trailing gap.
+        if pi != len(paragraphs) - 1:
+            y += max(2, line_gap // 2)
 
     out.alpha_composite(panel, (int(panel_x0), int(panel_y0)))
     return (out, "ok")
