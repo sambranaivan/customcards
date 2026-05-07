@@ -60,6 +60,8 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 All these share a key consistency effect:
 **Discard this card → add 1 Level 4 "Saint" monster from Deck to hand.**
 
+Andromeda (`922100044`) additionally: while the equipped Saint is in Defense Position, the opponent cannot attack your other monsters and cannot activate effects of monsters they Special Summoned this turn; if equipped to Shun (`922100003`), that monster can attack directly.
+
 - `922100041` Bronze Cloth - Pegasus
 - `922100042` Bronze Cloth - Dragon
 - `922100043` Bronze Cloth - Cygnus
@@ -467,8 +469,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 23;
-        private const string BuildTag = "2026-05-07-v23-ban-ss-hand-only";
+        private const int BuildVersion = 24;
+        private const string BuildTag = "2026-05-07-v24-andromeda-cloth";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -1190,6 +1192,26 @@ namespace WindBot.Game.AI.Decks
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
 
+            // Shun + Andromeda Cloth (922100044): DEF unlocks the "protect other monsters / freeze SS'd monsters" line;
+            // ATK enables declaring attacks including direct attack while equipped.
+            if (cardId == CardId.Shun && positions != null)
+            {
+                bool andromedaSoon = Bot.Hand.IsExistingMatchingCard(c => c.IsCode(CardId.ClothAndromeda))
+                    || Bot.SpellZone.Any(z => z != null && z.IsCode(CardId.ClothAndromeda));
+                if (andromedaSoon)
+                {
+                    if (Bot.GetMonsterCount() >= 1 && positions.Contains(CardPosition.FaceUpDefence))
+                        return CardPosition.FaceUpDefence;
+
+                    if (Bot.GetMonsterCount() == 0 && positions.Contains(CardPosition.FaceUpAttack))
+                    {
+                        int enemyBest = Util.GetBestAttack(Enemy);
+                        if (enemyBest <= atkStat || Enemy.LifePoints <= 2500)
+                            return CardPosition.FaceUpAttack;
+                    }
+                }
+            }
+
             if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
@@ -1230,6 +1252,8 @@ namespace WindBot.Game.AI.Decks
         /// <summary>
         /// Bronze Cloth: hand ignition (discard → search L4 Saint), GY trigger (target Saint → re-equip next Standby),
         /// and Standby Phase equip resolution on the registered Cloth in GY.
+        /// Andromeda (922100044): while equipped Saint is in DEF, protects other monsters + restricts opponent SS'd monsters;
+        /// with Shun it grants direct attack — script uses aux.Stringid(id,2) for the GY re-equip trigger (not id,3 like Pegasus).
         /// </summary>
         private bool ResolveClothActivate()
         {
@@ -1237,7 +1261,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             if ((Card.Location & CardLocation.Hand) != 0)
-                return ActivateClothDiscardFromHand();
+                return ResolveBronzeClothActivateFromHand();
 
             if ((Card.Location & CardLocation.Grave) != 0)
             {
@@ -1254,10 +1278,92 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>
+        /// Hand-only descriptions for Bronze Cloth: 0 = discard → search, 1 = activate to equip.
+        /// Andromeda script matches this layout (922100044).
+        /// </summary>
+        private bool ResolveBronzeClothActivateFromHand()
+        {
+            var d = ActivateDescription;
+            var sidDiscard = Util.GetStringId(Card.Id, 0);
+            var sidEquip = Util.GetStringId(Card.Id, 1);
+
+            if (d == sidEquip)
+                return ActivateBronzeClothEquipFromHand();
+            if (d == sidDiscard)
+                return ActivateClothDiscardFromHand();
+
+            if (d != -1 && d != sidDiscard && d != sidEquip)
+                return false;
+
+            if (ShouldPreferBronzeClothEquipFromHand())
+                return ActivateBronzeClothEquipFromHand();
+            return ActivateClothDiscardFromHand();
+        }
+
+        private bool ShouldPreferBronzeClothEquipFromHand()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (!ControlAnySaint())
+                return false;
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+            if (NeedEquipForVerdict())
+                return true;
+
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                var paired = ClothMatchingSaint(m.Id);
+                if (paired.HasValue && paired.Value == Card.Id)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool ActivateBronzeClothEquipFromHand()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (!ControlAnySaint())
+                return false;
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+
+            ClientCard target = null;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                var paired = ClothMatchingSaint(m.Id);
+                if (paired.HasValue && paired.Value == Card.Id)
+                {
+                    target = m;
+                    break;
+                }
+            }
+
+            if (target == null)
+                target = Bot.MonsterZone.FirstOrDefault(c => c != null && c.IsFaceup() && Saints.Contains(c.Id));
+
+            if (target == null)
+                return false;
+
+            AI.SelectCard(target);
+            return true;
+        }
+
         private bool ActivateClothSentFromFieldToGyReequip()
         {
             // "If this face-up Equip in S/T Zone is sent to the GY: target 1 Saint you control; next Standby Phase equip this card."
             if (!ControlAnySaint())
+                return false;
+
+            var d = ActivateDescription;
+            if (d != -1 && (d == Util.GetStringId(Card.Id, 0) || d == Util.GetStringId(Card.Id, 1)))
                 return false;
 
             AI.SelectCard(BuildSaintTargetPriorityForClothReequip(Card.Id));

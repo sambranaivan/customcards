@@ -10,8 +10,8 @@
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- You can discard this card; add 1 Level 4 "Saint" monster from your Deck to your hand.
--- The equipped monster can attack directly.
--- If the equipped monster is "Saint - Shun of Andromeda", while it is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
+-- While the equipped monster is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
+-- If this card is equipped to "Saint - Shun of Andromeda", the equipped monster can attack directly.
 -- If this face-up Equip Card in its owner's Spell & Trap Zone is sent to the GY: You can target 1 "Saint" monster you control; during your next Standby Phase, equip this card to that target, but banish it when it leaves the field.
 -- You can only use 1 effect of "Bronze Cloth - Andromeda" per turn, and only once that turn.
 --]==]
@@ -39,15 +39,16 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_EQUIP)
 	e3:SetCode(EFFECT_DIRECT_ATTACK)
 	e3:SetValue(1)
+	e3:SetCondition(s.dircon)
 	c:RegisterEffect(e3)
 
-	--Shun bonus (DEF): opponent cannot attack other monsters; cannot activate effects of monsters Special Summoned this turn
+	--DEF Position (any equipped Saint): opponent cannot attack other monsters; cannot activate effects of monsters Special Summoned this turn
 	local e4=Effect.CreateEffect(c)
 	e4:SetType(EFFECT_TYPE_FIELD)
 	e4:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
 	e4:SetRange(LOCATION_SZONE)
 	e4:SetTargetRange(0,LOCATION_MZONE)
-	e4:SetCondition(s.shuncon)
+	e4:SetCondition(s.defcon)
 	e4:SetValue(s.atlimit)
 	c:RegisterEffect(e4)
 	local e5=Effect.CreateEffect(c)
@@ -56,7 +57,7 @@ function s.initial_effect(c)
 	e5:SetCode(EFFECT_CANNOT_ACTIVATE)
 	e5:SetRange(LOCATION_SZONE)
 	e5:SetTargetRange(0,1)
-	e5:SetCondition(s.shuncon)
+	e5:SetCondition(s.defcon)
 	e5:SetValue(s.actlimit)
 	c:RegisterEffect(e5)
 
@@ -103,9 +104,14 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
-function s.shuncon(e)
+function s.dircon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100003) and ec:IsDefensePos()
+	return ec and ec:IsCode(922100003)
+end
+
+function s.defcon(e)
+	local ec=e:GetHandler():GetEquipTarget()
+	return ec and ec:IsFaceup() and ec:IsDefensePos()
 end
 function s.atlimit(e,c)
 	return c:IsSetCard(SET_SAINT) and c~=e:GetHandler():GetEquipTarget()
