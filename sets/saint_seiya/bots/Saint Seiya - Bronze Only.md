@@ -50,11 +50,11 @@ All these share a key consistency effect:
 
 ### Spells / Traps
 - `922100079` Athena's Sanctuary (Field Spell - base)
-- `922100081` Raise Your Cosmos! (Normal Spell)
-- `922100086` Awakening of the Cosmos (Quick-Play)
+- `922100081` Inherited Cosmos (Normal Spell)
+- `922100086` Athena's Shield (Quick-Play)
 - `922100088` Athena's Call (Normal Spell)
 - `922100092` Bond of Brotherhood (Quick-Play)
-- `922100082` Athena Exclamation (Counter Trap)
+- `922100082` Athena's Vanguard (Counter Trap)
 - `922100101` Crystal Wall (Counter Trap)
 - `922100103` The Pope's Verdict (Counter Trap)
 
@@ -66,7 +66,7 @@ All these share a key consistency effect:
 - `922100088` **Athena's Call**: main starter. If you control no monsters it can search `922100011` instead.
 - `922100000` **Seiya**: best starter (summon-search + self-SS if you control no monsters).
 - Any **Bronze Cloth in hand**: acts as a “starter” because it converts into a Level 4 Saint search.
-- `922100081` **Raise Your Cosmos!**: fixes hands while setting GY (send 1 Saint from Deck; add a different-name Saint).
+- `922100081` **Inherited Cosmos**: fixes hands while setting GY (send 1 Saint from Deck; add a different-name Saint).
 
 ### Extenders (increase bodies / unique names)
 - `922100005` **Jabu**: hand extender (SS if you control a Saint). On SS: add 1 Cloth from GY, then discard 1.
@@ -77,7 +77,7 @@ All these share a key consistency effect:
   - Next turn Standby: banish from GY → add up to 2 different-name Cloths from GY.
 
 ### Payoffs / “board requirements”
-- `922100082` **Athena Exclamation** turns on at **3+ different-name Saints**.
+- `922100082` **Athena's Vanguard** turns on at **3+ different-name Saints**.
 - `922100103` **The Pope’s Verdict** turns on if you control a **Saint equipped with a Cloth**.
 
 ### Stabilizers / protection
@@ -117,7 +117,7 @@ When deciding to spend Counter Traps:
 - **Tier B**: value plays (small removal, minor advantage).
 
 Use:
-- `Athena Exclamation (082)` mostly for **Tier S/A**.
+- `Athena's Vanguard (082)` mostly for **Tier S/A**.
 - `Pope’s Verdict (103)` for **Tier S/A** if it stops Spell/Trap lines.
 - `Crystal Wall (101)` whenever opponent targets your Saints with a negatable activation (usually Tier S/A by definition).
 
@@ -411,7 +411,7 @@ on EVENT_CHAINING:
       Activate(922100103)
 ```
 
-### `922100082` Athena Exclamation
+### `922100082` Athena's Vanguard
 
 ```pseudo
 on EVENT_CHAINING:

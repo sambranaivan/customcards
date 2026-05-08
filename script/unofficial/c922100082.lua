@@ -1,4 +1,4 @@
---Cosmo Convergence
+--Athena's Vanguard
 --[==[
 -- ID: 922100082
 -- Type: Trap / Counter Trap
@@ -9,7 +9,7 @@
 -- Effect (EN):
 -- If you control 3 or more "Saint" monsters with different names: When your opponent activates a card or effect: Negate the activation, and if you do, destroy that card.
 --]==]
---Cosmo Convergence
+--Athena's Vanguard
 local s,id=GetID()
 function s.initial_effect(c)
 	--Activate

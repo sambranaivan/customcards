@@ -14,12 +14,12 @@ def main() -> None:
     TYPE_COUNTER = 0x100000
 
     entries = [
-        (922100081, "Raise Your Cosmos!", TYPE_SPELL),
-        (922100082, "Athena Exclamation", TYPE_TRAP | TYPE_COUNTER),
+        (922100081, "Inherited Cosmos", TYPE_SPELL),
+        (922100082, "Athena's Vanguard", TYPE_TRAP | TYPE_COUNTER),
         (922100083, "The Galactic Tournament", TYPE_SPELL | TYPE_CONTINUOUS),
         (922100084, "Sanctuary Assassination Order", TYPE_SPELL),
         (922100085, "Golden Inheritance", TYPE_SPELL),
-        (922100086, "Awakening of the Cosmos", TYPE_SPELL | TYPE_QUICKPLAY),
+        (922100086, "Athena's Shield", TYPE_SPELL | TYPE_QUICKPLAY),
         (922100087, "Master's Legacy", TYPE_SPELL),
         (922100088, "Athena's Call", TYPE_SPELL),
         (922100089, "Training at the Sanctuary", TYPE_SPELL),

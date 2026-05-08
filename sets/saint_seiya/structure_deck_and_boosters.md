@@ -52,8 +52,8 @@ Cada mes: **1 Structure Deck** (mazo listo para jugar) + **1 Booster** (pool de 
 
 | Producto | Contenido sugerido |
 |----------|---------------------|
-| **Structure Deck** | Bronze Saints (`922100000`–`922100005` + extensores), Bronze Cloth `922100041`–`922100050`, campo Reforged `922100080`, Raise Cosmos `922100081`, Galactic Tournament `922100083`, Awakening `922100086` |
-| **Booster SAN-01** | Reprints motor: Sanctuary base `922100079`, Athena Exclamation `922100082`, Sanctuary Assassination `922100084`; picks desde Meta `922100268`–`922100302` |
+| **Structure Deck** | Bronze Saints (`922100000`–`922100005` + extensores), Bronze Cloth `922100041`–`922100050`, campo Reforged `922100080`, Inherited Cosmos `922100081`, Galactic Tournament `922100083`, Athena's Shield `922100086` |
+| **Booster SAN-01** | Reprints motor: Sanctuary base `922100079`, Athena's Vanguard `922100082`, Sanctuary Assassination `922100084`; picks desde Meta `922100268`–`922100302` |
 
 ### Mes 2 — SD02: **Silver Crusade**
 

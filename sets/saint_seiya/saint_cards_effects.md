@@ -999,15 +999,15 @@ You can only use each of the following effects of "Athena's Sanctuary - Reforged
 ● If 1 or more "Cloth" cards were sent to your GY this turn: You can apply this effect; during the Standby Phase of your next turn, add 1 of those cards from your GY to your hand.
 ```
 
-### Raise Your Cosmos! (Normal Spell)
+### Inherited Cosmos (Normal Spell)
 - **Card Type**: Normal Spell
 
 ```text
 Send 1 "Saint" monster from your Deck to the GY; add 1 "Saint" monster with a different name from your Deck to your hand.
-You can only activate 1 "Raise Your Cosmos!" per turn.
+You can only activate 1 "Inherited Cosmos" per turn.
 ```
 
-### Athena Exclamation (Counter Trap)
+### Athena's Vanguard (Counter Trap)
 - **Card Type**: Counter Trap
 
 ```text
@@ -1043,13 +1043,13 @@ If this card is in your GY: You can banish this card, then target 1 "Gold Saint"
 You can only use this GY effect of "Golden Inheritance" once per turn.
 ```
 
-### Awakening of the Cosmos (Quick-Play Spell)
+### Athena's Shield (Quick-Play Spell)
 - **Card Type**: Quick-Play Spell
 
 ```text
 Target 1 "Saint" monster you control; it cannot be destroyed by battle or card effects this turn.
 If a "Saint" monster you control would be destroyed by battle or card effect, you can banish this card from your GY instead.
-You can only activate 1 "Awakening of the Cosmos" per turn.
+You can only activate 1 "Athena's Shield" per turn.
 ```
 
 ### Master's Legacy (Normal Spell)

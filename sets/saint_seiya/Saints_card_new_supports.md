@@ -7,7 +7,7 @@ Carta Original,Equivalente Saint Seiya,Nombre Propuesto,Efecto Temático
 Ash Blossom,Intervención de Marin,Lección del Maestro,Descarta esta carta; niega un efecto que busque en el Deck.
 Effect Veiler,Cadenas de Shun,Defensa de la Cadena,(Efecto Rápido): Selecciona 1 monstruo; niega sus efectos hasta el final del turno.
 Infinite Impermanence,El Escudo de Medusa,Mirada Petrificante,"Niega los efectos de un monstruo en el campo (si no controlas cartas, se activa desde la mano)."
-Nibiru,Athena Exclamation,Técnica Prohibida,"Si el oponente invoca 5+ veces: limpia el campo e invoca un token de ""Energía Galáctica""."
+Nibiru,Athena's Vanguard,Técnica Prohibida,"Si el oponente invoca 5+ veces: limpia el campo e invoca un token de ""Energía Galáctica""."
 
 
 B. Draw Power & Searchers (Consistencia)
@@ -82,7 +82,7 @@ Si un monstruo "Saint" que controles fuera a ser destruido por un ataque o efect
 Flavor: El sacrificio de Cassios para proteger a Seiya en la casa de Leo. Es tu "seguro de vida" contra mazos agresivos.
 
 Trampas de Contraataque: La Voluntad de Hierro
-1. Athena Exclamation (La Técnica Prohibida)
+1. Athena's Vanguard (La Técnica Prohibida)
 El "Solemn Judgment" del mazo. Es devastadora, pero tiene un precio alto.
 
 [Trampa de Contraataque]
