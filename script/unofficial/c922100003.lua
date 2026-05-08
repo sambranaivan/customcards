@@ -14,10 +14,9 @@
 --
 -- Effect (EN):
 -- Your opponent cannot target other "Saint" monsters you control for attacks.
--- If this card is equipped with a "Cloth" card, it can attack while in Defense Position. Apply its ATK for damage calculation.
--- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card.
--- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
--- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
+-- If this card is equipped with a "Cloth" Equip Spell, it can attack while in Defense Position. Use its DEF for damage calculation.
+-- You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card, also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+-- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 face-up "Cloth" Equip Spell you control to that monster, or attach it to it as material (if it is an Xyz Monster).
 -- You can only use each effect of "Bronze Saint - Shun of Andromeda" once per turn.
 --]==]
 --Saint - Shun of Andromeda

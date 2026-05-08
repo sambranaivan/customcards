@@ -14,8 +14,8 @@
 --
 -- Effect (EN):
 -- If this card is sent to the GY as Link Material or Tributed: You can draw 1 card, then discard 1 card.
--- Once per turn: You can target 1 "Cloth" card in your GY; shuffle it into the Deck, then draw 1 card.
--- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
+-- You can shuffle 1 "Cloth" card from your GY into the Deck, then draw 1 card.
+-- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 face-up "Cloth" Equip Spell you control to that monster, or attach it to it as material (if it is an Xyz Monster).
 -- You can only use each effect of "Bronze Saint - Nachi of Wolf" once per turn.
 --]==]
 --Saint - Nachi of Wolf

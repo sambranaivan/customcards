@@ -11,8 +11,8 @@
 -- (no archetype setcode — not treated as a "Saint" / "Bronze Saint" series monster; effects reference "Cloth" / Field by name.)
 --
 -- Effect (EN):
--- If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; add them to your hand.
--- During your Main Phase: You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
+-- If this card is Normal or Special Summoned: You can target 1 or 2 "Cloth" Equip Spells in your GY; add them to your hand.
+-- You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
 -- You can only use each effect of "Mu of Aries - The Cloth Repairer" once per turn.
 --]==]
 --Mu of Aries - The Cloth Repairer

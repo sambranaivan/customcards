@@ -13,10 +13,9 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- (Quick Effect): You can discard this card; "Cloth" cards you control cannot be destroyed by card effects this turn.
--- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card.
--- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
--- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
+-- (Quick Effect): You can discard this card; "Cloth" cards you control cannot be destroyed by card effects until the end of this turn.
+-- You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card, also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
+-- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 face-up "Cloth" Equip Spell you control to that monster, or attach it to it as material (if it is an Xyz Monster).
 -- You can only use each effect of "Bronze Saint - Shiryu of Dragon" once per turn.
 --]==]
 --Saint - Shiryu of Dragon
