@@ -7,7 +7,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- When your opponent activates a Spell/Trap Card or effect, while you control a "Saint" monster equipped with a "Cloth" card: Negate the activation, and if you do, Set that card in your opponent's Spell & Trap Zone, and it cannot be activated while you control that equipped monster.
+-- When your opponent activates a Spell/Trap Card or effect, while you control a "Saint" monster equipped with a "Cloth" card: Negate the activation, and if you do, Set that card in your opponent's Spell & Trap Zone, and it cannot be activated until the end of the next turn.
 -- You can only activate 1 "The Pope's Verdict" per turn.
 --]==]
 --The Pope's Verdict
@@ -47,20 +47,15 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.BreakEffect()
 	Duel.SSet(1-tp,rc)
 
-	--Prevent that Set card from being activated while you control the equipped monster (best-effort: while you control any Saint equipped with a Cloth)
+	--Prevent that Set card from being activated until the end of the next turn
 	local e1=Effect.CreateEffect(e:GetHandler())
 	e1:SetType(EFFECT_TYPE_SINGLE)
 	e1:SetCode(EFFECT_CANNOT_TRIGGER)
 	e1:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e1:SetRange(LOCATION_SZONE)
-	e1:SetCondition(s.lockcon)
-	e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+	e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END,2)
 	rc:RegisterEffect(e1)
 	local e2=e1:Clone()
 	e2:SetCode(EFFECT_CANNOT_ACTIVATE)
 	rc:RegisterEffect(e2)
-end
-function s.lockcon(e)
-	local tp=e:GetHandlerPlayer()
-	return Duel.IsExistingMatchingCard(s.equipped_filter,tp,LOCATION_MZONE,0,1,nil)
 end
