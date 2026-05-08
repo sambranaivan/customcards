@@ -469,8 +469,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 25;
-        private const string BuildTag = "2026-05-08-v25-crystalwall-popeneverdict";
+        private const int BuildVersion = 29;
+        private const string BuildTag = "2026-05-08-v29-mass-chain-heuristics-shiryu-bond";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -505,7 +505,7 @@ namespace WindBot.Game.AI.Decks
             public const int AthenasSanctuary = 922100079;
             public const int RaiseYourCosmos = 922100081;
             public const int AthenaExclamation = 922100082;
-            public const int AwakeningOfTheCosmos = 922100086;
+            public const int AthenasShield = 922100086;
             public const int AthenasCall = 922100088;
             public const int BondOfBrotherhood = 922100092;
             public const int CrystalWall = 922100101;
@@ -548,7 +548,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.AthenaExclamation, ActivateAthenaExclamation);
 
             // Protection / setup
-            AddExecutor(ExecutorType.Activate, CardId.AwakeningOfTheCosmos, ActivateAwakening);
+            AddExecutor(ExecutorType.Activate, CardId.AthenasShield, ActivateAthenasShield);
             AddExecutor(ExecutorType.Activate, CardId.BondOfBrotherhood, ActivateBond);
             AddExecutor(ExecutorType.Activate, CardId.AthenasSanctuary, ActivateSanctuary);
 
@@ -723,7 +723,7 @@ namespace WindBot.Game.AI.Decks
             }
 
             if (card != null
-                && (card.IsCode(CardId.AwakeningOfTheCosmos) || card.IsCode(CardId.BondOfBrotherhood))
+                && (card.IsCode(CardId.AthenasShield) || card.IsCode(CardId.BondOfBrotherhood))
                 && IsOpenOwnMainPhaseNoChain())
                 return false;
             return base.OnPreActivate(card);
@@ -732,6 +732,144 @@ namespace WindBot.Game.AI.Decks
         private bool ChainIsEmpty()
         {
             return Duel.CurrentChain == null || Duel.CurrentChain.Count == 0;
+        }
+
+        private object TryGetLastChainLink()
+        {
+            try
+            {
+                if (Duel == null || Duel.CurrentChain == null || Duel.CurrentChain.Count == 0)
+                    return null;
+                return Duel.CurrentChain[Duel.CurrentChain.Count - 1];
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static int? TryReadIntMember(object obj, params string[] names)
+        {
+            if (obj == null || names == null)
+                return null;
+            try
+            {
+                var t = obj.GetType();
+                foreach (var n in names)
+                {
+                    var p = t.GetProperty(n);
+                    if (p != null)
+                    {
+                        var v = p.GetValue(obj, null);
+                        if (v is int)
+                            return (int)v;
+                    }
+                    var f = t.GetField(n);
+                    if (f != null)
+                    {
+                        var v = f.GetValue(obj);
+                        if (v is int)
+                            return (int)v;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static object TryReadObjMember(object obj, params string[] names)
+        {
+            if (obj == null || names == null)
+                return null;
+            try
+            {
+                var t = obj.GetType();
+                foreach (var n in names)
+                {
+                    var p = t.GetProperty(n);
+                    if (p != null)
+                        return p.GetValue(obj, null);
+                    var f = t.GetField(n);
+                    if (f != null)
+                        return f.GetValue(obj);
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private int? TryGetLastChainActivatorPlayer()
+        {
+            // Best effort across WindBot builds: read Player/Controller on the chain link or its handler card.
+            var link = TryGetLastChainLink();
+            if (link == null)
+                return null;
+
+            var p = TryReadIntMember(link, "Player", "Controller", "Activator", "Owner", "ActingPlayer");
+            if (p.HasValue)
+                return p.Value;
+
+            var handler = TryReadObjMember(link, "Card", "Handler", "Source", "EffectCard", "ActivatingCard");
+            p = TryReadIntMember(handler, "Controller", "Player", "Owner");
+            if (p.HasValue)
+                return p.Value;
+
+            return null;
+        }
+
+        private int? TryGetLastChainCardType()
+        {
+            // Attempt to read ActiveType/Type (bitmask of TYPE_* from YGOSharp) if exposed by the chain link.
+            var link = TryGetLastChainLink();
+            if (link == null)
+                return null;
+
+            var t = TryReadIntMember(link, "Type", "ActiveType", "CardType");
+            if (t.HasValue)
+                return t.Value;
+
+            var handler = TryReadObjMember(link, "Card", "Handler", "Source", "EffectCard", "ActivatingCard");
+            t = TryReadIntMember(handler, "Type");
+            if (t.HasValue)
+                return t.Value;
+
+            return null;
+        }
+
+        private bool IsOpponentChainLikelyMassThreat()
+        {
+            if (ChainIsEmpty())
+                return false;
+
+            // Prefer explicit activator when available.
+            var activator = TryGetLastChainActivatorPlayer();
+            if (activator.HasValue && activator.Value == 0)
+                return false;
+
+            // If we can read card type, only treat as "mass threat" for Spell/Trap/Monster (any is fine),
+            // but we mainly want to exclude our own chain.
+            // When type isn't readable, use turn-player heuristic: mass threats we care about mostly happen on opponent's turn.
+            if (!activator.HasValue && Duel.Player == 0)
+                return false;
+
+            // If the chain already targets something, our "targeted" rules handle it; this is for non-targeting wipes.
+            bool anySaintTargeted = Bot.MonsterZone.Any(m => m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            bool anyClothTargeted = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z));
+            if (anySaintTargeted || anyClothTargeted)
+                return false;
+
+            // Board value heuristic: only fire if we actually have something to save.
+            int saintsUp = Bot.MonsterZone.Count(m => m != null && m.IsFaceup() && Saints.Contains(m.Id));
+            bool haveFaceupCloth = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
+            bool haveEquippedShell = HasEquippedSaint();
+            if (saintsUp == 0 && !haveFaceupCloth)
+                return false;
+
+            // If we have multiple Saints or an equipped shell, assume a wipe/removal could be coming.
+            if (saintsUp >= 2 || haveEquippedShell || haveFaceupCloth)
+                return true;
+
+            return false;
         }
 
         /// <summary>Open Main1/Main2 on our turn with no chain — typical "beginner" misuse window for protection QPs.</summary>
@@ -1462,7 +1600,18 @@ namespace WindBot.Game.AI.Decks
                     return false;
                 if (Duel.Player == 0)
                     return false;
-                return Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
+                // Updated script: discard from hand gives our "Cloth" cards indestructible by card effects this turn.
+                // Do NOT burn this from hand unless a chain is actually threatening a face-up Cloth we control.
+                if (!ChainIsEmpty())
+                {
+                    if (Bot.SpellZone.Any(z =>
+                        z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z)))
+                        return true;
+                    // Secondary rule: if opponent chain looks like a non-targeting mass threat and we have face-up Cloths, allow.
+                    if (IsOpponentChainLikelyMassThreat() && Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id)))
+                        return true;
+                }
+                return false;
             }
             if (!IsMainPhase())
                 return false;
@@ -1818,18 +1967,142 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private bool ActivateAwakening()
+        private ClientCard ChooseSaintToProtect()
         {
-            // Save for reactive windows — never burn during open Main on our turn (OnPreActivate also enforces).
-            if (IsOpenOwnMainPhaseNoChain())
+            // Prefer protecting the equipped Saint (keeps Pope's Verdict live) then the highest ATK Saint.
+            var equipped = Bot.MonsterZone.FirstOrDefault(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id)
+                && m.EquipCards != null
+                && m.EquipCards.Any(eq => eq != null && eq.IsFaceup() && Cloths.Contains(eq.Id)));
+            if (equipped != null)
+                return equipped;
+
+            ClientCard best = null;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup() || !Saints.Contains(m.Id))
+                    continue;
+                if (best == null || m.Attack > best.Attack)
+                    best = m;
+            }
+            return best;
+        }
+
+        private ClientCard TryGetAttackedMonster()
+        {
+            // Some WindBot builds expose battle context on Duel (AttackTarget/GetAttackTarget).
+            // Use reflection to stay compatible across ExecutorBase.dll variants.
+            try
+            {
+                if (Duel == null)
+                    return null;
+
+                var t = Duel.GetType();
+                var prop = t.GetProperty("AttackTarget");
+                if (prop != null)
+                {
+                    var v = prop.GetValue(Duel, null) as ClientCard;
+                    if (v != null)
+                        return v;
+                }
+
+                var mGet = t.GetMethod("GetAttackTarget");
+                if (mGet != null)
+                {
+                    var v = mGet.Invoke(Duel, null) as ClientCard;
+                    if (v != null)
+                        return v;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+            return null;
+        }
+
+        private bool ActivateAthenasShield()
+        {
+            // 922100086 updated: quick-play that targets 1 Saint you control; it can't be destroyed this turn.
+            // Also has a GY destroy-replacement that the engine handles (no executor action needed).
+            //
+            // User intent: activate in two cases:
+            // - Our turn: in response to an effect that would destroy a Saint (chain window).
+            // - Opponent turn: when they declare an attack on our monster (battle window).
+            //
+            // This plugin API doesn't expose attacker/attack target, so we approximate by phase + chain targets.
+
+            if (!ControlAnySaint())
                 return false;
-            return true;
+
+            // Case 1: Any chain currently targets one of our Saints (likely destruction/removal).
+            if (!ChainIsEmpty())
+            {
+                var target = Bot.MonsterZone.FirstOrDefault(m =>
+                    m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+                if (target == null)
+                    target = ChooseSaintToProtect();
+                if (target == null)
+                    return false;
+                AI.SelectCard(target);
+                return true;
+            }
+
+            // Case 2: Opponent battle phase windows: protect a key Saint before damage.
+            if (Duel.Player != 0)
+            {
+                switch (Duel.Phase)
+                {
+                    case DuelPhase.BattleStart:
+                    case DuelPhase.BattleStep:
+                    case DuelPhase.Damage:
+                    case DuelPhase.DamageCal:
+                    case DuelPhase.Battle:
+                        // Prefer the actual attack target if the build exposes it.
+                        var attacked = TryGetAttackedMonster();
+                        if (attacked != null
+                            && attacked.IsFaceup()
+                            && Saints.Contains(attacked.Id)
+                            && attacked.Controller == 0)
+                        {
+                            AI.SelectCard(attacked);
+                            return true;
+                        }
+                        var protect = ChooseSaintToProtect();
+                        if (protect == null)
+                            return false;
+                        AI.SelectCard(protect);
+                        return true;
+                }
+            }
+
+            // Don't waste it proactively on open Main.
+            return false;
         }
 
         private bool ActivateBond()
         {
-            if (IsOpenOwnMainPhaseNoChain())
+            // 922100092: protects a targeted Saint from opponent's effects (destruction/banish) this turn.
+            // Avoid burning it pro-actively: only use when a chain targets one of our Saints.
+            if (ChainIsEmpty())
                 return false;
+
+            var targeted = Bot.MonsterZone.FirstOrDefault(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            if (targeted != null)
+            {
+                AI.SelectCard(targeted);
+                return true;
+            }
+
+            // Secondary rule: if the opponent chain looks like a non-targeting mass threat, protect our key Saint.
+            if (!IsOpponentChainLikelyMassThreat())
+                return false;
+
+            var protect = ChooseSaintToProtect();
+            if (protect == null)
+                return false;
+            AI.SelectCard(protect);
             return true;
         }
 

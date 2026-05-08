@@ -41,3 +41,5 @@ WindBot/**/*.pdb
 WindBot/**/obj/
 tools\CardMaker\output\*
 .specstory/
+replay/_LastReplay.yrp
+replay/_LastReplay.yrpX
