@@ -1,4 +1,4 @@
---Raise Your Cosmos! (Normal Spell)
+--Inherited Cosmos (Normal Spell)
 --[==[
 -- ID: 922100081
 -- Type: Spell / Normal Spell
@@ -8,9 +8,9 @@
 --
 -- Effect (EN):
 -- Send 1 "Saint" monster from your Deck to the GY; add 1 "Saint" monster with a different name from your Deck to your hand.
--- You can only activate 1 "Raise Your Cosmos!" per turn.
+-- You can only activate 1 "Inherited Cosmos" per turn.
 --]==]
---Raise Your Cosmos! (Normal Spell)
+--Inherited Cosmos (Normal Spell)
 local s,id=GetID()
 function s.initial_effect(c)
 	--Activate

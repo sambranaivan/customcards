@@ -1,4 +1,4 @@
---Mu of Aries - The Cloth Repairer
+--Mu - The Cloth Repairer
 --[==[
 -- ID: 922100010
 -- Type: Monster / Effect Monster
@@ -12,10 +12,10 @@
 --
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; add them to your hand.
--- During your Main Phase: You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
--- You can only use each effect of "Mu of Aries - The Cloth Repairer" once per turn.
+-- You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
+-- You can only use each effect of "Mu - The Cloth Repairer" once per turn.
 --]==]
---Mu of Aries - The Cloth Repairer
+--Mu - The Cloth Repairer
 local s,id=GetID()
 function s.initial_effect(c)
 	--If Normal or Special Summoned: add up to 2 "Cloth" Equip Spells from GY

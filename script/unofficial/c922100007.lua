@@ -14,9 +14,9 @@
 --
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 Level 5 or higher "Saint" monster from your Deck to your hand.
--- If this card is in your GY: You can target 1 "Cloth" card in your GY; add it to your hand, then banish this card.
--- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Geki of Bear" once per turn.
+-- If this card is in your GY: You can add 1 "Cloth" card from your GY to your hand, and if you do, banish this card.
+-- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 face-up "Cloth" Equip Spell you control to that monster, or attach it to it as material (if it is an Xyz Monster).
+-- You can only use each effect of "Bronze Saint - Geki of Bear" once per turn.
 --]==]
 --Saint - Geki of Bear
 local s,id=GetID()

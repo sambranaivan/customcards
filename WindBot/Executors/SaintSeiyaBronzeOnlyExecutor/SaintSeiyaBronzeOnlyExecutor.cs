@@ -53,12 +53,14 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 - `922100007` **Bronze Saint - Geki of Bear**
 - `922100008` **Bronze Saint - Ban of Lionet**
 - `922100009` **Bronze Saint - Nachi of Wolf**
-- `922100010` **Mu of Aries - The Cloth Repairer**
+- `922100010` **Mu - The Cloth Repairer**
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
 
 ### Bronze Cloth (Equip Spells)
 All these share a key consistency effect:
 **Discard this card → add 1 Level 4 "Saint" monster from Deck to hand.**
+
+Andromeda (`922100044`) additionally: while the equipped Saint is in Defense Position, the opponent cannot attack your other monsters and cannot activate effects of monsters they Special Summoned this turn; if equipped to Shun (`922100003`), that monster can attack directly.
 
 - `922100041` Bronze Cloth - Pegasus
 - `922100042` Bronze Cloth - Dragon
@@ -73,11 +75,11 @@ All these share a key consistency effect:
 
 ### Spells / Traps
 - `922100079` Athena's Sanctuary (Field Spell - base)
-- `922100081` Raise Your Cosmos! (Normal Spell)
-- `922100086` Awakening of the Cosmos (Quick-Play)
+ - `922100081` Inherited Cosmos (Normal Spell)
+- `922100086` Athena's Shield (Quick-Play)
 - `922100088` Athena's Call (Normal Spell)
 - `922100092` Bond of Brotherhood (Quick-Play)
-- `922100082` Athena Exclamation (Counter Trap)
+- `922100082` Athena's Vanguard (Counter Trap)
 - `922100101` Crystal Wall (Counter Trap)
 - `922100103` The Pope's Verdict (Counter Trap)
 
@@ -89,7 +91,7 @@ All these share a key consistency effect:
 - `922100088` **Athena's Call**: main starter. If you control no monsters it can search `922100011` instead.
 - `922100000` **Seiya**: best starter (summon-search + self-SS if you control no monsters).
 - Any **Bronze Cloth in hand**: acts as a “starter” because it converts into a Level 4 Saint search.
-- `922100081` **Raise Your Cosmos!**: fixes hands while setting GY (send 1 Saint from Deck; add a different-name Saint).
+ - `922100081` **Inherited Cosmos**: fixes hands while setting GY (send 1 Saint from Deck; add a different-name Saint).
 
 ### Extenders (increase bodies / unique names)
 - `922100005` **Jabu**: hand extender (SS if you control a Saint). On SS: add 1 Cloth from GY, then discard 1.
@@ -100,7 +102,7 @@ All these share a key consistency effect:
   - Next turn Standby: banish from GY → add up to 2 different-name Cloths from GY.
 
 ### Payoffs / “board requirements”
-- `922100082` **Athena Exclamation** turns on at **3+ different-name Saints**.
+- `922100082` **Athena's Vanguard** turns on at **3+ different-name Saints**.
 - `922100103` **The Pope’s Verdict** turns on if you control a **Saint equipped with a Cloth**.
 
 ### Stabilizers / protection
@@ -140,7 +142,7 @@ When deciding to spend Counter Traps:
 - **Tier B**: value plays (small removal, minor advantage).
 
 Use:
-- `Athena Exclamation (082)` mostly for **Tier S/A**.
+- `Athena's Vanguard (082)` mostly for **Tier S/A**.
 - `Pope’s Verdict (103)` for **Tier S/A** if it stops Spell/Trap lines.
 - `Crystal Wall (101)` whenever opponent targets your Saints with a negatable activation (usually Tier S/A by definition).
 
@@ -434,7 +436,7 @@ on EVENT_CHAINING:
       Activate(922100103)
 ```
 
-### `922100082` Athena Exclamation
+### `922100082` Athena's Vanguard
 
 ```pseudo
 on EVENT_CHAINING:
@@ -447,7 +449,7 @@ on EVENT_CHAINING:
 
 ## Notes / implementation tips
 
-- Many Saints (Seiya/Shiryu/Hyoga/Shun/Ikki) have “pay 500 LP: equip a Cloth from hand/GY” **and then** apply an **Extra Deck lock**. Since this deck has **no Extra Deck**, the lock is free; the bot can treat that equip as “always safe”.
+- Many Saints (Seiya/Shiryu/Hyoga/Shun/Ikki) have “pay 500 LP: equip a Cloth from GY” **and then** apply an **Extra Deck lock**. Since this deck has **no Extra Deck**, the lock is free; the bot can treat that equip as “always safe”.
 - Always preserve the invariant:
   - if you have (or will set) `922100103`, keep **HasEquippedSaint == true** before ending your turn.
 - Try to keep `CountDistinctSaintNamesOnField() >= 3` when holding `922100082` set, even if that means choosing a weaker attacker.
@@ -467,8 +469,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 11;
-        private const string BuildTag = "2026-05-06T19:05Z-v11-def-summon-eval";
+        private const int BuildVersion = 29;
+        private const string BuildTag = "2026-05-08-v29-mass-chain-heuristics-shiryu-bond";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -503,7 +505,7 @@ namespace WindBot.Game.AI.Decks
             public const int AthenasSanctuary = 922100079;
             public const int RaiseYourCosmos = 922100081;
             public const int AthenaExclamation = 922100082;
-            public const int AwakeningOfTheCosmos = 922100086;
+            public const int AthenasShield = 922100086;
             public const int AthenasCall = 922100088;
             public const int BondOfBrotherhood = 922100092;
             public const int CrystalWall = 922100101;
@@ -546,7 +548,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.AthenaExclamation, ActivateAthenaExclamation);
 
             // Protection / setup
-            AddExecutor(ExecutorType.Activate, CardId.AwakeningOfTheCosmos, ActivateAwakening);
+            AddExecutor(ExecutorType.Activate, CardId.AthenasShield, ActivateAthenasShield);
             AddExecutor(ExecutorType.Activate, CardId.BondOfBrotherhood, ActivateBond);
             AddExecutor(ExecutorType.Activate, CardId.AthenasSanctuary, ActivateSanctuary);
 
@@ -568,6 +570,7 @@ namespace WindBot.Game.AI.Decks
 
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
+            AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
             // Normal Summon priority ≈ ATK (WindBot tries executors in registration order).
             AddExecutor(ExecutorType.Summon, CardId.Ikki, SummonSaintLv4);
@@ -581,6 +584,10 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Summon, CardId.Mu, SummonMu);
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
+            AddExecutor(ExecutorType.Activate, CardId.Ban, ResolveBanActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Ichi, ResolveIchiActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Geki, ResolveGekiActivate);
+            AddExecutor(ExecutorType.Activate, CardId.Nachi, ResolveNachiActivate);
 
             // Setting traps near end of turn
             AddExecutor(ExecutorType.SpellSet, SpellSetPolicy);
@@ -595,11 +602,109 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Never Normal Set Level 4 Saints here: we need face-up names / effects. Defensive posture is FaceUpDefence via <see cref="OnSelectPosition"/>.
+        /// Allow Normal Set only in "survive" lines (e.g., empty board into a strong attacker),
+        /// otherwise prefer face-up bodies for distinct-name requirements and on-field effects.
         /// </summary>
         public override bool OnSelectMonsterSummonOrSet(ClientCard card)
         {
+            if (card == null)
+                return false;
+
+            // Default: do not set — we want face-up names/effects.
+            // Exception: if we're facing pressure and need to block direct attacks, setting is acceptable.
+            if (Duel.Player != 0 || !IsMainPhase())
+                return false;
+
+            if (Bot.GetMonsterCount() != 0)
+                return false;
+
+            if (Enemy.GetMonsterCount() == 0)
+                return false;
+
+            // Prefer Seiya face-up as the best starter; don't set it.
+            if (card.IsCode(CardId.Seiya))
+                return false;
+
+            int enemyBestAtk = Util.GetBestAttack(Enemy);
+            if (enemyBestAtk <= 0)
+                return false;
+
+            // If even DEF won't wall, set to at least prevent direct attack lines this turn.
+            if (enemyBestAtk > card.Defense)
+                return true;
+
+            // Emergency: if we're setting Jabu because we have no better line, allow set even if DEF could wall.
+            if (card.IsCode(CardId.Jabu) && FieldIsEmpty() && !Bot.HasInHand(CardId.Seiya))
+                return true;
+
             return false;
+        }
+
+        private bool SummonOrSetJabuEmergencyOrDefense()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (Duel.Player != 0)
+                return false;
+            if ((Card.Location & CardLocation.Hand) == 0)
+                return false;
+            if (!Card.IsCode(CardId.Jabu))
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+
+            // If we already control a Saint, prefer Jabu's own Special Summon line instead of Normal.
+            if (ControlAnySaint())
+                return false;
+
+            // Case A (defense): enemy has pressure; setting can prevent direct attacks.
+            if (Enemy.GetMonsterCount() > 0)
+                return true;
+
+            // Case B (emergency): no Seiya in hand and we need to put something on board.
+            if (!Bot.HasInHand(CardId.Seiya) && Bot.GetHandCount() <= 4)
+                return true;
+
+            return false;
+        }
+
+        private static readonly int[] SaintDiscardPriority =
+        {
+            // User rule: prioritize Ichi, then Ban, then others.
+            CardId.Ichi,
+            CardId.Ikki,
+            CardId.Ban,
+            CardId.Nachi,
+            CardId.Geki,
+            CardId.Jabu,
+            CardId.Shun,
+            CardId.Hyoga,
+            CardId.Shiryu,       
+            CardId.Seiya,
+            CardId.Mu,
+            CardId.Kiki
+        };
+
+        private int? ChooseSaintDiscardFromHand(params int[] excluded)
+        {
+            var excludedSet = new HashSet<int>(excluded ?? new int[0]);
+            foreach (var id in SaintDiscardPriority)
+            {
+                if (excludedSet.Contains(id))
+                    continue;
+                if (Bot.HasInHand(id))
+                    return id;
+            }
+            return null;
+        }
+
+        private void PreselectDiscardSaintPriority(params int[] excluded)
+        {
+            // Some executor builds don't expose OnSelectCard overrides to plugins.
+            // We can still bias upcoming selection prompts by queuing a selection.
+            var pick = ChooseSaintDiscardFromHand(excluded);
+            if (pick.HasValue)
+                AI.SelectNextCard(pick.Value);
         }
 
         /// <summary>
@@ -608,8 +713,17 @@ namespace WindBot.Game.AI.Decks
         /// </summary>
         public override bool OnPreActivate(ClientCard card)
         {
+            // If an upcoming effect will prompt "discard 1 card", bias the discard selection now.
+            // This is necessary because this plugin build can't override OnSelectCard prompts directly.
             if (card != null
-                && (card.IsCode(CardId.AwakeningOfTheCosmos) || card.IsCode(CardId.BondOfBrotherhood))
+                && (card.IsCode(CardId.ClothWolf) || card.IsCode(CardId.ClothLionet))
+                && (card.Location & CardLocation.SpellZone) != 0)
+            {
+                PreselectDiscardSaintPriority();
+            }
+
+            if (card != null
+                && (card.IsCode(CardId.AthenasShield) || card.IsCode(CardId.BondOfBrotherhood))
                 && IsOpenOwnMainPhaseNoChain())
                 return false;
             return base.OnPreActivate(card);
@@ -618,6 +732,144 @@ namespace WindBot.Game.AI.Decks
         private bool ChainIsEmpty()
         {
             return Duel.CurrentChain == null || Duel.CurrentChain.Count == 0;
+        }
+
+        private object TryGetLastChainLink()
+        {
+            try
+            {
+                if (Duel == null || Duel.CurrentChain == null || Duel.CurrentChain.Count == 0)
+                    return null;
+                return Duel.CurrentChain[Duel.CurrentChain.Count - 1];
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static int? TryReadIntMember(object obj, params string[] names)
+        {
+            if (obj == null || names == null)
+                return null;
+            try
+            {
+                var t = obj.GetType();
+                foreach (var n in names)
+                {
+                    var p = t.GetProperty(n);
+                    if (p != null)
+                    {
+                        var v = p.GetValue(obj, null);
+                        if (v is int)
+                            return (int)v;
+                    }
+                    var f = t.GetField(n);
+                    if (f != null)
+                    {
+                        var v = f.GetValue(obj);
+                        if (v is int)
+                            return (int)v;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private static object TryReadObjMember(object obj, params string[] names)
+        {
+            if (obj == null || names == null)
+                return null;
+            try
+            {
+                var t = obj.GetType();
+                foreach (var n in names)
+                {
+                    var p = t.GetProperty(n);
+                    if (p != null)
+                        return p.GetValue(obj, null);
+                    var f = t.GetField(n);
+                    if (f != null)
+                        return f.GetValue(obj);
+                }
+            }
+            catch { }
+            return null;
+        }
+
+        private int? TryGetLastChainActivatorPlayer()
+        {
+            // Best effort across WindBot builds: read Player/Controller on the chain link or its handler card.
+            var link = TryGetLastChainLink();
+            if (link == null)
+                return null;
+
+            var p = TryReadIntMember(link, "Player", "Controller", "Activator", "Owner", "ActingPlayer");
+            if (p.HasValue)
+                return p.Value;
+
+            var handler = TryReadObjMember(link, "Card", "Handler", "Source", "EffectCard", "ActivatingCard");
+            p = TryReadIntMember(handler, "Controller", "Player", "Owner");
+            if (p.HasValue)
+                return p.Value;
+
+            return null;
+        }
+
+        private int? TryGetLastChainCardType()
+        {
+            // Attempt to read ActiveType/Type (bitmask of TYPE_* from YGOSharp) if exposed by the chain link.
+            var link = TryGetLastChainLink();
+            if (link == null)
+                return null;
+
+            var t = TryReadIntMember(link, "Type", "ActiveType", "CardType");
+            if (t.HasValue)
+                return t.Value;
+
+            var handler = TryReadObjMember(link, "Card", "Handler", "Source", "EffectCard", "ActivatingCard");
+            t = TryReadIntMember(handler, "Type");
+            if (t.HasValue)
+                return t.Value;
+
+            return null;
+        }
+
+        private bool IsOpponentChainLikelyMassThreat()
+        {
+            if (ChainIsEmpty())
+                return false;
+
+            // Prefer explicit activator when available.
+            var activator = TryGetLastChainActivatorPlayer();
+            if (activator.HasValue && activator.Value == 0)
+                return false;
+
+            // If we can read card type, only treat as "mass threat" for Spell/Trap/Monster (any is fine),
+            // but we mainly want to exclude our own chain.
+            // When type isn't readable, use turn-player heuristic: mass threats we care about mostly happen on opponent's turn.
+            if (!activator.HasValue && Duel.Player == 0)
+                return false;
+
+            // If the chain already targets something, our "targeted" rules handle it; this is for non-targeting wipes.
+            bool anySaintTargeted = Bot.MonsterZone.Any(m => m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            bool anyClothTargeted = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z));
+            if (anySaintTargeted || anyClothTargeted)
+                return false;
+
+            // Board value heuristic: only fire if we actually have something to save.
+            int saintsUp = Bot.MonsterZone.Count(m => m != null && m.IsFaceup() && Saints.Contains(m.Id));
+            bool haveFaceupCloth = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
+            bool haveEquippedShell = HasEquippedSaint();
+            if (saintsUp == 0 && !haveFaceupCloth)
+                return false;
+
+            // If we have multiple Saints or an equipped shell, assume a wipe/removal could be coming.
+            if (saintsUp >= 2 || haveEquippedShell || haveFaceupCloth)
+                return true;
+
+            return false;
         }
 
         /// <summary>Open Main1/Main2 on our turn with no chain — typical "beginner" misuse window for protection QPs.</summary>
@@ -766,11 +1018,10 @@ namespace WindBot.Game.AI.Decks
             return Bot.GetRemainingCount(clothId, (int)(CardLocation.Deck | CardLocation.Grave)) > 0;
         }
 
-        /// <summary>Ikki's ignition equip only selects from Hand or GY.</summary>
-        private bool ClothAccessibleFromHandOrGraveyard(int clothId)
+        /// <summary>Pay-500 equip effects for Saints (922100000..004) now equip Cloths from GY only.</summary>
+        private bool ClothAccessibleFromGraveyard(int clothId)
         {
-            return Bot.HasInHand(clothId)
-                   || Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(clothId));
+            return Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(clothId));
         }
 
         private bool HasFreeMainSpellZoneForEquip()
@@ -831,15 +1082,6 @@ namespace WindBot.Game.AI.Decks
             return order.ToArray();
         }
 
-        private int[] BuildIkkiEquipClothPriority()
-        {
-            var order = new List<int> { CardId.ClothPhoenix };
-            foreach (var id in Cloths)
-                if (id != CardId.ClothPhoenix)
-                    order.Add(id);
-            return order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
-        }
-
         private int[] BuildKikiClothPriorityForTarget(ClientCard saintTarget)
         {
             var preferred = saintTarget != null ? ClothMatchingSaint(saintTarget.Id) : null;
@@ -891,6 +1133,13 @@ namespace WindBot.Game.AI.Decks
         private int ChooseLv4SaintForDeckSearch()
         {
             var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
+
+            // User strategy: when searching a Saint, prefer Ban for SS lines.
+            if (!onField.Contains(CardId.Ban)
+                && !Bot.HasInHand(CardId.Ban)
+                && Bot.GetRemainingCount(CardId.Ban, 3) > 0)
+                return CardId.Ban;
+
             if (ControlAnySaint()
                 && Bot.GetMonsterCount() < 5
                 && !onField.Contains(CardId.Jabu)
@@ -965,7 +1214,7 @@ namespace WindBot.Game.AI.Decks
             if (!HasFreeMainSpellZoneForEquip())
                 return false;
             var order = BuildPayEquipClothOrder(saintMonsterId);
-            var filtered = order.Where(ClothAccessibleFromHandOrGraveyard).ToArray();
+            var filtered = order.Where(ClothAccessibleFromGraveyard).ToArray();
             if (filtered.Length == 0)
                 return false;
             AI.SelectCard(filtered);
@@ -1081,6 +1330,26 @@ namespace WindBot.Game.AI.Decks
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
 
+            // Shun + Andromeda Cloth (922100044): DEF unlocks the "protect other monsters / freeze SS'd monsters" line;
+            // ATK enables declaring attacks including direct attack while equipped.
+            if (cardId == CardId.Shun && positions != null)
+            {
+                bool andromedaSoon = Bot.Hand.IsExistingMatchingCard(c => c.IsCode(CardId.ClothAndromeda))
+                    || Bot.SpellZone.Any(z => z != null && z.IsCode(CardId.ClothAndromeda));
+                if (andromedaSoon)
+                {
+                    if (Bot.GetMonsterCount() >= 1 && positions.Contains(CardPosition.FaceUpDefence))
+                        return CardPosition.FaceUpDefence;
+
+                    if (Bot.GetMonsterCount() == 0 && positions.Contains(CardPosition.FaceUpAttack))
+                    {
+                        int enemyBest = Util.GetBestAttack(Enemy);
+                        if (enemyBest <= atkStat || Enemy.LifePoints <= 2500)
+                            return CardPosition.FaceUpAttack;
+                    }
+                }
+            }
+
             if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
@@ -1121,6 +1390,8 @@ namespace WindBot.Game.AI.Decks
         /// <summary>
         /// Bronze Cloth: hand ignition (discard → search L4 Saint), GY trigger (target Saint → re-equip next Standby),
         /// and Standby Phase equip resolution on the registered Cloth in GY.
+        /// Andromeda (922100044): while equipped Saint is in DEF, protects other monsters + restricts opponent SS'd monsters;
+        /// with Shun it grants direct attack — script uses aux.Stringid(id,2) for the GY re-equip trigger (not id,3 like Pegasus).
         /// </summary>
         private bool ResolveClothActivate()
         {
@@ -1128,7 +1399,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             if ((Card.Location & CardLocation.Hand) != 0)
-                return ActivateClothDiscardFromHand();
+                return ResolveBronzeClothActivateFromHand();
 
             if ((Card.Location & CardLocation.Grave) != 0)
             {
@@ -1145,10 +1416,92 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>
+        /// Hand-only descriptions for Bronze Cloth: 0 = discard → search, 1 = activate to equip.
+        /// Andromeda script matches this layout (922100044).
+        /// </summary>
+        private bool ResolveBronzeClothActivateFromHand()
+        {
+            var d = ActivateDescription;
+            var sidDiscard = Util.GetStringId(Card.Id, 0);
+            var sidEquip = Util.GetStringId(Card.Id, 1);
+
+            if (d == sidEquip)
+                return ActivateBronzeClothEquipFromHand();
+            if (d == sidDiscard)
+                return ActivateClothDiscardFromHand();
+
+            if (d != -1 && d != sidDiscard && d != sidEquip)
+                return false;
+
+            if (ShouldPreferBronzeClothEquipFromHand())
+                return ActivateBronzeClothEquipFromHand();
+            return ActivateClothDiscardFromHand();
+        }
+
+        private bool ShouldPreferBronzeClothEquipFromHand()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (!ControlAnySaint())
+                return false;
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+            if (NeedEquipForVerdict())
+                return true;
+
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                var paired = ClothMatchingSaint(m.Id);
+                if (paired.HasValue && paired.Value == Card.Id)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private bool ActivateBronzeClothEquipFromHand()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (!ControlAnySaint())
+                return false;
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+
+            ClientCard target = null;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                var paired = ClothMatchingSaint(m.Id);
+                if (paired.HasValue && paired.Value == Card.Id)
+                {
+                    target = m;
+                    break;
+                }
+            }
+
+            if (target == null)
+                target = Bot.MonsterZone.FirstOrDefault(c => c != null && c.IsFaceup() && Saints.Contains(c.Id));
+
+            if (target == null)
+                return false;
+
+            AI.SelectCard(target);
+            return true;
+        }
+
         private bool ActivateClothSentFromFieldToGyReequip()
         {
             // "If this face-up Equip in S/T Zone is sent to the GY: target 1 Saint you control; next Standby Phase equip this card."
             if (!ControlAnySaint())
+                return false;
+
+            var d = ActivateDescription;
+            if (d != -1 && (d == Util.GetStringId(Card.Id, 0) || d == Util.GetStringId(Card.Id, 1)))
                 return false;
 
             AI.SelectCard(BuildSaintTargetPriorityForClothReequip(Card.Id));
@@ -1247,7 +1600,18 @@ namespace WindBot.Game.AI.Decks
                     return false;
                 if (Duel.Player == 0)
                     return false;
-                return Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
+                // Updated script: discard from hand gives our "Cloth" cards indestructible by card effects this turn.
+                // Do NOT burn this from hand unless a chain is actually threatening a face-up Cloth we control.
+                if (!ChainIsEmpty())
+                {
+                    if (Bot.SpellZone.Any(z =>
+                        z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z)))
+                        return true;
+                    // Secondary rule: if opponent chain looks like a non-targeting mass threat and we have face-up Cloths, allow.
+                    if (IsOpponentChainLikelyMassThreat() && Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id)))
+                        return true;
+                }
+                return false;
             }
             if (!IsMainPhase())
                 return false;
@@ -1349,6 +1713,7 @@ namespace WindBot.Game.AI.Decks
             if (clothInGy == null)
                 return false;
             AI.SelectCard(clothInGy);
+            PreselectDiscardSaintPriority(); // after add-from-GY, effect discards 1
             return true;
         }
 
@@ -1359,20 +1724,12 @@ namespace WindBot.Game.AI.Decks
 
             var d = ActivateDescription;
 
-            // Field: pay 500 LP; equip 1 "Cloth" from Hand or GY (Stringid 1).
+            // Field: pay 500 LP; equip 1 "Cloth" from GY (Stringid 1).
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
                 if (d != -1 && d != Util.GetStringId(CardId.Ikki, 1))
                     return false;
-                if (Bot.LifePoints < 500)
-                    return false;
-                if (!HasFreeMainSpellZoneForEquip())
-                    return false;
-                var clothOrder = BuildIkkiEquipClothPriority();
-                if (clothOrder.Length == 0)
-                    return false;
-                AI.SelectCard(clothOrder);
-                return true;
+                return ResolvePayEquipSaint(CardId.Ikki);
             }
 
             // GY: discard 1 "Saint" → Special Summon (Stringid 0).
@@ -1387,37 +1744,395 @@ namespace WindBot.Game.AI.Decks
             if (!Bot.Hand.IsExistingMatchingCard(c => Saints.Contains(c.Id) && c.Id != CardId.Ikki))
                 return false;
 
-            AI.SelectCard(ChooseSaintToMaximizeDistinct());
+            // Ikki revive cost = discard 1 "Saint": prioritize Ichi, then Ban, then others.
+            var discard = ChooseSaintDiscardFromHand(CardId.Ikki);
+            if (discard.HasValue)
+                AI.SelectCard(discard.Value);
+            else
+                AI.SelectCard(ChooseSaintToMaximizeDistinct());
             return true;
         }
 
-        private bool ActivateAwakening()
+        private int? ChooseSaintToAddFromGraveyard()
         {
-            // Save for reactive windows — never burn during open Main on our turn (OnPreActivate also enforces).
-            if (IsOpenOwnMainPhaseNoChain())
+            var gySaints = Bot.Graveyard.Where(c => c != null && Saints.Contains(c.Id)).ToList();
+            if (gySaints.Count == 0)
+                return null;
+
+            // Prefer cards we don't already have in hand.
+            int[] priority =
+            {
+                CardId.Seiya,
+                CardId.Ichi,
+                CardId.Ikki,
+                CardId.Ban,
+                CardId.Jabu,
+                CardId.Shun,
+                CardId.Hyoga,
+                CardId.Shiryu,
+                CardId.Nachi,
+                CardId.Geki,
+                CardId.Mu,
+                CardId.Kiki
+            };
+
+            foreach (var id in priority)
+                if (!Bot.HasInHand(id) && gySaints.Any(c => c.IsCode(id)))
+                    return id;
+
+            return gySaints[0].Id;
+        }
+
+        private bool ResolveBanActivate()
+        {
+            var d = ActivateDescription;
+
+            // Hand: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself (hand-only in current script).
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                // Let engine legality decide (battle-destroyed event, once/turn, zone space).
+                return true;
+            }
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                // Script was corrected to hand-only; never attempt SS from GY.
                 return false;
+            }
+
+            // Monster zone: after it is Special Summoned -> target 1 Saint in GY; add to hand (Stringid 1).
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            // Custom builds may report ActivateDescription inconsistently for delayed triggers.
+            // Block the "material" trigger (Stringid 2) to avoid mis-targeting.
+            if (d == Util.GetStringId(CardId.Ban, 2))
+                return false;
+
+            var pick = ChooseSaintToAddFromGraveyard();
+            if (!pick.HasValue)
+                return false;
+
+            AI.SelectCard(pick.Value);
             return true;
+        }
+
+        private int? ChooseClothFromHandToDiscard()
+        {
+            var inHand = Bot.Hand.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (inHand.Count == 0)
+                return null;
+            // Discard the least valuable Cloth first (highest tier number).
+            var best = inHand
+                .OrderByDescending(c => ClothDiscardTier(c.Id))
+                .First();
+            return best.Id;
+        }
+
+        private int? ChooseClothFromDeckToSendToGraveyard()
+        {
+            // Prefer sending the matching Cloth for a face-up Bronze Saint we control, if that Cloth isn't in GY yet.
+            foreach (var m in Bot.MonsterZone.Where(c => c != null && c.IsFaceup() && Lv4Saints.Contains(c.Id)))
+            {
+                var match = ClothMatchingSaint(m.Id);
+                if (match.HasValue
+                    && Bot.GetRemainingCount(match.Value, 3) > 0
+                    && !Bot.Graveyard.IsExistingMatchingCard(g => g.IsCode(match.Value)))
+                    return match.Value;
+            }
+
+            // Otherwise seed Phoenix (commonly useful) if available.
+            if (Bot.GetRemainingCount(CardId.ClothPhoenix, 3) > 0)
+                return CardId.ClothPhoenix;
+
+            // Fallback to any Cloth remaining in deck.
+            foreach (var id in Cloths)
+                if (Bot.GetRemainingCount(id, 3) > 0)
+                    return id;
+
+            return null;
+        }
+
+        private int? ChooseClothFromGraveyardToHand()
+        {
+            // Prefer matching Cloth for any face-up Saint we control.
+            foreach (var m in Bot.MonsterZone.Where(c => c != null && c.IsFaceup() && Saints.Contains(c.Id)))
+            {
+                var match = ClothMatchingSaint(m.Id);
+                if (match.HasValue && Bot.Graveyard.IsExistingMatchingCard(g => g.IsCode(match.Value)))
+                    return match.Value;
+            }
+
+            // Otherwise take highest tier Cloth (more flexible utility) first.
+            var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (gy.Count == 0)
+                return null;
+            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+        }
+
+        private int? ChooseClothFromGraveyardToShuffle()
+        {
+            // Prefer shuffling back low-value Cloths (highest tier).
+            var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
+            if (gy.Count == 0)
+                return null;
+            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+        }
+
+        private bool ResolveIchiActivate()
+        {
+            var d = ActivateDescription;
+
+            // Field ignition: discard 1 Cloth -> burn 800 (Stringid 0).
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Ichi, 0))
+                    return false;
+
+                var discardCloth = ChooseClothFromHandToDiscard();
+                if (!discardCloth.HasValue)
+                    return false;
+
+                // Heuristic: use burn when we have spare Cloths or it meaningfully closes the game.
+                bool lethalish = Enemy.LifePoints <= 2000;
+                bool spare = Bot.Hand.Count(c => c != null && Cloths.Contains(c.Id)) >= 2;
+                if (!lethalish && !spare)
+                    return false;
+
+                AI.SelectCard(discardCloth.Value);
+                return true;
+            }
+
+            // Trigger in GY: send 1 Cloth from Deck to GY (Stringid 1).
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                // Custom builds sometimes report ActivateDescription inconsistently for delayed triggers.
+                // Hard block the "material" trigger (Stringid 2) to avoid selecting from the wrong location.
+                if (d == Util.GetStringId(CardId.Ichi, 2))
+                    return false;
+                var send = ChooseClothFromDeckToSendToGraveyard();
+                if (!send.HasValue)
+                    return false;
+                AI.SelectCard(send.Value);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ResolveGekiActivate()
+        {
+            var d = ActivateDescription;
+
+            // On-summon search (Stringid 0): deck has no known Level 5+ Saints in this build, skip to avoid wasting actions.
+            if ((Card.Location & CardLocation.MonsterZone) != 0 && d == Util.GetStringId(CardId.Geki, 0))
+                return false;
+
+            // GY ignition (Stringid 1): add 1 Cloth from GY, then banish self.
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Geki, 1))
+                    return false;
+                var pick = ChooseClothFromGraveyardToHand();
+                if (!pick.HasValue)
+                    return false;
+                AI.SelectCard(pick.Value);
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool ResolveNachiActivate()
+        {
+            var d = ActivateDescription;
+
+            // Ignition on field (Stringid 1): target 1 Cloth in GY; shuffle; draw 1.
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (d != -1 && d != Util.GetStringId(CardId.Nachi, 1))
+                    return false;
+                var pick = ChooseClothFromGraveyardToShuffle();
+                if (!pick.HasValue)
+                    return false;
+                AI.SelectCard(pick.Value);
+                return true;
+            }
+
+            return false;
+        }
+
+        private ClientCard ChooseSaintToProtect()
+        {
+            // Prefer protecting the equipped Saint (keeps Pope's Verdict live) then the highest ATK Saint.
+            var equipped = Bot.MonsterZone.FirstOrDefault(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id)
+                && m.EquipCards != null
+                && m.EquipCards.Any(eq => eq != null && eq.IsFaceup() && Cloths.Contains(eq.Id)));
+            if (equipped != null)
+                return equipped;
+
+            ClientCard best = null;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup() || !Saints.Contains(m.Id))
+                    continue;
+                if (best == null || m.Attack > best.Attack)
+                    best = m;
+            }
+            return best;
+        }
+
+        private ClientCard TryGetAttackedMonster()
+        {
+            // Some WindBot builds expose battle context on Duel (AttackTarget/GetAttackTarget).
+            // Use reflection to stay compatible across ExecutorBase.dll variants.
+            try
+            {
+                if (Duel == null)
+                    return null;
+
+                var t = Duel.GetType();
+                var prop = t.GetProperty("AttackTarget");
+                if (prop != null)
+                {
+                    var v = prop.GetValue(Duel, null) as ClientCard;
+                    if (v != null)
+                        return v;
+                }
+
+                var mGet = t.GetMethod("GetAttackTarget");
+                if (mGet != null)
+                {
+                    var v = mGet.Invoke(Duel, null) as ClientCard;
+                    if (v != null)
+                        return v;
+                }
+            }
+            catch
+            {
+                // ignore
+            }
+            return null;
+        }
+
+        private bool ActivateAthenasShield()
+        {
+            // 922100086 updated: quick-play that targets 1 Saint you control; it can't be destroyed this turn.
+            // Also has a GY destroy-replacement that the engine handles (no executor action needed).
+            //
+            // User intent: activate in two cases:
+            // - Our turn: in response to an effect that would destroy a Saint (chain window).
+            // - Opponent turn: when they declare an attack on our monster (battle window).
+            //
+            // This plugin API doesn't expose attacker/attack target, so we approximate by phase + chain targets.
+
+            if (!ControlAnySaint())
+                return false;
+
+            // Case 1: Any chain currently targets one of our Saints (likely destruction/removal).
+            if (!ChainIsEmpty())
+            {
+                var target = Bot.MonsterZone.FirstOrDefault(m =>
+                    m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+                if (target == null)
+                    target = ChooseSaintToProtect();
+                if (target == null)
+                    return false;
+                AI.SelectCard(target);
+                return true;
+            }
+
+            // Case 2: Opponent battle phase windows: protect a key Saint before damage.
+            if (Duel.Player != 0)
+            {
+                switch (Duel.Phase)
+                {
+                    case DuelPhase.BattleStart:
+                    case DuelPhase.BattleStep:
+                    case DuelPhase.Damage:
+                    case DuelPhase.DamageCal:
+                    case DuelPhase.Battle:
+                        // Prefer the actual attack target if the build exposes it.
+                        var attacked = TryGetAttackedMonster();
+                        if (attacked != null
+                            && attacked.IsFaceup()
+                            && Saints.Contains(attacked.Id)
+                            && attacked.Controller == 0)
+                        {
+                            AI.SelectCard(attacked);
+                            return true;
+                        }
+                        var protect = ChooseSaintToProtect();
+                        if (protect == null)
+                            return false;
+                        AI.SelectCard(protect);
+                        return true;
+                }
+            }
+
+            // Don't waste it proactively on open Main.
+            return false;
         }
 
         private bool ActivateBond()
         {
-            if (IsOpenOwnMainPhaseNoChain())
+            // 922100092: protects a targeted Saint from opponent's effects (destruction/banish) this turn.
+            // Avoid burning it pro-actively: only use when a chain targets one of our Saints.
+            if (ChainIsEmpty())
                 return false;
+
+            var targeted = Bot.MonsterZone.FirstOrDefault(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            if (targeted != null)
+            {
+                AI.SelectCard(targeted);
+                return true;
+            }
+
+            // Secondary rule: if the opponent chain looks like a non-targeting mass threat, protect our key Saint.
+            if (!IsOpponentChainLikelyMassThreat())
+                return false;
+
+            var protect = ChooseSaintToProtect();
+            if (protect == null)
+                return false;
+            AI.SelectCard(protect);
             return true;
         }
 
         private bool ActivateCrystalWall()
         {
-            // Guide: when a chain targets your Saints (Tier S/A interaction).
+            // 922100101 updated: triggers on EVENT_ATTACK_ANNOUNCE (negate attack; bonus destroy if Mu is controlled).
+            // Engine legality enforces: opponent's monster declares an attack AND the attack target is a "Saint".
+            // We keep this lightweight so the AI doesn't miss the window (attack context is not exposed in this plugin API).
             if (Duel.Player == 0)
                 return false;
-            return Bot.MonsterZone.Any(m =>
-                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            if (!ControlAnySaint())
+                return false;
+            // Avoid activating outside of battle windows (reduces pointless attempts).
+            switch (Duel.Phase)
+            {
+                case DuelPhase.BattleStart:
+                case DuelPhase.BattleStep:
+                case DuelPhase.Damage:
+                case DuelPhase.DamageCal:
+                case DuelPhase.Battle:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private bool ActivatePopesVerdict()
         {
-            // Guide: 103 when equipped Saint shell is live (engine also gates).
+            // 922100103 updated: only negates opponent Spell/Trap activations while an equipped Saint is controlled.
+            // We don't have a reliable "chain is Spell/Trap" helper in this build; engine gates legality.
             TrySendCustomChat(4);
             return Duel.Player != 0 && HasEquippedSaint();
         }

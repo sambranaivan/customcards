@@ -183,7 +183,7 @@ def main() -> None:
         ),
         (
             922100010,
-            "Mu of Aries - The Cloth Repairer",
+            "Mu - The Cloth Repairer",
             1200,
             2000,
             16,  # LIGHT
@@ -192,7 +192,7 @@ def main() -> None:
                 'add them to your hand.\r\n'
                 'During your Main Phase: You can discard this card; add 1 "Athena\'s Sanctuary - Reforged" from your '
                 'Deck to your hand.\r\n'
-                'You can only use each effect of "Mu of Aries - The Cloth Repairer" once per turn.'
+                'You can only use each effect of "Mu - The Cloth Repairer" once per turn.'
             ),
         ),
     ]

@@ -13,10 +13,10 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- If a "Saint" monster(s) you control is destroyed by battle: You can Special Summon this card from your hand or GY.
+-- If a "Saint" monster(s) you control is destroyed by battle: You can Special Summon this card from your hand.
 -- If this card is Special Summoned: You can target 1 "Saint" monster in your GY; add it to your hand.
--- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Ban of Lionet" once per turn.
+-- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 face-up "Cloth" Equip Spell you control to that monster, or attach it to it as material (if it is an Xyz Monster).
+-- You can only use each effect of "Bronze Saint - Ban of Lionet" once per turn.
 --]==]
 --Saint - Ban of Lionet
 local s,id=GetID()
@@ -28,7 +28,7 @@ function s.initial_effect(c)
 	e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
 	e1:SetCode(EVENT_BATTLE_DESTROYED)
-	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetRange(LOCATION_HAND)
 	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.spcon)
 	e1:SetTarget(s.sptg)

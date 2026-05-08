@@ -7,7 +7,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Add 1 Level 4 or lower "Saint" monster from your Deck to your hand, or if you control no monsters, you can add 1 "Kiki - Messenger of the Cloth Sculptor" instead.
+-- Add 1 Level 4 or lower "Saint" monster from your Deck to your hand, also, if you control no monsters, add 1 "Kiki - Messenger of the Cloth Sculptor" from your Deck to your hand.
 -- You can only activate 1 "Athena's Call" per turn.
 --]==]
 --Athena's Call
@@ -27,7 +27,7 @@ end
 s.listed_series={SET_SAINT}
 s.listed_names={922100011}
 
-function s.saintfilter(c)
+function s.lowlevelsaintfilter(c)
 	return c:IsSetCard(SET_SAINT) and c:IsMonster() and c:IsLevelBelow(4) and c:IsAbleToHand()
 end
 function s.kikifilter(c)
@@ -35,30 +35,27 @@ function s.kikifilter(c)
 end
 function s.target(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then
-		return Duel.IsExistingMatchingCard(s.saintfilter,tp,LOCATION_DECK,0,1,nil)
-			or (Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0 and Duel.IsExistingMatchingCard(s.kikifilter,tp,LOCATION_DECK,0,1,nil))
+		return Duel.IsExistingMatchingCard(s.lowlevelsaintfilter,tp,LOCATION_DECK,0,1,nil)
 	end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
+	local ct=1
+	if Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0 and Duel.IsExistingMatchingCard(s.kikifilter,tp,LOCATION_DECK,0,1,nil) then
+		ct=2
+	end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,ct,tp,LOCATION_DECK)
 end
 function s.activate(e,tp,eg,ep,ev,re,r,rp)
-	local op=0
-	local cankiki=Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0 and Duel.IsExistingMatchingCard(s.kikifilter,tp,LOCATION_DECK,0,1,nil)
-	if cankiki then
-		op=Duel.SelectOption(tp,aux.Stringid(id,0),aux.Stringid(id,1))
-	end
-	if op==1 then
+	local nomon=Duel.GetFieldGroupCount(tp,LOCATION_MZONE,0)==0
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,s.lowlevelsaintfilter,tp,LOCATION_DECK,0,1,1,nil)
+	if #g==0 then return end
+	Duel.SendtoHand(g,nil,REASON_EFFECT)
+	Duel.ConfirmCards(1-tp,g)
+	if nomon then
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local g=Duel.SelectMatchingCard(tp,s.kikifilter,tp,LOCATION_DECK,0,1,1,nil)
-		if #g>0 then
-			Duel.SendtoHand(g,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,g)
-		end
-	else
-		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-		local g=Duel.SelectMatchingCard(tp,s.saintfilter,tp,LOCATION_DECK,0,1,1,nil)
-		if #g>0 then
-			Duel.SendtoHand(g,nil,REASON_EFFECT)
-			Duel.ConfirmCards(1-tp,g)
+		local g2=Duel.SelectMatchingCard(tp,s.kikifilter,tp,LOCATION_DECK,0,1,1,nil)
+		if #g2>0 then
+			Duel.SendtoHand(g2,nil,REASON_EFFECT)
+			Duel.ConfirmCards(1-tp,g2)
 		end
 	end
 end

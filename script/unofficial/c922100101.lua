@@ -7,8 +7,8 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- When your opponent activates a card or effect that targets 1 or more "Saint" monsters you control: Negate the activation, and if you do, return that card to the hand.
--- If you control "Gold Saint - Mu of Aries", you can activate this card from your hand by discarding 1 "Cloth" card.
+-- When an opponent's monster declares an attack on a "Saint" monster you control: Negate that attack, and if you do, then if you control "Gold Saint - Mu of Aries", destroy all Attack Position monsters your opponent controls.
+-- If you control "Gold Saint - Mu of Aries", you can activate this card from your hand.
 -- You can only activate 1 "Crystal Wall" per turn.
 --]==]
 --Crystal Wall
@@ -16,21 +16,20 @@ local s,id=GetID()
 function s.initial_effect(c)
 	--Activate
 	local e1=Effect.CreateEffect(c)
-	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_TOHAND)
+	e1:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
 	e1:SetType(EFFECT_TYPE_ACTIVATE)
-	e1:SetCode(EVENT_CHAINING)
+	e1:SetCode(EVENT_ATTACK_ANNOUNCE)
 	e1:SetCountLimit(1,id,EFFECT_COUNT_CODE_OATH)
 	e1:SetCondition(s.negcon)
 	e1:SetTarget(s.negtg)
 	e1:SetOperation(s.negop)
 	c:RegisterEffect(e1)
 
-	--Activate from hand (Mu) by discarding 1 "Cloth"
+	--Activate from hand (Mu)
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_SINGLE)
 	e2:SetCode(EFFECT_TRAP_ACT_IN_HAND)
 	e2:SetCondition(s.handcon)
-	e2:SetCost(s.handcost)
 	c:RegisterEffect(e2)
 end
 
@@ -38,31 +37,28 @@ s.listed_series={SET_SAINT,SET_CLOTH}
 s.listed_names={922100029}
 
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
-	if rp==tp or not Duel.IsChainNegatable(ev) then return false end
-	if not re:IsHasProperty(EFFECT_FLAG_CARD_TARGET) then return false end
-	local g=Duel.GetChainInfo(ev,CHAININFO_TARGET_CARDS)
-	if not g then return false end
-	return g:IsExists(function(c) return c:IsControler(tp) and c:IsLocation(LOCATION_MZONE) and c:IsSetCard(SET_SAINT) end,1,nil)
+	local a=Duel.GetAttacker()
+	local d=Duel.GetAttackTarget()
+	return a and a:IsControler(1-tp) and d and d:IsControler(tp) and d:IsSetCard(SET_SAINT)
 end
 function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end
-	Duel.SetOperationInfo(0,CATEGORY_NEGATE,eg,1,0,0)
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,eg,1,0,0)
+	Duel.SetOperationInfo(0,CATEGORY_NEGATE,nil,0,0,0)
+	if Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,922100029),tp,LOCATION_MZONE,0,1,nil) then
+		local g=Duel.GetMatchingGroup(Card.IsAttackPos,1-tp,LOCATION_MZONE,0,nil)
+		Duel.SetOperationInfo(0,CATEGORY_DESTROY,g,#g,0,0)
+	end
 end
 function s.negop(e,tp,eg,ep,ev,re,r,rp)
-	local rc=re:GetHandler()
-	if Duel.NegateActivation(ev)~=0 and rc and rc:IsRelateToEffect(re) then
-		Duel.SendtoHand(rc,nil,REASON_EFFECT)
+	if Duel.NegateAttack()==0 then return end
+	if Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,922100029),tp,LOCATION_MZONE,0,1,nil) then
+		local g=Duel.GetMatchingGroup(Card.IsAttackPos,1-tp,LOCATION_MZONE,0,nil)
+		if #g>0 then
+			Duel.Destroy(g,REASON_EFFECT)
+		end
 	end
 end
 
 function s.handcon(e)
 	return Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,922100029),e:GetHandlerPlayer(),LOCATION_MZONE,0,1,nil)
-end
-function s.costfilter(c)
-	return c:IsSetCard(SET_CLOTH) and c:IsDiscardable(REASON_COST)
-end
-function s.handcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND,0,1,nil) end
-	Duel.DiscardHand(tp,s.costfilter,1,1,REASON_COST+REASON_DISCARD,nil)
 end
