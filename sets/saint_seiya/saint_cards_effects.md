@@ -152,7 +152,7 @@ If this card is sent to the GY as material for the Summon of a "Saint" monster: 
 You can only use each effect of "Saint - Nachi of Wolf" once per turn.
 ```
 
-### Mu of Aries - The Cloth Repairer
+### Mu - The Cloth Repairer
 - **Card Type**: Effect Monster
 - **Attribute**: LIGHT
 - **Type**: Warrior
@@ -162,7 +162,7 @@ You can only use each effect of "Saint - Nachi of Wolf" once per turn.
 ```text
 If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; add them to your hand.
 During your Main Phase: You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
-You can only use each effect of "Mu of Aries - The Cloth Repairer" once per turn.
+You can only use each effect of "Mu - The Cloth Repairer" once per turn.
 ```
 
 ### Kiki - Messenger of the Cloth Sculptor

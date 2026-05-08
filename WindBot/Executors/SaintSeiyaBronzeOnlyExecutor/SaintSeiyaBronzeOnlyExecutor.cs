@@ -53,7 +53,7 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 - `922100007` **Bronze Saint - Geki of Bear**
 - `922100008` **Bronze Saint - Ban of Lionet**
 - `922100009` **Bronze Saint - Nachi of Wolf**
-- `922100010` **Mu of Aries - The Cloth Repairer**
+- `922100010` **Mu - The Cloth Repairer**
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
 
 ### Bronze Cloth (Equip Spells)
