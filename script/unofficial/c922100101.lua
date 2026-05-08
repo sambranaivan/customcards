@@ -7,7 +7,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- When an opponent's monster declares an attack: Negate that attack, and if you do, then if you control "Gold Saint - Mu of Aries", destroy all Attack Position monsters your opponent controls.
+-- When an opponent's monster declares an attack on a "Saint" monster you control: Negate that attack, and if you do, then if you control "Gold Saint - Mu of Aries", destroy all Attack Position monsters your opponent controls.
 -- If you control "Gold Saint - Mu of Aries", you can activate this card from your hand.
 -- You can only activate 1 "Crystal Wall" per turn.
 --]==]

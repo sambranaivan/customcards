@@ -469,8 +469,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 24;
-        private const string BuildTag = "2026-05-07-v24-andromeda-cloth";
+        private const int BuildVersion = 25;
+        private const string BuildTag = "2026-05-08-v25-crystalwall-popeneverdict";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -1835,16 +1835,31 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateCrystalWall()
         {
-            // Guide: when a chain targets your Saints (Tier S/A interaction).
+            // 922100101 updated: triggers on EVENT_ATTACK_ANNOUNCE (negate attack; bonus destroy if Mu is controlled).
+            // Engine legality enforces: opponent's monster declares an attack AND the attack target is a "Saint".
+            // We keep this lightweight so the AI doesn't miss the window (attack context is not exposed in this plugin API).
             if (Duel.Player == 0)
                 return false;
-            return Bot.MonsterZone.Any(m =>
-                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+            if (!ControlAnySaint())
+                return false;
+            // Avoid activating outside of battle windows (reduces pointless attempts).
+            switch (Duel.Phase)
+            {
+                case DuelPhase.BattleStart:
+                case DuelPhase.BattleStep:
+                case DuelPhase.Damage:
+                case DuelPhase.DamageCal:
+                case DuelPhase.Battle:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private bool ActivatePopesVerdict()
         {
-            // Guide: 103 when equipped Saint shell is live (engine also gates).
+            // 922100103 updated: only negates opponent Spell/Trap activations while an equipped Saint is controlled.
+            // We don't have a reliable "chain is Spell/Trap" helper in this build; engine gates legality.
             TrySendCustomChat(4);
             return Duel.Player != 0 && HasEquippedSaint();
         }
