@@ -16,7 +16,7 @@
 -- Once per turn: You can discard 1 "Cloth" card; inflict 800 damage to your opponent, and if you do, this card can attack directly this turn.
 -- If this card is sent to the GY: You can send 1 "Cloth" card from your Deck to the GY.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Ichi of Hydra" once per turn.
+-- You can only use each effect of "Bronze Saint - Ichi of Hydra" once per turn.
 --]==]
 --Saint - Ichi of Hydra
 local s,id=GetID()

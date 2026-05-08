@@ -17,7 +17,7 @@
 -- Once per turn: You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card.
 -- Also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Hyoga of Cygnus" once per turn.
+-- You can only use each effect of "Bronze Saint - Hyoga of Cygnus" once per turn.
 --]==]
 --Saint - Hyoga of Cygnus
 local s,id=GetID()

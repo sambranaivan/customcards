@@ -14,10 +14,10 @@
 --
 -- Effect (EN):
 -- If you control a "Saint" monster: You can Special Summon this card from your hand.
--- You can only Special Summon "Saint - Jabu of Unicorn" once per turn this way.
+-- You can only Special Summon "Bronze Saint - Jabu of Unicorn" once per turn this way.
 -- If this card is Special Summoned: You can add 1 "Cloth" card from your GY to your hand, then discard 1 card.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Jabu of Unicorn" once per turn.
+-- You can only use each effect of "Bronze Saint - Jabu of Unicorn" once per turn.
 --]==]
 --Saint - Jabu of Unicorn
 local s,id=GetID()

@@ -16,7 +16,7 @@
 -- If a "Saint" monster(s) you control is destroyed by battle: You can Special Summon this card from your hand.
 -- If this card is Special Summoned: You can target 1 "Saint" monster in your GY; add it to your hand.
 -- If this card is sent to the GY as material for the Summon of a "Saint" monster: You can either equip 1 "Cloth" card you control to that monster, or attach 1 "Cloth" card you control to it as material (if it is an Xyz Monster).
--- You can only use each effect of "Saint - Ban of Lionet" once per turn.
+-- You can only use each effect of "Bronze Saint - Ban of Lionet" once per turn.
 --]==]
 --Saint - Ban of Lionet
 local s,id=GetID()
