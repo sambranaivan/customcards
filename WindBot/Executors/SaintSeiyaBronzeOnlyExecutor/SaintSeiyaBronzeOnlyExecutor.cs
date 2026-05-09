@@ -469,8 +469,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 29;
-        private const string BuildTag = "2026-05-08-v29-mass-chain-heuristics-shiryu-bond";
+        private const int BuildVersion = 30;
+        private const string BuildTag = "2026-05-08-v30-soft-mass-rule-wipe-spelltrap-only";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -777,6 +777,35 @@ namespace WindBot.Game.AI.Decks
             return null;
         }
 
+        private static string TryReadStringMember(object obj, params string[] names)
+        {
+            if (obj == null || names == null)
+                return null;
+            try
+            {
+                var t = obj.GetType();
+                foreach (var n in names)
+                {
+                    var p = t.GetProperty(n);
+                    if (p != null)
+                    {
+                        var v = p.GetValue(obj, null);
+                        if (v is string)
+                            return (string)v;
+                    }
+                    var f = t.GetField(n);
+                    if (f != null)
+                    {
+                        var v = f.GetValue(obj);
+                        if (v is string)
+                            return (string)v;
+                    }
+                }
+            }
+            catch { }
+            return null;
+        }
+
         private static object TryReadObjMember(object obj, params string[] names)
         {
             if (obj == null || names == null)
@@ -800,7 +829,6 @@ namespace WindBot.Game.AI.Decks
 
         private int? TryGetLastChainActivatorPlayer()
         {
-            // Best effort across WindBot builds: read Player/Controller on the chain link or its handler card.
             var link = TryGetLastChainLink();
             if (link == null)
                 return null;
@@ -819,7 +847,6 @@ namespace WindBot.Game.AI.Decks
 
         private int? TryGetLastChainCardType()
         {
-            // Attempt to read ActiveType/Type (bitmask of TYPE_* from YGOSharp) if exposed by the chain link.
             var link = TryGetLastChainLink();
             if (link == null)
                 return null;
@@ -836,40 +863,76 @@ namespace WindBot.Game.AI.Decks
             return null;
         }
 
-        private bool IsOpponentChainLikelyMassThreat()
+        private string TryGetLastChainCardName()
+        {
+            var link = TryGetLastChainLink();
+            if (link == null)
+                return null;
+
+            var name = TryReadStringMember(link, "Name", "CardName");
+            if (!string.IsNullOrEmpty(name))
+                return name;
+
+            var handler = TryReadObjMember(link, "Card", "Handler", "Source", "EffectCard", "ActivatingCard");
+            name = TryReadStringMember(handler, "Name", "CardName");
+            return name;
+        }
+
+        private bool IsOpponentSpellTrapWipeLikeChain()
         {
             if (ChainIsEmpty())
                 return false;
 
-            // Prefer explicit activator when available.
+            // Must be opponent-driven. If we can't read activator reliably, fall back to "not our turn".
             var activator = TryGetLastChainActivatorPlayer();
             if (activator.HasValue && activator.Value == 0)
                 return false;
-
-            // If we can read card type, only treat as "mass threat" for Spell/Trap/Monster (any is fine),
-            // but we mainly want to exclude our own chain.
-            // When type isn't readable, use turn-player heuristic: mass threats we care about mostly happen on opponent's turn.
             if (!activator.HasValue && Duel.Player == 0)
                 return false;
 
-            // If the chain already targets something, our "targeted" rules handle it; this is for non-targeting wipes.
+            // Must be Spell/Trap when we can read type; otherwise do not assume.
+            var type = TryGetLastChainCardType();
+            if (!type.HasValue)
+                return false;
+            if ((type.Value & (int)CardType.Spell) == 0 && (type.Value & (int)CardType.Trap) == 0)
+                return false;
+
+            // Non-targeting rule: only consider when chain isn't already targeting our stuff.
             bool anySaintTargeted = Bot.MonsterZone.Any(m => m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
             bool anyClothTargeted = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z));
             if (anySaintTargeted || anyClothTargeted)
                 return false;
 
-            // Board value heuristic: only fire if we actually have something to save.
+            // Board-value guard: don't burn on empty/low-value boards.
             int saintsUp = Bot.MonsterZone.Count(m => m != null && m.IsFaceup() && Saints.Contains(m.Id));
             bool haveFaceupCloth = Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
             bool haveEquippedShell = HasEquippedSaint();
             if (saintsUp == 0 && !haveFaceupCloth)
                 return false;
+            if (!(saintsUp >= 2 || haveEquippedShell || haveFaceupCloth))
+                return false;
 
-            // If we have multiple Saints or an equipped shell, assume a wipe/removal could be coming.
-            if (saintsUp >= 2 || haveEquippedShell || haveFaceupCloth)
-                return true;
+            var name = TryGetLastChainCardName();
+            if (string.IsNullOrEmpty(name))
+                return false;
 
-            return false;
+            var n = name.ToLowerInvariant();
+            // Conservative wipe/removal-ish patterns (English); keep small to avoid false positives.
+            // This intentionally misses many cards rather than burning resources.
+            var patterns = new[]
+            {
+                "raigeki",
+                "dark hole",
+                "lightning storm",
+                "feather duster",
+                "harpie",
+                "evenly matched",
+                "torrential tribute",
+                "storm",
+                "wipe",
+                "destroy all"
+            };
+            return patterns.Any(p => n.Contains(p));
         }
 
         /// <summary>Open Main1/Main2 on our turn with no chain — typical "beginner" misuse window for protection QPs.</summary>
@@ -1602,16 +1665,14 @@ namespace WindBot.Game.AI.Decks
                     return false;
                 // Updated script: discard from hand gives our "Cloth" cards indestructible by card effects this turn.
                 // Do NOT burn this from hand unless a chain is actually threatening a face-up Cloth we control.
-                if (!ChainIsEmpty())
-                {
-                    if (Bot.SpellZone.Any(z =>
-                        z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z)))
-                        return true;
-                    // Secondary rule: if opponent chain looks like a non-targeting mass threat and we have face-up Cloths, allow.
-                    if (IsOpponentChainLikelyMassThreat() && Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id)))
-                        return true;
-                }
-                return false;
+                if (ChainIsEmpty())
+                    return false;
+                if (Bot.SpellZone.Any(z =>
+                    z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z)))
+                    return true;
+                // Soft rule: only against opponent Spell/Trap that looks like a wipe/removal; requires readable chain type+name.
+                return IsOpponentSpellTrapWipeLikeChain()
+                       && Bot.SpellZone.Any(z => z != null && z.IsFaceup() && Cloths.Contains(z.Id));
             }
             if (!IsMainPhase())
                 return false;
@@ -2087,22 +2148,19 @@ namespace WindBot.Game.AI.Decks
             if (ChainIsEmpty())
                 return false;
 
-            var targeted = Bot.MonsterZone.FirstOrDefault(m =>
+            var target = Bot.MonsterZone.FirstOrDefault(m =>
                 m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
-            if (targeted != null)
+            if (target == null)
             {
-                AI.SelectCard(targeted);
-                return true;
+                // Soft rule: only against opponent Spell/Trap that looks like a wipe/removal; requires readable chain type+name.
+                if (!IsOpponentSpellTrapWipeLikeChain())
+                    return false;
+                target = ChooseSaintToProtect();
+                if (target == null)
+                    return false;
             }
 
-            // Secondary rule: if the opponent chain looks like a non-targeting mass threat, protect our key Saint.
-            if (!IsOpponentChainLikelyMassThreat())
-                return false;
-
-            var protect = ChooseSaintToProtect();
-            if (protect == null)
-                return false;
-            AI.SelectCard(protect);
+            AI.SelectCard(target);
             return true;
         }
 
