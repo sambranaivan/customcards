@@ -4,6 +4,8 @@
 *.png
 *.jpg
 *.gif
+!textures/**
+!skin/**
 *.mp4
 *.mp3
 *.wav
@@ -14,8 +16,6 @@
 *.mov
 *.avi
 *.wmv
-\textures\* 
-\skin\*
 \sound\*
 \repositories\*
 \puzzles\*
