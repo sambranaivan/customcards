@@ -9,8 +9,8 @@
 --
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
--- The equipped monster can attack directly.
--- If the equipped monster is "Saint - Shun of Andromeda", while it is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
+-- While the equipped monster is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
+-- If this card is equipped to "Saint - Shun of Andromeda", the equipped monster can attack directly.
 -- If this card is sent to the GY: You can add 1 Level 4 or lower "Saint" monster from your Deck or GY to your hand.
 -- You can only use 1 effect of "Bronze Cloth - Andromeda" per turn, and only once that turn.
 --]==]
@@ -21,30 +21,31 @@ function s.initial_effect(c)
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
 
-	--Equipped monster can attack directly
+	--While equipped monster is in DEF: opponent cannot attack other monsters; cannot activate effects of SS'd monsters this turn
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_EQUIP)
-	e1:SetCode(EFFECT_DIRECT_ATTACK)
-	e1:SetValue(1)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
+	e1:SetRange(LOCATION_SZONE)
+	e1:SetTargetRange(0,LOCATION_MZONE)
+	e1:SetCondition(s.defcon)
+	e1:SetValue(s.atlimit)
 	c:RegisterEffect(e1)
-
-	--If equipped monster is Shun in DEF: opponent cannot attack other monsters; cannot activate effects of SS'd monsters this turn
 	local e2=Effect.CreateEffect(c)
 	e2:SetType(EFFECT_TYPE_FIELD)
-	e2:SetCode(EFFECT_CANNOT_SELECT_BATTLE_TARGET)
+	e2:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
+	e2:SetCode(EFFECT_CANNOT_ACTIVATE)
 	e2:SetRange(LOCATION_SZONE)
-	e2:SetTargetRange(0,LOCATION_MZONE)
+	e2:SetTargetRange(0,1)
 	e2:SetCondition(s.defcon)
-	e2:SetValue(s.atlimit)
+	e2:SetValue(s.actlimit)
 	c:RegisterEffect(e2)
+
+	--If equipped to Shun: can attack directly
 	local e3=Effect.CreateEffect(c)
-	e3:SetType(EFFECT_TYPE_FIELD)
-	e3:SetProperty(EFFECT_FLAG_PLAYER_TARGET)
-	e3:SetCode(EFFECT_CANNOT_ACTIVATE)
-	e3:SetRange(LOCATION_SZONE)
-	e3:SetTargetRange(0,1)
-	e3:SetCondition(s.defcon)
-	e3:SetValue(s.actlimit)
+	e3:SetType(EFFECT_TYPE_EQUIP)
+	e3:SetCode(EFFECT_DIRECT_ATTACK)
+	e3:SetCondition(s.dircon)
+	e3:SetValue(1)
 	c:RegisterEffect(e3)
 
 	--If sent to GY: add 1 Level 4 or lower "Saint" monster from Deck/GY
@@ -72,10 +73,14 @@ end
 
 function s.defcon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100003) and ec:IsFaceup() and ec:IsDefensePos()
+	return ec and ec:IsFaceup() and ec:IsDefensePos()
+end
+function s.dircon(e)
+	local ec=e:GetHandler():GetEquipTarget()
+	return ec and ec:IsCode(922100003) and ec:IsFaceup()
 end
 function s.atlimit(e,c)
-	return c:IsSetCard(SET_SAINT) and c~=e:GetHandler():GetEquipTarget()
+	return c~=e:GetHandler():GetEquipTarget()
 end
 function s.actlimit(e,re,tp)
 	local rc=re:GetHandler()
