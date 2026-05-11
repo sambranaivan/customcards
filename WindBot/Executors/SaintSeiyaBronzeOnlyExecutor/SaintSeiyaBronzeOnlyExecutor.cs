@@ -471,8 +471,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 35;
-        private const string BuildTag = "2026-05-11-v35-prioritized-normal-summon";
+        private const int BuildVersion = 37;
+        private const string BuildTag = "2026-05-11-v37-all-reactive-cards-ignore-own-chain";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -970,6 +970,19 @@ namespace WindBot.Game.AI.Decks
                 "destroy all"
             };
             return patterns.Any(p => n.Contains(p));
+        }
+
+        /// <summary>
+        /// Returns true if the last chain link was activated by the opponent.
+        /// Returns false if it was ours or if we can't determine the activator on our own turn (conservative).
+        /// </summary>
+        private bool IsLastChainFromOpponent()
+        {
+            var activator = TryGetLastChainActivatorPlayer();
+            if (activator.HasValue)
+                return activator.Value != 0;
+            // Fallback: if we can't read the activator, assume opponent only on their turn.
+            return Duel.Player != 0;
         }
 
         /// <summary>Open Main1/Main2 on our turn with no chain — typical "beginner" misuse window for protection QPs.</summary>
@@ -1661,6 +1674,9 @@ namespace WindBot.Game.AI.Decks
                 // Do NOT burn this from hand unless a chain is actually threatening a face-up Cloth we control.
                 if (ChainIsEmpty())
                     return false;
+                // Only react to opponent's effects — ignore our own equips/spells targeting Cloths.
+                if (!IsLastChainFromOpponent())
+                    return false;
                 if (Bot.SpellZone.Any(z =>
                     z != null && z.IsFaceup() && Cloths.Contains(z.Id) && Util.IsChainTarget(z)))
                     return true;
@@ -2113,9 +2129,13 @@ namespace WindBot.Game.AI.Decks
             if (!ControlAnySaint())
                 return false;
 
-            // Case 1: Any chain currently targets one of our Saints (likely destruction/removal).
+            // Case 1: An opponent's chain currently targets one of our Saints (likely destruction/removal).
             if (!ChainIsEmpty())
             {
+                // Only react to opponent's effects — ignore our own equips/spells targeting Saints.
+                if (!IsLastChainFromOpponent())
+                    return false;
+
                 var target = Bot.MonsterZone.FirstOrDefault(m =>
                     m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
                 if (target == null)
@@ -2163,6 +2183,10 @@ namespace WindBot.Game.AI.Decks
             // 922100092: protects a targeted Saint from opponent's effects (destruction/banish) this turn.
             // Avoid burning it pro-actively: only use when a chain targets one of our Saints.
             if (ChainIsEmpty())
+                return false;
+
+            // Only react to opponent's effects — ignore our own equips/spells targeting Saints.
+            if (!IsLastChainFromOpponent())
                 return false;
 
             var target = Bot.MonsterZone.FirstOrDefault(m =>
