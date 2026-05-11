@@ -57,10 +57,12 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
 
 ### Bronze Cloth (Equip Spells)
-All these share a key consistency effect:
-**Discard this card → add 1 Level 4 "Saint" monster from Deck to hand.**
+All share a new generic GY trigger:
+**If this card is sent to the GY: You can add 1 Level 4 or lower "Saint" monster from your Deck or GY to your hand.**
+(Triggers from anywhere, not just S/T zone. OPYOT per cloth.)
 
-Andromeda (`922100044`) additionally: while the equipped Saint is in Defense Position, the opponent cannot attack your other monsters and cannot activate effects of monsters they Special Summoned this turn; if equipped to Shun (`922100003`), that monster can attack directly.
+Each cloth also has unique on-field effects when equipped to its paired Saint.
+Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF, protects other monsters + restricts SS'd monster effects.
 
 - `922100041` Bronze Cloth - Pegasus
 - `922100042` Bronze Cloth - Dragon
@@ -469,8 +471,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 30;
-        private const string BuildTag = "2026-05-08-v30-soft-mass-rule-wipe-spelltrap-only";
+        private const int BuildVersion = 32;
+        private const string BuildTag = "2026-05-11-v32-gy-search-seiya-priority-empty-field";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -489,7 +491,7 @@ namespace WindBot.Game.AI.Decks
             public const int Mu = 922100010;
             public const int Kiki = 922100011;
 
-            // Cloth equips (discard to search a Level 4 "Saint")
+            // Cloth equips (GY trigger: add L4-or-lower Saint from Deck/GY)
             public const int ClothPegasus = 922100041;
             public const int ClothDragon = 922100042;
             public const int ClothCygnus = 922100043;
@@ -1007,10 +1009,10 @@ namespace WindBot.Game.AI.Decks
                    || Bot.HasInHand(CardId.RaiseYourCosmos);
         }
 
-        /// <summary>Guide: ResolveSeiyaSearch — Cloth access "soon" (hand, Kiki, or Seiya+GY equip line).</summary>
+        /// <summary>Guide: ResolveSeiyaSearch — Cloth access "soon" (hand equip, Kiki, or Seiya+GY equip line).</summary>
         private bool HasBronzeClothAccessSoon()
         {
-            if (Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+            if (Bot.Hand.IsExistingMatchingCard(c => Cloths.Contains(c.Id)) && ControlAnySaint() && HasFreeMainSpellZoneForEquip())
                 return true;
             if (Bot.HasInHand(CardId.Kiki))
                 return true;
@@ -1041,38 +1043,6 @@ namespace WindBot.Game.AI.Decks
             if (opt < 0)
                 return false;
             return ActivateDescription == Util.GetStringId(monsterId, opt);
-        }
-
-        /// <summary>Guide: ChooseClothToDiscard_MinOpportunityCost — discard low-tier Cloths first.</summary>
-        private static int ClothDiscardTier(int clothId)
-        {
-            switch (clothId)
-            {
-                case CardId.ClothWolf:
-                case CardId.ClothLionet:
-                case CardId.ClothBear:
-                case CardId.ClothHydra:
-                    return 0;
-                case CardId.ClothPegasus:
-                case CardId.ClothUnicorn:
-                case CardId.ClothPhoenix:
-                    return 1;
-                case CardId.ClothAndromeda:
-                case CardId.ClothDragon:
-                case CardId.ClothCygnus:
-                    return 2;
-                default:
-                    return 1;
-            }
-        }
-
-        private bool ThisClothIsPreferredDiscardAmongHandCloths()
-        {
-            var inHand = Bot.Hand.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
-            if (inHand.Count <= 1)
-                return true;
-            var best = inHand.Min(c => ClothDiscardTier(c.Id));
-            return ClothDiscardTier(Card.Id) <= best;
         }
 
         /// <summary>Kiki equips from Deck or GY — bitmask Deck|Grave.</summary>
@@ -1112,37 +1082,6 @@ namespace WindBot.Game.AI.Decks
                 case CardId.Nachi: return CardId.ClothWolf;
                 default: return null;
             }
-        }
-
-        /// <summary>Inverse map: Cloth sent from field to GY → prefer that Saint for delayed re-equip.</summary>
-        private static int? PreferredSaintIdForCloth(int clothId)
-        {
-            switch (clothId)
-            {
-                case CardId.ClothPegasus: return CardId.Seiya;
-                case CardId.ClothDragon: return CardId.Shiryu;
-                case CardId.ClothCygnus: return CardId.Hyoga;
-                case CardId.ClothAndromeda: return CardId.Shun;
-                case CardId.ClothPhoenix: return CardId.Ikki;
-                case CardId.ClothUnicorn: return CardId.Jabu;
-                case CardId.ClothHydra: return CardId.Ichi;
-                case CardId.ClothBear: return CardId.Geki;
-                case CardId.ClothLionet: return CardId.Ban;
-                case CardId.ClothWolf: return CardId.Nachi;
-                default: return null;
-            }
-        }
-
-        private int[] BuildSaintTargetPriorityForClothReequip(int clothId)
-        {
-            var order = new List<int>();
-            var pref = PreferredSaintIdForCloth(clothId);
-            if (pref.HasValue)
-                order.Add(pref.Value);
-            foreach (var id in Saints)
-                if (!order.Contains(id))
-                    order.Add(id);
-            return order.ToArray();
         }
 
         private int[] BuildKikiClothPriorityForTarget(ClientCard saintTarget)
@@ -1451,76 +1390,28 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Bronze Cloth: hand ignition (discard → search L4 Saint), GY trigger (target Saint → re-equip next Standby),
-        /// and Standby Phase equip resolution on the registered Cloth in GY.
-        /// Andromeda (922100044): while equipped Saint is in DEF, protects other monsters + restricts opponent SS'd monsters;
-        /// with Shun it grants direct attack — script uses aux.Stringid(id,2) for the GY re-equip trigger (not id,3 like Pegasus).
+        /// Bronze Cloth effects (updated):
+        /// - Hand: activate to equip to a face-up Saint (Stringid 0).
+        /// - S/T zone: on-field unique effects per cloth (engine handles; bot always accepts).
+        /// - GY trigger: "If this card is sent to the GY: add 1 Level 4 or lower Saint from Deck or GY to hand."
+        ///   Triggers from anywhere (not just S/T zone). OPYOT applies per cloth.
         /// </summary>
         private bool ResolveClothActivate()
         {
             if (!Cloths.Contains(Card.Id))
                 return false;
 
+            // Hand → activate as Equip Spell (equip to a Saint you control).
             if ((Card.Location & CardLocation.Hand) != 0)
-                return ResolveBronzeClothActivateFromHand();
+                return ActivateBronzeClothEquipFromHand();
 
+            // GY → "sent to the GY" trigger: search a L4-or-lower Saint from Deck/GY.
             if ((Card.Location & CardLocation.Grave) != 0)
-            {
-                if (Duel.Phase == DuelPhase.Standby)
-                {
-                    if (!HasFreeMainSpellZoneForEquip())
-                        return false;
-                    return true;
-                }
+                return ResolveClothGySentSearch();
 
-                return ActivateClothSentFromFieldToGyReequip();
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Hand-only descriptions for Bronze Cloth: 0 = discard → search, 1 = activate to equip.
-        /// Andromeda script matches this layout (922100044).
-        /// </summary>
-        private bool ResolveBronzeClothActivateFromHand()
-        {
-            var d = ActivateDescription;
-            var sidDiscard = Util.GetStringId(Card.Id, 0);
-            var sidEquip = Util.GetStringId(Card.Id, 1);
-
-            if (d == sidEquip)
-                return ActivateBronzeClothEquipFromHand();
-            if (d == sidDiscard)
-                return ActivateClothDiscardFromHand();
-
-            if (d != -1 && d != sidDiscard && d != sidEquip)
-                return false;
-
-            if (ShouldPreferBronzeClothEquipFromHand())
-                return ActivateBronzeClothEquipFromHand();
-            return ActivateClothDiscardFromHand();
-        }
-
-        private bool ShouldPreferBronzeClothEquipFromHand()
-        {
-            if (!IsMainPhase())
-                return false;
-            if (!ControlAnySaint())
-                return false;
-            if (!HasFreeMainSpellZoneForEquip())
-                return false;
-            if (NeedEquipForVerdict())
+            // S/T zone on-field effects (Cygnus negate, Wolf recycle, etc.) — always accept when engine offers.
+            if ((Card.Location & CardLocation.SpellZone) != 0)
                 return true;
-
-            foreach (var m in Bot.MonsterZone)
-            {
-                if (m == null || !m.IsFaceup())
-                    continue;
-                var paired = ClothMatchingSaint(m.Id);
-                if (paired.HasValue && paired.Value == Card.Id)
-                    return true;
-            }
 
             return false;
         }
@@ -1534,6 +1425,7 @@ namespace WindBot.Game.AI.Decks
             if (!HasFreeMainSpellZoneForEquip())
                 return false;
 
+            // Prefer equipping the paired Saint for maximum synergy.
             ClientCard target = null;
             foreach (var m in Bot.MonsterZone)
             {
@@ -1557,51 +1449,52 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        private bool ActivateClothSentFromFieldToGyReequip()
+        /// <summary>
+        /// New generic GY trigger on all Bronze Cloths: add 1 Level 4 or lower Saint from Deck or GY.
+        /// Fires when sent from anywhere, so always accept and pick the best Saint.
+        /// </summary>
+        private bool ResolveClothGySentSearch()
         {
-            // "If this face-up Equip in S/T Zone is sent to the GY: target 1 Saint you control; next Standby Phase equip this card."
-            if (!ControlAnySaint())
-                return false;
-
-            var d = ActivateDescription;
-            if (d != -1 && (d == Util.GetStringId(Card.Id, 0) || d == Util.GetStringId(Card.Id, 1)))
-                return false;
-
-            AI.SelectCard(BuildSaintTargetPriorityForClothReequip(Card.Id));
+            AI.SelectCard(ChooseLv4SaintForDeckOrGraveyardSearch());
             return true;
         }
 
-        private bool ActivateClothDiscardFromHand()
+        /// <summary>
+        /// Picks the best L4-or-lower Saint to add from Deck or GY.
+        /// Similar to ChooseLv4SaintForDeckSearch but also considers Saints in the GY.
+        /// </summary>
+        private bool SaintAvailableInDeckOrGy(int id)
         {
-            // Cloths: "Discard this card; add 1 Level 4 Saint monster from Deck to hand."
-            // Only do this in Main Phase, and only if it helps reach 3 distinct names or fix an empty board.
-            if (!IsMainPhase())
-                return false;
+            return Bot.GetRemainingCount(id, 3) > 0
+                   || Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(id));
+        }
 
-            if (!ThisClothIsPreferredDiscardAmongHandCloths())
-                return false;
+        private int ChooseLv4SaintForDeckOrGraveyardSearch()
+        {
+            var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
+            var inHand = new HashSet<int>(Bot.Hand.Where(c => c != null).Select(c => c.Id));
 
-            if (FieldIsEmpty())
-            {
-                AI.SelectCard(CardId.Seiya, CardId.Shun, CardId.Shiryu);
-                return true;
-            }
+            // Empty field: Seiya is the best combo starter (summon-search + self-SS).
+            if (FieldIsEmpty()
+                && !inHand.Contains(CardId.Seiya) && SaintAvailableInDeckOrGy(CardId.Seiya))
+                return CardId.Seiya;
 
-            if (DistinctSaintNamesOnField() < 3)
-            {
-                AI.SelectCard(ChooseLv4SaintForDeckSearch());
-                return true;
-            }
+            // Ban priority for SS lines.
+            if (!onField.Contains(CardId.Ban) && !inHand.Contains(CardId.Ban) && SaintAvailableInDeckOrGy(CardId.Ban))
+                return CardId.Ban;
 
-            // Strategy update: Seiya equips only from GY now.
-            // If Seiya is already established but we have no Cloth in GY, discard a Cloth to seed GY.
-            if (HasSeiyaFaceup() && !HasClothInGraveyard())
-            {
-                AI.SelectCard(ChooseLv4SaintForDeckSearch());
-                return true;
-            }
+            // Jabu for free SS when we already control a Saint.
+            if (ControlAnySaint()
+                && Bot.GetMonsterCount() < 5
+                && !onField.Contains(CardId.Jabu) && !inHand.Contains(CardId.Jabu) && SaintAvailableInDeckOrGy(CardId.Jabu))
+                return CardId.Jabu;
 
-            return false;
+            // Distinct name we don't yet control.
+            foreach (var id in Lv4Saints)
+                if (!onField.Contains(id) && !inHand.Contains(id) && SaintAvailableInDeckOrGy(id))
+                    return id;
+
+            return ChooseSaintToMaximizeDistinct();
         }
 
         private bool ActivateRaiseYourCosmos()
@@ -1877,6 +1770,29 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
+        /// <summary>Cloth value tier for discard/shuffle ordering (still used by Ichi/Nachi/etc.).</summary>
+        private static int ClothValueTier(int clothId)
+        {
+            switch (clothId)
+            {
+                case CardId.ClothWolf:
+                case CardId.ClothLionet:
+                case CardId.ClothBear:
+                case CardId.ClothHydra:
+                    return 0;
+                case CardId.ClothPegasus:
+                case CardId.ClothUnicorn:
+                case CardId.ClothPhoenix:
+                    return 1;
+                case CardId.ClothAndromeda:
+                case CardId.ClothDragon:
+                case CardId.ClothCygnus:
+                    return 2;
+                default:
+                    return 1;
+            }
+        }
+
         private int? ChooseClothFromHandToDiscard()
         {
             var inHand = Bot.Hand.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
@@ -1884,7 +1800,7 @@ namespace WindBot.Game.AI.Decks
                 return null;
             // Discard the least valuable Cloth first (highest tier number).
             var best = inHand
-                .OrderByDescending(c => ClothDiscardTier(c.Id))
+                .OrderByDescending(c => ClothValueTier(c.Id))
                 .First();
             return best.Id;
         }
@@ -1927,7 +1843,7 @@ namespace WindBot.Game.AI.Decks
             var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
             if (gy.Count == 0)
                 return null;
-            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+            return gy.OrderByDescending(c => ClothValueTier(c.Id)).First().Id;
         }
 
         private int? ChooseClothFromGraveyardToShuffle()
@@ -1936,7 +1852,7 @@ namespace WindBot.Game.AI.Decks
             var gy = Bot.Graveyard.Where(c => c != null && Cloths.Contains(c.Id)).ToList();
             if (gy.Count == 0)
                 return null;
-            return gy.OrderByDescending(c => ClothDiscardTier(c.Id)).First().Id;
+            return gy.OrderByDescending(c => ClothValueTier(c.Id)).First().Id;
         }
 
         private bool ResolveIchiActivate()
@@ -2208,7 +2124,7 @@ namespace WindBot.Game.AI.Decks
             if (!IsMainPhase())
                 return false;
 
-            // Prefer keeping Cloths in hand for discard-search instead of setting.
+            // Cloths are now equips — prefer keeping them in hand for equipping, not setting face-down.
             if (Cloths.Contains(Card.Id))
                 return false;
 
