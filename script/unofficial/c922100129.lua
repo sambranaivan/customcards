@@ -14,7 +14,7 @@
 --
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
--- Once per turn (Quick Effect): You can target 1 Level 4 or lower face-up monster your opponent controls; take control of it until the end of this turn, but its effects are negated and it cannot attack or be used as material for a Synchro, Xyz, or Link Summon.
+-- Once per turn (Quick Effect): You can target 1 Level 4 or lower face-up monster your opponent controls; take control of it until the end of this turn, but its effects are negated, also it cannot attack, be Tributed, or be used as material for a Synchro, Xyz, or Link Summon.
 -- If this card is used as material for the Xyz or Link Summon of an "Envoy of the Pope" monster: You can add 1 "Pope's Mandate" Spell/Trap from your Deck to your hand.
 -- You can only use each effect of "Jango of the Boomerang, Envoy of the Pope" once per turn.
 --]==]
@@ -100,16 +100,22 @@ function s.ctop(e,tp,eg,ep,ev,re,r,rp)
 		tc:RegisterEffect(e3)
 		local e4=Effect.CreateEffect(e:GetHandler())
 		e4:SetType(EFFECT_TYPE_SINGLE)
-		e4:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
+		e4:SetCode(EFFECT_UNRELEASABLE_SUM)
 		e4:SetValue(1)
 		e4:SetReset(reset)
 		tc:RegisterEffect(e4)
+		local e4b=e4:Clone()
+		e4b:SetCode(EFFECT_UNRELEASABLE_NONSUM)
+		tc:RegisterEffect(e4b)
 		local e5=e4:Clone()
-		e5:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
+		e5:SetCode(EFFECT_CANNOT_BE_SYNCHRO_MATERIAL)
 		tc:RegisterEffect(e5)
 		local e6=e4:Clone()
-		e6:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
+		e6:SetCode(EFFECT_CANNOT_BE_XYZ_MATERIAL)
 		tc:RegisterEffect(e6)
+		local e7=e4:Clone()
+		e7:SetCode(EFFECT_CANNOT_BE_LINK_MATERIAL)
+		tc:RegisterEffect(e7)
 	end
 end
 

@@ -13,9 +13,9 @@
 --
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand, Deck, or GY) by Tributing 1 "Pope Ares" monster, OR when a "Pope Ares" monster you control is sent from the field to the GY by your opponent's card (in which case, Special Summon this card as a Quick Effect).
--- If this card is Special Summoned this way: Negate the effects of all face-up cards your opponent currently controls, and if you do, destroy them.
--- Once per turn (Quick Effect): You can send 1 "Envoy of the Pope" card from your hand or field to the GY; negate the activation of a card or effect, and if you do, banish that card.
--- This card is unaffected by the effects of non-"Envoy of the Pope" monsters.
+-- If this card is Special Summoned this way: Negate the effects of all face-up cards your opponent currently controls, until the end of this turn.
+-- Once per turn (Quick Effect): You can pay 800 LP, then send 1 "Envoy of the Pope" card from your hand or field to the GY; negate the activation of a card or effect, and if you do, banish that card.
+-- While you control another "Envoy of the Pope" monster, this card is unaffected by the effects of non-"Envoy of the Pope" monsters.
 -- You can only use each effect of "Gold Saint - Saga of Gemini, Envoy of the Pope" once per turn.
 --]==]
 --Gold Saint - Saga of Gemini, Envoy of the Pope
@@ -57,10 +57,9 @@ function s.initial_effect(c)
 	e2:SetOperation(s.trigop)
 	c:RegisterEffect(e2)
 
-	--If Special Summoned this way: negate all face-up opponent cards, then destroy them
+	--If Special Summoned this way: negate all face-up opponent cards until end of turn
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetCategory(CATEGORY_DESTROY)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e3:SetProperty(EFFECT_FLAG_DELAY)
@@ -83,12 +82,13 @@ function s.initial_effect(c)
 	e4:SetOperation(s.negop)
 	c:RegisterEffect(e4)
 
-	--Unaffected by non-Envoy monster effects
+	--While you control another Envoy: unaffected by non-Envoy monster effects
 	local e5=Effect.CreateEffect(c)
 	e5:SetType(EFFECT_TYPE_SINGLE)
 	e5:SetCode(EFFECT_IMMUNE_EFFECT)
 	e5:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
 	e5:SetRange(LOCATION_MZONE)
+	e5:SetCondition(s.immcon)
 	e5:SetValue(s.efilter)
 	c:RegisterEffect(e5)
 end
@@ -141,14 +141,12 @@ function s.wayop(e,tp,eg,ep,ev,re,r,rp)
 		local e1=Effect.CreateEffect(e:GetHandler())
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetCode(EFFECT_DISABLE)
-		e1:SetReset(RESET_EVENT+RESETS_STANDARD)
+		e1:SetReset(RESET_EVENT+RESETS_STANDARD+RESET_PHASE+PHASE_END)
 		tc:RegisterEffect(e1)
 		local e2=e1:Clone()
 		e2:SetCode(EFFECT_DISABLE_EFFECT)
 		tc:RegisterEffect(e2)
 	end
-	Duel.BreakEffect()
-	Duel.Destroy(g,REASON_EFFECT)
 end
 
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
@@ -159,7 +157,9 @@ function s.costfilter(c)
 		and (c:IsLocation(LOCATION_HAND) or (c:IsLocation(LOCATION_ONFIELD) and c:IsFaceup()))
 end
 function s.negcost(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) end
+	if chk==0 then return Duel.CheckLPCost(tp,800)
+		and Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) end
+	Duel.PayLPCost(tp,800)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
 	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)
 	Duel.SendtoGrave(g,REASON_COST)
@@ -176,6 +176,10 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+function s.immcon(e)
+	local c=e:GetHandler()
+	return Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsSetCard,SET_ENVOY_OF_THE_POPE),c:GetControler(),LOCATION_MZONE,0,1,c)
+end
 function s.efilter(e,te)
 	return te:GetOwnerPlayer()~=e:GetHandlerPlayer() and te:IsActiveType(TYPE_MONSTER)
 		and not te:GetHandler():IsSetCard(SET_ENVOY_OF_THE_POPE)

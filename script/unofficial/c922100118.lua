@@ -89,10 +89,10 @@ function s.flt(c)
 	return c:IsFaceup() and c:IsCanAddCounter(0x10f5,1)
 end
 function s.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_MZONE) and s.flt(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(s.flt,tp,LOCATION_MZONE,LOCATION_MZONE,1,nil) end
+	if chkc then return chkc:IsControler(1-tp) and chkc:IsLocation(LOCATION_MZONE) and s.flt(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(s.flt,tp,0,LOCATION_MZONE,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	Duel.SelectTarget(tp,s.flt,tp,LOCATION_MZONE,LOCATION_MZONE,1,1,nil)
+	Duel.SelectTarget(tp,s.flt,tp,0,LOCATION_MZONE,1,1,nil)
 end
 function s.op(e,tp,eg,ep,ev,re,r,rp)
 	local tc=Duel.GetFirstTarget()

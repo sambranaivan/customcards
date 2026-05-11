@@ -17,7 +17,7 @@
 -- Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand or GY) by Tributing 1 "Envoy of the Pope" monster.
 -- If this card is Special Summoned: Place 1 Royal Demon Rose Counter on each monster your opponent controls.
 -- Monsters with a Royal Demon Rose Counter have their effects negated, also they lose 500 ATK for each counter on them.
--- During each End Phase: Place 1 Royal Demon Rose Counter on each monster your opponent controls, then destroy all monsters with 2 or more Royal Demon Rose Counters.
+-- During your End Phase: Place 1 Royal Demon Rose Counter on each monster your opponent controls, then destroy all monsters with 2 or more Royal Demon Rose Counters.
 -- You can only use each effect of "Gold Saint - Aphrodite of Pisces, Envoy of the Pope" once per turn.
 --]==]
 --Gold Saint - Aphrodite of Pisces, Envoy of the Pope
@@ -77,13 +77,14 @@ function s.initial_effect(c)
 	e4:SetValue(s.atkval)
 	c:RegisterEffect(e4)
 
-	--Each End Phase: add counters then destroy monsters with 2+ counters
+	--Your End Phase: add counters then destroy monsters with 2+ counters
 	local e5=Effect.CreateEffect(c)
 	e5:SetDescription(aux.Stringid(id,1))
 	e5:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e5:SetCode(EVENT_PHASE+PHASE_END)
 	e5:SetRange(LOCATION_MZONE)
 	e5:SetCountLimit(1,{id,1})
+	e5:SetCondition(s.endcon)
 	e5:SetOperation(s.endop)
 	c:RegisterEffect(e5)
 end
@@ -115,6 +116,9 @@ function s.atkval(e,c)
 	return -500*c:GetCounter(0x10f7)
 end
 
+function s.endcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetTurnPlayer()==tp
+end
 function s.addcounters(tp)
 	local g=Duel.GetMatchingGroup(aux.FaceupFilter(Card.IsCanAddCounter,0x10f7,1),tp,0,LOCATION_MZONE,nil)
 	for tc in aux.Next(g) do

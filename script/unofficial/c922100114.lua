@@ -15,7 +15,7 @@
 --
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
--- Once per turn: You can target 1 face-up monster your opponent controls; it loses 800 ATK, also it cannot attack or activate its effects this turn.
+-- Once per turn: You can target 1 face-up monster your opponent controls; it loses 800 ATK, also it cannot attack or activate its effects, until the end of this turn.
 -- If that targeted monster leaves the field this turn: Inflict 600 damage to your opponent.
 --]==]
 --Silver Saint - Crow Jamian, Envoy of the Pope

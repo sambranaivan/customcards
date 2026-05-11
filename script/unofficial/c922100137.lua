@@ -10,7 +10,7 @@
 -- When this card is activated: You can add 1 "Envoy of the Pope" monster from your Deck to your hand.
 -- Once per turn: You can reveal 1 "Envoy of the Pope" monster in your hand; Special Summon 1 "Envoy of the Pope" monster with a different name from your hand.
 -- Also, for the rest of this turn after this effect resolves, you cannot Special Summon monsters from the Extra Deck, except "Saint" monsters.
--- If this face-up card leaves the field by an opponent's card effect: You can Special Summon 1 "Pope Ares - Usurper of the Sanctuary" from your hand or GY, ignoring its Summoning conditions.
+-- If this face-up card leaves the field by an opponent's card effect: You can Special Summon 1 "Pope Ares - Voice of the Sanctuary" from your hand, Deck, or GY.
 -- You can only activate 1 "Pope's Mandate - Chain of Command" per turn.
 --]==]
 --Pope's Mandate - Chain of Command
@@ -37,7 +37,7 @@ function s.initial_effect(c)
 	e1:SetOperation(s.spop)
 	c:RegisterEffect(e1)
 
-	--If leaves field by opponent: SS Pope Ares Usurper ignoring conditions
+	--If leaves field by opponent: SS Pope Ares Voice from hand/Deck/GY
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,2))
 	e2:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -52,7 +52,7 @@ function s.initial_effect(c)
 end
 
 s.listed_series={SET_POPES_MANDATE,SET_ENVOY_OF_THE_POPE,SET_SAINT}
-s.listed_names={922100135}
+s.listed_names={922100105}
 
 function s.envoyfilter(c)
 	return c:IsSetCard(SET_ENVOY_OF_THE_POPE) and c:IsMonster() and c:IsAbleToHand()
@@ -114,15 +114,15 @@ function s.lvcon(e,tp,eg,ep,ev,re,r,rp)
 end
 function s.lvtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_MZONE)>0
-		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsCode),tp,LOCATION_HAND+LOCATION_GRAVE,0,1,nil,922100135) end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_GRAVE)
+		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(Card.IsCode),tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,nil,922100105) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,nil,1,tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE)
 end
 function s.lvop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_SPSUMMON)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsCode),tp,LOCATION_HAND+LOCATION_GRAVE,0,1,1,nil,922100135)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(Card.IsCode),tp,LOCATION_HAND+LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil,922100105)
 	local tc=g:GetFirst()
 	if tc then
-		Duel.SpecialSummon(tc,0,tp,tp,true,true,POS_FACEUP)
+		Duel.SpecialSummon(tc,0,tp,tp,false,false,POS_FACEUP)
 	end
 end

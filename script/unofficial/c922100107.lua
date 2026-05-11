@@ -15,8 +15,9 @@
 --
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
--- Once per turn: You can pay 800 LP, then target 1 face-up monster your opponent controls; its effects are negated until the end of this turn.
--- If you control "Pope Ares", this card can make a second attack during each Battle Phase.
+-- Once per turn: You can pay 800 LP; target 1 face-up monster your opponent controls; negate its effects until the end of this turn.
+-- If you control "Pope Ares", this card can make a second attack on monsters during each Battle Phase.
+-- You can only use each effect of "Silver Saint - Shaina of Ophiuchus, Envoy of the Pope" once per turn.
 --]==]
 --Silver Saint - Shaina of Ophiuchus, Envoy of the Pope
 local s,id=GetID()

@@ -14,7 +14,7 @@
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand or GY) by sending 2 "Envoy of the Pope" monsters you control to the GY.
 -- If this card is Special Summoned: You can Set 1 "Pope's Mandate" Spell/Trap directly from your Deck.
--- Once per turn (Quick Effect): You can target 1 face-up monster your opponent controls; negate its effects, and if you do, take control of it until the End Phase, but it cannot attack directly.
+-- Once per turn (Quick Effect): You can send 1 "Envoy of the Pope" card from your hand or face-up field to the GY, then target 1 face-up monster your opponent controls; negate its effects, and if you do, take control of it until the End Phase, but it cannot attack directly.
 -- While you control another "Envoy of the Pope" monster, your opponent cannot target this card with card effects.
 -- You can only use each effect of "Pope Ares - Usurper of the Sanctuary" once per turn.
 --]==]
@@ -53,7 +53,7 @@ function s.initial_effect(c)
 	e2:SetOperation(s.setop)
 	c:RegisterEffect(e2)
 
-	--Quick: negate + take control until End Phase, cannot direct attack
+	--Quick: send 1 Envoy to GY, then negate + take control until End Phase
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
 	e3:SetType(EFFECT_TYPE_QUICK_O)
@@ -62,6 +62,7 @@ function s.initial_effect(c)
 	e3:SetRange(LOCATION_MZONE)
 	e3:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
 	e3:SetCountLimit(1,{id,1})
+	e3:SetCost(s.ctcost)
 	e3:SetTarget(s.cttg)
 	e3:SetOperation(s.ctop)
 	c:RegisterEffect(e3)
@@ -106,6 +107,16 @@ function s.setop(e,tp,eg,ep,ev,re,r,rp)
 	if tc then Duel.SSet(tp,tc) end
 end
 
+function s.ctcostfilter(c)
+	return c:IsSetCard(SET_ENVOY_OF_THE_POPE) and c:IsAbleToGraveAsCost()
+		and (c:IsLocation(LOCATION_HAND) or (c:IsLocation(LOCATION_ONFIELD) and c:IsFaceup()))
+end
+function s.ctcost(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.ctcostfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,e:GetHandler()) end
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_TOGRAVE)
+	local g=Duel.SelectMatchingCard(tp,s.ctcostfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,e:GetHandler())
+	Duel.SendtoGrave(g,REASON_COST)
+end
 function s.ctfilter(c)
 	return c:IsFaceup() and c:IsMonster() and c:IsAbleToChangeControler()
 end

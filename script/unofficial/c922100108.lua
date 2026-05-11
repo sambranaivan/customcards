@@ -16,7 +16,8 @@
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
 -- Once per turn: You can target 1 face-up monster your opponent controls; change it to Defense Position, and if you do, it cannot change its battle position, also its effects are negated, until the end of your opponent's next turn.
--- Monsters your opponent controls in this card's column cannot activate their effects.
+-- While you control "Pope Ares", monsters your opponent controls in this card's column cannot activate their effects.
+-- You can only use each effect of "Silver Saint - Algol of Perseus, Envoy of the Pope" once per turn.
 --]==]
 --Silver Saint - Algol of Perseus, Envoy of the Pope
 local s,id=GetID()
@@ -98,5 +99,6 @@ end
 function s.actlimit(e,re,tp)
 	local rc=re:GetHandler()
 	local c=e:GetHandler()
-	return rc:IsLocation(LOCATION_MZONE) and rc:GetColumnGroup():IsContains(c) and re:IsActiveType(TYPE_MONSTER)
+	return Duel.IsExistingMatchingCard(aux.FaceupFilter(Card.IsCode,922100105),c:GetControler(),LOCATION_MZONE,0,1,nil)
+		and rc:IsLocation(LOCATION_MZONE) and rc:GetColumnGroup():IsContains(c) and re:IsActiveType(TYPE_MONSTER)
 end

@@ -16,7 +16,7 @@
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand) by controlling 2 or more "Envoy of the Pope" monsters.
--- Once per turn (Quick Effect): You can send 1 card from your hand or face-up field to the GY; negate the effects of all face-up monsters your opponent currently controls, until the end of this turn.
+-- Once per turn (Quick Effect): You can send 1 "Envoy of the Pope" card from your hand or face-up field to the GY; negate the effects of up to 2 face-up monsters your opponent controls, until the end of this turn.
 -- If you control "Pope Ares", your opponent cannot activate monster effects in response to this effect's activation.
 --]==]
 --Silver Saint - Orphee of Lyra, Envoy of the Pope
@@ -43,7 +43,7 @@ function s.initial_effect(c)
 	e1:SetCondition(s.spcon)
 	c:RegisterEffect(e1)
 
-	--Quick: send 1 from hand or face-up field; negate all face-up opponent monsters
+	--Quick: send 1 Envoy from hand/field; negate up to 2 opponent monsters
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,0))
 	e2:SetType(EFFECT_TYPE_QUICK_O)
@@ -52,6 +52,7 @@ function s.initial_effect(c)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetCountLimit(1,id)
 	e2:SetCost(s.cost)
+	e2:SetTarget(s.negtg)
 	e2:SetOperation(s.operation)
 	c:RegisterEffect(e2)
 end
@@ -67,8 +68,8 @@ function s.spcon(e,c)
 end
 
 function s.costfilter(c)
-	return (c:IsLocation(LOCATION_HAND) and c:IsAbleToGraveAsCost())
-		or (c:IsLocation(LOCATION_ONFIELD) and c:IsFaceup() and c:IsAbleToGraveAsCost())
+	return c:IsSetCard(SET_ENVOY_OF_THE_POPE) and c:IsAbleToGraveAsCost()
+		and (c:IsLocation(LOCATION_HAND) or (c:IsLocation(LOCATION_ONFIELD) and c:IsFaceup()))
 end
 function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,nil) end
@@ -76,10 +77,18 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	local g=Duel.SelectMatchingCard(tp,s.costfilter,tp,LOCATION_HAND+LOCATION_ONFIELD,0,1,1,nil)
 	Duel.SendtoGrave(g,REASON_COST)
 end
+function s.negfilter(c)
+	return c:IsFaceup() and c:IsMonster()
+end
+function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.negfilter,tp,0,LOCATION_MZONE,1,nil) end
+end
 function s.operation(e,tp,eg,ep,ev,re,r,rp)
-	local g=Duel.GetMatchingGroup(aux.FaceupFilter(Card.IsMonster),tp,0,LOCATION_MZONE,nil)
+	local g=Duel.GetMatchingGroup(s.negfilter,tp,0,LOCATION_MZONE,nil)
 	if #g==0 then return end
-	for tc in aux.Next(g) do
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_NEGATE)
+	local sg=g:Select(tp,1,math.min(2,#g),nil)
+	for tc in aux.Next(sg) do
 		local e1=Effect.CreateEffect(e:GetHandler())
 		e1:SetType(EFFECT_TYPE_SINGLE)
 		e1:SetCode(EFFECT_DISABLE)

@@ -15,8 +15,8 @@
 --
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
--- Once per turn (Quick Effect): You can target 1 face-up monster your opponent controls; return it to the hand.
--- Also, your opponent cannot Special Summon monsters with that original name from the Extra Deck until the end of their next turn.
+-- (Quick Effect): You can target 1 face-up monster your opponent controls; return it to the hand, also your opponent cannot Special Summon monsters with that card's original name from the Extra Deck until the end of their next turn.
+-- You can only use each effect of "Silver Saint - Whale Moses, Envoy of the Pope" once per turn.
 --]==]
 --Silver Saint - Whale Moses, Envoy of the Pope
 local s,id=GetID()
@@ -40,7 +40,7 @@ function s.initial_effect(c)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e1:SetRange(LOCATION_MZONE)
 	e1:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
-	e1:SetCountLimit(1,id)
+	e1:SetCountLimit(1,{id,1})
 	e1:SetTarget(s.tg)
 	e1:SetOperation(s.op)
 	c:RegisterEffect(e1)

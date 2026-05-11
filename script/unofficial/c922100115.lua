@@ -15,8 +15,7 @@
 --
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
--- Once per turn: You can target up to 2 cards in either GY; banish them.
--- If a card(s) is banished by this effect, your opponent cannot activate cards or effects with the same original name as those banished cards until the end of this turn.
+-- Once per turn: You can target up to 2 cards in your opponent's GY; banish them. Your opponent cannot activate cards or effects with those banished cards' original names until the end of this turn.
 --]==]
 --Silver Saint - Cerberus Dante, Envoy of the Pope
 local s,id=GetID()
@@ -61,10 +60,10 @@ function s.rmfilter(c)
 	return c:IsAbleToRemove()
 end
 function s.tg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and s.rmfilter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(s.rmfilter,tp,LOCATION_GRAVE,LOCATION_GRAVE,1,nil) end
+	if chkc then return chkc:IsLocation(LOCATION_GRAVE) and chkc:IsControler(1-tp) and s.rmfilter(chkc) end
+	if chk==0 then return Duel.IsExistingTarget(s.rmfilter,tp,0,LOCATION_GRAVE,1,nil) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
-	local g=Duel.SelectTarget(tp,s.rmfilter,tp,LOCATION_GRAVE,LOCATION_GRAVE,1,2,nil)
+	local g=Duel.SelectTarget(tp,s.rmfilter,tp,0,LOCATION_GRAVE,1,2,nil)
 	Duel.SetOperationInfo(0,CATEGORY_REMOVE,g,#g,0,0)
 end
 function s.op(e,tp,eg,ep,ev,re,r,rp)

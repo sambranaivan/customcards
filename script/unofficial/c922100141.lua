@@ -7,7 +7,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Your opponent cannot activate the effects of Level 4 or lower monsters on the field.
+-- Your opponent cannot activate the effects of Level 4 or lower monsters they control.
 -- Once per turn: You can send 1 "Envoy of the Pope" card from your hand or face-up field to the GY; negate the activation of a monster effect, and if you do, destroy that monster.
 --]==]
 --Pope's Mandate - Silence the Rebels
@@ -49,6 +49,7 @@ s.listed_series={SET_POPES_MANDATE,SET_ENVOY_OF_THE_POPE}
 function s.aclimit(e,re,tp)
 	local rc=re:GetHandler()
 	return re:IsActiveType(TYPE_MONSTER) and rc:IsLocation(LOCATION_MZONE)
+		and rc:IsControler(1-e:GetHandlerPlayer())
 		and rc:IsLevelBelow(4) and re:IsActivated()
 end
 
