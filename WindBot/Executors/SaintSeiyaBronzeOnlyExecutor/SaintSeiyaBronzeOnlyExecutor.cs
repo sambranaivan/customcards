@@ -471,8 +471,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 32;
-        private const string BuildTag = "2026-05-11-v32-gy-search-seiya-priority-empty-field";
+        private const int BuildVersion = 35;
+        private const string BuildTag = "2026-05-11-v35-prioritized-normal-summon";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -544,6 +544,8 @@ namespace WindBot.Game.AI.Decks
                 catch { }
             }
 
+            SilenceDefaultDialogs(ai);
+
             // Counter traps / interaction (reactive)
             AddExecutor(ExecutorType.Activate, CardId.CrystalWall, ActivateCrystalWall);
             AddExecutor(ExecutorType.Activate, CardId.PopesVerdict, ActivatePopesVerdict);
@@ -559,7 +561,6 @@ namespace WindBot.Game.AI.Decks
 
             // Starters / consistency
             AddExecutor(ExecutorType.Activate, CardId.AthenasCall, ActivateAthenasCall);
-            AddExecutor(ExecutorType.Summon, CardId.Seiya, SummonSeiya);
             AddExecutor(ExecutorType.Activate, CardId.Seiya, ResolveSeiyaEffect);
             AddExecutor(ExecutorType.Activate, CardId.RaiseYourCosmos, ActivateRaiseYourCosmos);
             foreach (var cloth in Cloths)
@@ -574,15 +575,10 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
             AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
-            // Normal Summon priority ≈ ATK (WindBot tries executors in registration order).
-            AddExecutor(ExecutorType.Summon, CardId.Ikki, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Hyoga, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Geki, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Shiryu, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Ban, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Ichi, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Shun, SummonSaintLv4);
-            AddExecutor(ExecutorType.Summon, CardId.Nachi, SummonSaintLv4);
+
+            // Normal Summon — single prioritized handler for all Saints
+            foreach (var id in Lv4Saints)
+                AddExecutor(ExecutorType.Summon, id, PrioritizedNormalSummon);
             AddExecutor(ExecutorType.Summon, CardId.Mu, SummonMu);
             AddExecutor(ExecutorType.Activate, CardId.Mu, ResolveMuEffect);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ResolveIkkiEffect);
@@ -596,6 +592,45 @@ namespace WindBot.Game.AI.Decks
 
             // Repos last
             AddExecutor(ExecutorType.Repos, DefaultMonsterRepos);
+        }
+
+        /// <summary>
+        /// Clears all default dialog arrays (summon, activate, attack, etc.) via reflection
+        /// so the bot doesn't spam generic WindBot messages every action.
+        /// Only the "custom" array remains usable via TrySendCustomChat.
+        /// </summary>
+        private static void SilenceDefaultDialogs(GameAI ai)
+        {
+            try
+            {
+                var dialogsField = ai.GetType().GetField("_dialogs",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (dialogsField == null) return;
+
+                var dialogs = dialogsField.GetValue(ai);
+                if (dialogs == null) return;
+
+                var empty = new string[0];
+                string[] fieldNames = new string[]
+                {
+                    "_welcome", "_deckerror", "_duelstart", "_newturn", "_endturn",
+                    "_directattack", "_attack", "_ondirectattack",
+                    "_activate", "_summon", "_setmonster", "_chaining"
+                };
+
+                var dtype = dialogs.GetType();
+                foreach (var name in fieldNames)
+                {
+                    var f = dtype.GetField(name,
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                    if (f != null && f.FieldType == typeof(string[]))
+                        f.SetValue(dialogs, empty);
+                }
+            }
+            catch
+            {
+                // Best-effort; if reflection fails, default messages remain.
+            }
         }
 
         public override bool OnSelectHand()
@@ -943,16 +978,31 @@ namespace WindBot.Game.AI.Decks
             return Duel.Player == 0 && IsMainPhase() && ChainIsEmpty();
         }
 
+        private readonly HashSet<int> _chatSentThisTurn = new HashSet<int>();
+        private int _chatLastTurnCount = -1;
+
         private void TrySendCustomChat(int index, params object[] args)
         {
             try
             {
+                // Reset cooldown tracker each new turn.
+                int turnCount = Duel.Turn;
+                if (turnCount != _chatLastTurnCount)
+                {
+                    _chatSentThisTurn.Clear();
+                    _chatLastTurnCount = turnCount;
+                }
+
+                if (_chatSentThisTurn.Contains(index))
+                    return;
+
                 if (AI == null)
                     return;
                 var method = AI.GetType().GetMethod("SendCustomChat");
                 if (method == null)
                     return;
                 method.Invoke(AI, new object[] { index, args });
+                _chatSentThisTurn.Add(index);
             }
             catch
             {
@@ -1252,30 +1302,82 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        private bool SummonSeiya()
+        /// <summary>Saints with on-Normal-Summon triggers (EVENT_SUMMON_SUCCESS).</summary>
+        private static readonly HashSet<int> SaintsWithNSTrigger = new HashSet<int>
         {
-            return IsMainPhase();
+            CardId.Seiya, // NS/SS → search Cloth/Spell from Deck
+            CardId.Geki,  // NS/SS → pump ATK of all Saints
+            CardId.Mu     // NS/SS → target equip Cloth from GY
+        };
+
+        /// <summary>Saints with useful on-field ignition effects (not NS trigger, but still valuable).</summary>
+        private static readonly HashSet<int> SaintsWithIgnitionEffect = new HashSet<int>
+        {
+            CardId.Shiryu, // pay LP → equip from GY
+            CardId.Hyoga,  // pay LP → equip from GY
+            CardId.Ikki    // send Cloth to GY for advantage
+        };
+
+        private int NormalSummonPriority(int id)
+        {
+            // Seiya is always top: the deck's primary combo starter.
+            if (id == CardId.Seiya) return 100;
+
+            // NS/SS trigger Saints are next best.
+            if (SaintsWithNSTrigger.Contains(id))
+            {
+                if (id == CardId.Mu && Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+                    return 90; // Mu is excellent when there's a Cloth target in GY
+                if (id == CardId.Geki)
+                    return 85; // Geki pumps ATK on summon
+                return 80;
+            }
+
+            // Saints with on-field ignition effects.
+            if (SaintsWithIgnitionEffect.Contains(id))
+            {
+                if (id == CardId.Ikki) return 70;
+                // Shiryu/Hyoga: ignition equip from GY — valuable if GY has Cloths.
+                if (Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+                    return 65;
+                return 50;
+            }
+
+            // Vanilla bodies (Shun, Jabu, Ban, Ichi, Nachi) — value comes from distinct name count.
+            bool isDistinctNameOnField = Bot.MonsterZone.IsExistingMatchingCard(c => c != null && c.IsFaceup() && c.IsCode(id));
+            if (!isDistinctNameOnField) return 40;
+
+            return 10; // duplicate name already on field
         }
 
-        private bool SummonSaintLv4()
+        /// <summary>
+        /// Unified Normal Summon handler. Only summons the current Card if it is the best
+        /// candidate in hand according to NormalSummonPriority.
+        /// </summary>
+        private bool PrioritizedNormalSummon()
         {
             if (!IsMainPhase())
                 return false;
 
-            // This deck wants bodies + distinct names. Even if the enemy has a bigger monster,
-            // we still develop field and rely on equips/counters; positioning is handled separately.
             if (Bot.GetMonsterCount() >= 5)
                 return false;
 
-            // Prefer to keep normal summon for Seiya early if we can still do it.
-            if (Bot.HasInHand(CardId.Seiya) && !Card.IsCode(CardId.Seiya))
-                return false;
+            int myPriority = NormalSummonPriority(Card.Id);
 
-            // Summon if we need names, or if we have spare hand to build board.
+            // Check if any other Lv4 Saint in hand has strictly higher priority — if so, wait for that one.
+            foreach (var c in Bot.Hand)
+            {
+                if (c == null) continue;
+                if (c.Id == Card.Id) continue;
+                if (!Lv4Saints.Contains(c.Id)) continue;
+                if (NormalSummonPriority(c.Id) > myPriority)
+                    return false;
+            }
+
+            // Board-development conditions (same logic as before).
             if (DistinctSaintNamesOnField() < 3)
                 return true;
 
-            // Competent line: do not "skip" Normal Summon while hand still carries Level 4 Saints and MMZ is open.
             int lv4InHand = Bot.Hand.Count(c => Lv4Saints.Contains(c.Id));
             if (lv4InHand >= 2 && Bot.GetMonsterCount() <= 3)
                 return true;
@@ -1291,7 +1393,6 @@ namespace WindBot.Game.AI.Decks
             if (Bot.GetHandCount() >= 5)
                 return true;
 
-            // If we have counter traps to set, having more names/equipped body helps enable them next turn.
             if (Bot.Hand.IsExistingMatchingCard(c => c.IsCode(CardId.AthenaExclamation) || c.IsCode(CardId.PopesVerdict)))
                 return true;
 
@@ -2106,16 +2207,19 @@ namespace WindBot.Game.AI.Decks
         private bool ActivatePopesVerdict()
         {
             // 922100103 updated: only negates opponent Spell/Trap activations while an equipped Saint is controlled.
-            // We don't have a reliable "chain is Spell/Trap" helper in this build; engine gates legality.
+            if (Duel.Player == 0 || !HasEquippedSaint())
+                return false;
             TrySendCustomChat(4);
-            return Duel.Player != 0 && HasEquippedSaint();
+            return true;
         }
 
         private bool ActivateAthenaExclamation()
         {
             // Guide: 082 when ≥3 distinct names and meaningful interaction (engine also gates legality).
+            if (Duel.Player == 0 || DistinctSaintNamesOnField() < 3)
+                return false;
             TrySendCustomChat(3);
-            return Duel.Player != 0 && DistinctSaintNamesOnField() >= 3;
+            return true;
         }
 
         private bool SpellSetPolicy()
