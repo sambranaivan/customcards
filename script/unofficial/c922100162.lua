@@ -1,4 +1,4 @@
---Black Sagittarius - Desecrated Cloth
+--Desecrated Sagittarius - Reassembled Gold Cloth
 --[==[
 -- ID: 922100162
 -- Type: Monster / Effect Monster
@@ -12,23 +12,17 @@
 --
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
--- Must be Special Summoned (from your hand or GY) while you have 5 or more "Fragment of
--- Sagittarius" cards with different names in your GY, and you have had all 7 different
--- "Fragment of Sagittarius" cards sent to your GY at any point during this Duel.
--- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip
--- Spells from your GY to this card.
+-- Must be Special Summoned (from your hand or GY) while you have 7 or more "Fragment of Sagittarius" cards with different names on your field and/or GY.
+-- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
 -- Gains these effects based on the number of Equip Cards equipped to it.
 -- ● 1+: Cannot be destroyed by battle.
--- ● 2+: Cannot be targeted by your opponent's Spell and Trap Card effects.
--- ● 3+: Unaffected by your opponent's activated monster effects.
--- ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to
---       the GY; negate the activation of a card or effect, and if you do, destroy that card.
--- You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
+-- ● 2+: Cannot be targeted by your opponent's Spell/Trap effects.
+-- ● 3+: Unaffected by your opponent's monster effects.
+-- ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; negate the activation, and if you do, destroy that card.
+-- You can only Special Summon "Desecrated Sagittarius - Reassembled Gold Cloth" once per turn this way.
 --]==]
---Black Sagittarius - Desecrated Cloth
+--Desecrated Sagittarius - Reassembled Gold Cloth
 local s,id=GetID()
-
-s.frag_tracker={}
 
 function s.initial_effect(c)
 	c:EnableReviveLimit()
@@ -43,16 +37,7 @@ function s.initial_effect(c)
 	e0b:SetCode(EFFECT_CANNOT_MSET)
 	c:RegisterEffect(e0b)
 
-	--Track Fragments hitting the GY for the "all 7 ever" condition
-	local et=Effect.CreateEffect(c)
-	et:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-	et:SetCode(EVENT_TO_GRAVE)
-	et:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
-	et:SetRange(LOCATION_HAND+LOCATION_GRAVE+LOCATION_DECK)
-	et:SetOperation(s.trackop)
-	c:RegisterEffect(et)
-
-	--Special Summon from hand/GY: 5+ different Fragments now AND all 7 ever (OPT)
+	--Special Summon from hand/GY: 7+ different Fragments on field/GY (OPT)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
@@ -121,24 +106,8 @@ end
 
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS}
 
-function s.trackop(e,tp,eg,ep,ev,re,r,rp)
-	local owner=e:GetHandlerPlayer()
-	if not s.frag_tracker[owner] then s.frag_tracker[owner]={} end
-	for tc in aux.Next(eg) do
-		if tc:GetControler()==owner and tc:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) then
-			s.frag_tracker[owner][tc:GetOriginalCode()]=true
-		end
-	end
-end
-function s.all7sent(tp)
-	if not s.frag_tracker[tp] then return false end
-	local ct=0
-	for _ in pairs(s.frag_tracker[tp]) do ct=ct+1 end
-	return ct>=7
-end
-
 function s.ctfrags(tp)
-	local g=Duel.GetMatchingGroup(function(c) return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) end,tp,LOCATION_GRAVE,0,nil)
+	local g=Duel.GetMatchingGroup(function(c) return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) end,tp,LOCATION_MZONE+LOCATION_SZONE+LOCATION_GRAVE,0,nil)
 	local seen={}
 	local ct=0
 	for tc in aux.Next(g) do
@@ -152,7 +121,7 @@ function s.ctfrags(tp)
 end
 
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=5 and s.all7sent(tp)
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=7
 end
 function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()

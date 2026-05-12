@@ -176,7 +176,7 @@ You can only use this effect of "Fragment of Sagittarius - Left Leg" once per tu
 
 ## Boss Monster
 
-### Black Sagittarius - Desecrated Cloth
+### Desecrated Sagittarius - Reassembled Gold Cloth
 - **Card Type**: Effect Monster
 - **Attribute**: DARK
 - **Type**: Warrior
@@ -192,7 +192,7 @@ Gains these effects based on the number of Equip Cards equipped to it.
 ● 2+: Cannot be targeted by your opponent's Spell and Trap Card effects.
 ● 3+: Unaffected by your opponent's activated monster effects.
 ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; negate the activation of a card or effect, and if you do, destroy that card.
-You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
+You can only Special Summon "Desecrated Sagittarius - Reassembled Gold Cloth" once per turn this way.
 ```
 
 ## Spells and Traps

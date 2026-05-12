@@ -22,7 +22,7 @@ Gold Cloth). The core loop is:
 
 ## Critical Issues
 
-### Black Sagittarius - Desecrated Cloth — Summon Condition Unreachable in Practice
+### Desecrated Sagittarius - Reassembled Gold Cloth — Summon Condition Unreachable in Practice
 
 **Current effect:**
 ```
@@ -62,7 +62,7 @@ Gains these effects based on the number of Equip Cards equipped to it.
 ● 3+: Unaffected by your opponent's activated monster effects.
 ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to
       the GY; negate the activation of a card or effect, and if you do, destroy that card.
-You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
+You can only Special Summon "Desecrated Sagittarius - Reassembled Gold Cloth" once per turn this way.
 ```
 
 > **Changes:**
@@ -230,10 +230,10 @@ monster's original ATK.
 
 | Card | Verdict | Priority |
 |---|---|---|
-| **Black Sagittarius - Desecrated Cloth** | Summon condition breaks with own recovery tools | Critical |
+| **Desecrated Sagittarius - Reassembled Gold Cloth** | Summon condition breaks with own recovery tools | Critical |
 | **Guilty, Master of Hell** | Level 5 with no SSY from hand; bricks easily | Critical |
 | **Black Saint - Dark Pegasus** | SSY has no OPT; multiple copies per turn | Moderate |
-| **Black Sagittarius (protection gap)** | No Spell/Trap protection between 1+ and 3+ equips | Moderate |
+| **Desecrated Sagittarius (protection gap)** | No Spell/Trap protection between 1+ and 3+ equips | Moderate |
 | **Ikki (hand access)** | No self-SSY from hand; creates dependency chain bricks | Minor |
 | **Fragment - Right Arm** | Current ATK threshold inflatable with equip stacking | Minor |
 
@@ -388,7 +388,7 @@ piece being mandatory.
 
 ## Full Proposed Text — Cards with Changes
 
-### Black Sagittarius - Desecrated Cloth (revised)
+### Desecrated Sagittarius - Reassembled Gold Cloth (revised)
 ```
 Cannot be Normal Summoned/Set.
 Must be Special Summoned (from your hand or GY) while you have 5 or more "Fragment of
@@ -402,7 +402,7 @@ Gains these effects based on the number of Equip Cards equipped to it.
 ● 3+: Unaffected by your opponent's activated monster effects.
 ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to
       the GY; negate the activation of a card or effect, and if you do, destroy that card.
-You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
+You can only Special Summon "Desecrated Sagittarius - Reassembled Gold Cloth" once per turn this way.
 ```
 
 ### Guilty, Master of Hell (revised)
