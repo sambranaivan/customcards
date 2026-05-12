@@ -12,6 +12,7 @@ Este documento compila las cartas del arquetipo **Black Saints** con redaccion P
 - **ATK/DEF**: 2400 / 1800
 
 ```text
+If you control 2 or more "Black Saint" monsters, you can Special Summon this card (from your hand).
 If this card is in your GY: You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY; Special Summon this card.
 If this card is Normal or Special Summoned: You can add 1 "Fragment of Sagittarius" card from your Deck to your hand.
 Once per turn (Quick Effect): You can send 1 face-up "Fragment of Sagittarius" Equip Spell you control to the GY, then target 1 face-up card on the field; destroy it.
@@ -40,6 +41,7 @@ You can only use each effect of "Black Saint - Jango, Commander of the Shadow" o
 
 ```text
 If you control a "Black Saint" monster, you can Special Summon this card (from your hand).
+You can only Special Summon "Black Saint - Dark Pegasus" once per turn this way.
 Once per turn: You can equip 1 "Fragment of Sagittarius" Equip Spell from your hand or GY to this card.
 If this card declares an attack while equipped with a "Fragment of Sagittarius" card: Your opponent cannot activate cards or effects until the end of the Damage Step.
 ```
@@ -149,7 +151,7 @@ You can only use this effect of "Fragment of Sagittarius - Left Arm" once per tu
 Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to your opponent.
-Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with ATK less than or equal to the equipped monster's ATK.
+Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with original ATK less than or equal to the equipped monster's original ATK.
 ```
 
 ### Fragment of Sagittarius - Right Leg
@@ -183,12 +185,14 @@ You can only use this effect of "Fragment of Sagittarius - Left Leg" once per tu
 
 ```text
 Cannot be Normal Summoned/Set.
-Must be Special Summoned (from your hand or GY) while you have 7 "Fragment of Sagittarius" cards with different names in your GY.
+Must be Special Summoned (from your hand or GY) while you have 5 or more "Fragment of Sagittarius" cards with different names in your GY, and you have had all 7 different "Fragment of Sagittarius" cards sent to your GY at any point during this Duel.
 If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
 Gains these effects based on the number of Equip Cards equipped to it.
 ● 1+: Cannot be destroyed by battle.
+● 2+: Cannot be targeted by your opponent's Spell and Trap Card effects.
 ● 3+: Unaffected by your opponent's activated monster effects.
 ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; negate the activation of a card or effect, and if you do, destroy that card.
+You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
 ```
 
 ## Spells and Traps
@@ -270,6 +274,7 @@ You can only use each effect of "Esmeralda, Light of Death Queen Island" once pe
 - **ATK/DEF**: 2100 / 1500
 
 ```text
+If you control a "Black Saint" monster, you can Special Summon this card (from your hand).
 If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.
 Once per turn (Quick Effect): You can send 1 "Fragment of Sagittarius" Equip Spell you control to the GY; negate the activation of an opponent's monster effect.
 If this face-up card is destroyed by battle or by your opponent's card effect: You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand or GY, then you can equip 1 "Fragment of Sagittarius" Equip Spell from your GY to it.

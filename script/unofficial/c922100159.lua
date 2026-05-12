@@ -10,8 +10,11 @@
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
 -- The equipped monster gains 700 ATK.
--- If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to your opponent.
--- Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with ATK less than or equal to the equipped monster's ATK.
+-- If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
+-- your opponent.
+-- Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up
+-- monster your opponent controls with original ATK less than or equal to the equipped
+-- monster's original ATK.
 --]==]
 --Fragment of Sagittarius - Right Arm
 local s,id=GetID()
@@ -93,12 +96,12 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SendtoGrave(e:GetHandler(),REASON_COST)
 end
 function s.desfilter(c,atk)
-	return c:IsFaceup() and c:IsMonster() and c:IsDestructable() and c:GetAttack()<=atk
+	return c:IsFaceup() and c:IsMonster() and c:IsDestructable() and c:GetBaseAttack()<=atk
 end
 function s.destg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
 	local ec=e:GetHandler():GetEquipTarget()
 	if not ec then return end
-	local atk=ec:GetAttack()
+	local atk=ec:GetBaseAttack()
 	if chkc then return chkc:IsControler(1-tp) and chkc:IsLocation(LOCATION_MZONE) and s.desfilter(chkc,atk) end
 	if chk==0 then return Duel.IsExistingTarget(s.desfilter,tp,0,LOCATION_MZONE,1,nil,atk) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_DESTROY)

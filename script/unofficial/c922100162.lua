@@ -12,15 +12,24 @@
 --
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
--- Must be Special Summoned (from your hand or GY) while you have 7 "Fragment of Sagittarius" cards with different names in your GY.
--- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
+-- Must be Special Summoned (from your hand or GY) while you have 5 or more "Fragment of
+-- Sagittarius" cards with different names in your GY, and you have had all 7 different
+-- "Fragment of Sagittarius" cards sent to your GY at any point during this Duel.
+-- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip
+-- Spells from your GY to this card.
 -- Gains these effects based on the number of Equip Cards equipped to it.
 -- ● 1+: Cannot be destroyed by battle.
+-- ● 2+: Cannot be targeted by your opponent's Spell and Trap Card effects.
 -- ● 3+: Unaffected by your opponent's activated monster effects.
--- ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; negate the activation of a card or effect, and if you do, destroy that card.
+-- ● 5+: Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to
+--       the GY; negate the activation of a card or effect, and if you do, destroy that card.
+-- You can only Special Summon "Black Sagittarius - Desecrated Cloth" once per turn this way.
 --]==]
 --Black Sagittarius - Desecrated Cloth
 local s,id=GetID()
+
+s.frag_tracker={}
+
 function s.initial_effect(c)
 	c:EnableReviveLimit()
 	--Cannot be Normal Summoned/Set
@@ -34,23 +43,35 @@ function s.initial_effect(c)
 	e0b:SetCode(EFFECT_CANNOT_MSET)
 	c:RegisterEffect(e0b)
 
-	--Special Summon from hand/GY with 7 different "Fragment of Sagittarius" in GY
+	--Track Fragments hitting the GY for the "all 7 ever" condition
+	local et=Effect.CreateEffect(c)
+	et:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
+	et:SetCode(EVENT_TO_GRAVE)
+	et:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	et:SetRange(LOCATION_HAND+LOCATION_GRAVE+LOCATION_DECK)
+	et:SetOperation(s.trackop)
+	c:RegisterEffect(et)
+
+	--Special Summon from hand/GY: 5+ different Fragments now AND all 7 ever (OPT)
 	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_FIELD)
-	e1:SetCode(EFFECT_SPSUMMON_PROC)
-	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+	e1:SetDescription(aux.Stringid(id,0))
+	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
+	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.spcon)
+	e1:SetTarget(s.sptg)
+	e1:SetOperation(s.spop0)
 	c:RegisterEffect(e1)
 
 	--If Special Summoned: equip up to 2 Fragments from GY
 	local e2=Effect.CreateEffect(c)
-	e2:SetDescription(aux.Stringid(id,0))
+	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_EQUIP)
 	e2:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e2:SetCode(EVENT_SPSUMMON_SUCCESS)
 	e2:SetProperty(EFFECT_FLAG_DELAY)
-	e2:SetCountLimit(1,id)
+	e2:SetCountLimit(1,{id,1})
 	e2:SetTarget(s.eqtg)
 	e2:SetOperation(s.eqop)
 	c:RegisterEffect(e2)
@@ -62,6 +83,16 @@ function s.initial_effect(c)
 	e3:SetCondition(function(e) return e:GetHandler():GetEquipCount()>=1 end)
 	e3:SetValue(1)
 	c:RegisterEffect(e3)
+
+	--2+: cannot be targeted by opponent Spell/Trap effects
+	local e3b=Effect.CreateEffect(c)
+	e3b:SetType(EFFECT_TYPE_SINGLE)
+	e3b:SetCode(EFFECT_CANNOT_BE_EFFECT_TARGET)
+	e3b:SetProperty(EFFECT_FLAG_SINGLE_RANGE)
+	e3b:SetRange(LOCATION_MZONE)
+	e3b:SetCondition(function(e) return e:GetHandler():GetEquipCount()>=2 end)
+	e3b:SetValue(s.tgfilter)
+	c:RegisterEffect(e3b)
 
 	--3+: immune to opponent activated monster effects
 	local e4=Effect.CreateEffect(c)
@@ -75,12 +106,12 @@ function s.initial_effect(c)
 
 	--5+: Quick negate by sending 1 equip
 	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,1))
+	e5:SetDescription(aux.Stringid(id,2))
 	e5:SetCategory(CATEGORY_NEGATE+CATEGORY_DESTROY)
 	e5:SetType(EFFECT_TYPE_QUICK_O)
 	e5:SetCode(EVENT_CHAINING)
 	e5:SetRange(LOCATION_MZONE)
-	e5:SetCountLimit(1,{id,1})
+	e5:SetCountLimit(1,{id,2})
 	e5:SetCondition(s.negcon)
 	e5:SetCost(s.negcost)
 	e5:SetTarget(s.negtg)
@@ -90,11 +121,22 @@ end
 
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS}
 
-function s.spcon(e,c)
-	if c==nil then return true end
-	local tp=c:GetControler()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=7
+function s.trackop(e,tp,eg,ep,ev,re,r,rp)
+	local owner=e:GetHandlerPlayer()
+	if not s.frag_tracker[owner] then s.frag_tracker[owner]={} end
+	for tc in aux.Next(eg) do
+		if tc:GetControler()==owner and tc:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) then
+			s.frag_tracker[owner][tc:GetOriginalCode()]=true
+		end
+	end
 end
+function s.all7sent(tp)
+	if not s.frag_tracker[tp] then return false end
+	local ct=0
+	for _ in pairs(s.frag_tracker[tp]) do ct=ct+1 end
+	return ct>=7
+end
+
 function s.ctfrags(tp)
 	local g=Duel.GetMatchingGroup(function(c) return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) end,tp,LOCATION_GRAVE,0,nil)
 	local seen={}
@@ -107,6 +149,21 @@ function s.ctfrags(tp)
 		end
 	end
 	return ct
+end
+
+function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=5 and s.all7sent(tp)
+end
+function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
+	local c=e:GetHandler()
+	if chk==0 then return c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
+	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
+end
+function s.spop0(e,tp,eg,ep,ev,re,r,rp)
+	local c=e:GetHandler()
+	if c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 then
+		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
+	end
 end
 
 function s.fraggy(c)
@@ -128,6 +185,9 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	end
 end
 
+function s.tgfilter(e,re,rp)
+	return rp==1-e:GetHandlerPlayer() and re:IsActiveType(TYPE_SPELL+TYPE_TRAP)
+end
 function s.efilter(e,te)
 	return te:GetOwnerPlayer()~=e:GetHandlerPlayer() and te:IsActivated() and te:IsActiveType(TYPE_MONSTER)
 end
