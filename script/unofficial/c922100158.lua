@@ -8,7 +8,6 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Equip only to a "Black Saint" monster.
 -- Once per turn: You can target 1 card in your opponent's Spell & Trap Zone; return it to the hand.
 -- If this face-up card is sent to the GY by card effect: You can Set 1 "Black Saint" Spell/Trap directly from your Deck, except "Fragment of Sagittarius - Left Arm".
 -- You can only use this effect of "Fragment of Sagittarius - Left Arm" once per turn.
@@ -58,7 +57,7 @@ end
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.eqlimit(e,c)
-	return c:IsSetCard(SET_BLACK_SAINT)
+	return c:IsMonster()
 end
 
 function s.stfilter(c)

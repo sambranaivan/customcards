@@ -8,7 +8,6 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Equip only to a "Black Saint" monster.
 -- The equipped monster gains 300 ATK.
 -- Once per turn (Quick Effect): You can send this face-up card to the GY; negate the activation of an opponent's card or effect that targets your equipped monster, and if you do, destroy that card.
 --]==]
@@ -54,7 +53,7 @@ end
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.eqlimit(e,c)
-	return c:IsSetCard(SET_BLACK_SAINT)
+	return c:IsMonster()
 end
 function s.negcon(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

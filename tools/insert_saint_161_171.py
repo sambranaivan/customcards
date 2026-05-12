@@ -30,7 +30,7 @@ def main() -> None:
         # 163 field
         ("spell", 922100163, "Death Queen Island", TYPE_SPELL | TYPE_FIELD, SET_SAINT, 0, 0, 0, 0, 0),
         ("spell", 922100164, "The Stolen Gold Cloth", TYPE_SPELL, SET_SAINT, 0, 0, 0, 0, 0),
-        ("trap", 922100165, "Legacy of the Desecrated Sagittarius", TYPE_TRAP | TYPE_COUNTER, SET_SAINT, 0, 0, 0, 0, 0),
+        ("trap", 922100165, "Desecrated Sagittarius - The Heist", TYPE_TRAP | TYPE_COUNTER, SET_SAINT, 0, 0, 0, 0, 0),
         ("trap", 922100166, "Oath of the Shadow", TYPE_TRAP | TYPE_CONTINUOUS, SET_SAINT, 0, 0, 0, 0, 0),
         ("mon", 922100167, "Saint - Seiya, Cosmos of His Companions", TYPE_MONSTER | TYPE_EFFECT, SET_SAINT, 2600, 1900, 7, 1, 16),
         ("mon", 922100168, "Esmeralda, Light of Death Queen Island", TYPE_MONSTER | TYPE_EFFECT, SET_SAINT, 400, 1200, 2, 2, 16),

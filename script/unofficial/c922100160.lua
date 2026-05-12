@@ -8,7 +8,6 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Equip only to a "Black Saint" monster.
 -- The equipped monster can make a second attack during each Battle Phase, but only on monsters.
 -- If this card is sent to the GY by card effect: You can Special Summon 1 Level 4 or lower "Black Saint" monster from your hand.
 -- You can only use this effect of "Fragment of Sagittarius - Right Leg" once per turn.
@@ -54,7 +53,7 @@ end
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.eqlimit(e,c)
-	return c:IsSetCard(SET_BLACK_SAINT)
+	return c:IsMonster()
 end
 
 function s.spcon(e,tp,eg,ep,ev,re,r,rp)

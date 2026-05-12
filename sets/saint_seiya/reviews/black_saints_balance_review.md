@@ -193,7 +193,6 @@ per turn.
 
 **Current effect:**
 ```
-Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.
@@ -212,7 +211,6 @@ threshold to be inflated with stacking.
 
 **Proposed fix:**
 ```
-Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.
@@ -351,14 +349,14 @@ You can only use this effect of "Death Queen Island" once per turn.
 
 ---
 
-### Legacy of the Desecrated Sagittarius
+### Desecrated Sagittarius - The Heist
 ```
 When your opponent activates a card or effect, while you control a "Black Saint" monster
 equipped with a "Fragment of Sagittarius" card: Send 1 "Fragment of Sagittarius" Equip
 Spell you control to the GY; negate the activation, and if you do, destroy that card.
 Then, if you control "Black Saint - Ikki, Leader of Death Queen Island", you can destroy
 1 card your opponent controls.
-You can only activate 1 "Legacy of the Desecrated Sagittarius" per turn.
+You can only activate 1 "Desecrated Sagittarius - The Heist" per turn.
 ```
 > Solemn Strike-level Counter Trap at the cost of a Fragment. The Ikki bonus (destroy 1
 > additional card) is strong but requires board presence. OPT prevents multi-activation.
@@ -444,7 +442,6 @@ per turn.
 
 ### Fragment of Sagittarius - Right Arm (revised)
 ```
-Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.

@@ -8,7 +8,6 @@
 -- - saint-seiya
 --
 -- Effect (EN):
--- Equip only to a "Black Saint" monster.
 -- The equipped monster gains 700 ATK.
 -- If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 -- your opponent.
@@ -72,7 +71,7 @@ end
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.eqlimit(e,c)
-	return c:IsSetCard(SET_BLACK_SAINT)
+	return c:IsMonster()
 end
 
 function s.damcon(e,tp,eg,ep,ev,re,r,rp)

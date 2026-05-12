@@ -109,7 +109,6 @@ You can only use each effect of "Black Saint - Dark Phoenix" once per turn.
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 The equipped monster gains 300 ATK.
 Once per turn (Quick Effect): You can send this face-up card to the GY; negate the activation of an opponent's card or effect that targets your equipped monster, and if you do, destroy that card.
 ```
@@ -118,7 +117,6 @@ Once per turn (Quick Effect): You can send this face-up card to the GY; negate t
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 The equipped monster gains 500 DEF.
 If the equipped monster would be destroyed by battle or card effect, you can destroy this card instead.
 If this card is sent to the GY by card effect: You can gain 500 LP, then target 1 "Black Saint" monster you control; it gains 500 ATK until the end of this turn.
@@ -129,7 +127,6 @@ You can only use this effect of "Fragment of Sagittarius - Chestplate" once per 
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 Your opponent's monsters that battle the equipped monster lose 500 ATK during damage calculation only.
 Once per turn (Quick Effect): You can send this face-up card to the GY; change 1 face-up monster your opponent controls to Defense Position.
 ```
@@ -138,7 +135,6 @@ Once per turn (Quick Effect): You can send this face-up card to the GY; change 1
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 Once per turn: You can target 1 card in your opponent's Spell & Trap Zone; return it to the hand.
 If this face-up card is sent to the GY by card effect: You can Set 1 "Black Saint" Spell/Trap directly from your Deck, except "Fragment of Sagittarius - Left Arm".
 You can only use this effect of "Fragment of Sagittarius - Left Arm" once per turn.
@@ -148,7 +144,6 @@ You can only use this effect of "Fragment of Sagittarius - Left Arm" once per tu
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to your opponent.
 Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with original ATK less than or equal to the equipped monster's original ATK.
@@ -158,7 +153,6 @@ Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 The equipped monster can make a second attack during each Battle Phase, but only on monsters.
 If this card is sent to the GY by card effect: You can Special Summon 1 Level 4 or lower "Black Saint" monster from your hand.
 You can only use this effect of "Fragment of Sagittarius - Right Leg" once per turn.
@@ -168,7 +162,6 @@ You can only use this effect of "Fragment of Sagittarius - Right Leg" once per t
 - **Card Type**: Equip Spell
 
 ```text
-Equip only to a "Black Saint" monster.
 Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Left Leg".
 If this face-up card is sent to the GY by card effect: You can draw 1 card, then discard 1 card.
 You can only use this effect of "Fragment of Sagittarius - Left Leg" once per turn.
@@ -217,13 +210,13 @@ If you control "Black Saint - Ikki, Leader of Death Queen Island", you can send 
 You can only activate 1 "The Stolen Gold Cloth" per turn.
 ```
 
-### Legacy of the Desecrated Sagittarius
+### Desecrated Sagittarius - The Heist
 - **Card Type**: Counter Trap
 
 ```text
 When your opponent activates a card or effect, while you control a "Black Saint" monster equipped with a "Fragment of Sagittarius" card: Send 1 "Fragment of Sagittarius" Equip Spell you control to the GY; negate the activation, and if you do, destroy that card.
 Then, if you control "Black Saint - Ikki, Leader of Death Queen Island", you can destroy 1 card your opponent controls.
-You can only activate 1 "Legacy of the Desecrated Sagittarius" per turn.
+You can only activate 1 "Desecrated Sagittarius - The Heist" per turn.
 ```
 
 ### Oath of the Shadow
