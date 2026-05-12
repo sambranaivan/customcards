@@ -9,8 +9,10 @@
 --
 -- Archetypes:
 -- - saint-seiya
+-- - Black Saint
 --
 -- Effect (EN):
+-- (This card is always treated as a "Black Saint" card.)
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand or GY) while you have 7 or more "Fragment of Sagittarius" cards with different names on your field and/or GY.
 -- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
@@ -104,7 +106,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e5)
 end
 
-s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS}
+s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.ctfrags(tp)
 	local g=Duel.GetMatchingGroup(function(c) return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) end,tp,LOCATION_MZONE+LOCATION_SZONE+LOCATION_GRAVE,0,nil)

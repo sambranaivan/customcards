@@ -8,6 +8,7 @@
 -- - saint-seiya
 --
 -- Effect (EN):
+-- Equip only to a "Black Saint" monster.
 -- The equipped monster gains 500 DEF.
 -- If the equipped monster would be destroyed by battle or card effect, you can destroy this card instead.
 -- If this card is sent to the GY by card effect: You can gain 500 LP, then target 1 "Black Saint" monster you control; it gains 500 ATK until the end of this turn.
@@ -63,7 +64,7 @@ end
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
 
 function s.eqlimit(e,c)
-	return c:IsMonster()
+	return c:IsSetCard(SET_BLACK_SAINT)
 end
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local ec=e:GetHandler():GetEquipTarget()

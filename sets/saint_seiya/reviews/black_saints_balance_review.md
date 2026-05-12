@@ -193,6 +193,7 @@ per turn.
 
 **Current effect:**
 ```
+Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.
@@ -211,6 +212,7 @@ threshold to be inflated with stacking.
 
 **Proposed fix:**
 ```
+Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.
@@ -442,6 +444,7 @@ per turn.
 
 ### Fragment of Sagittarius - Right Arm (revised)
 ```
+Equip only to a "Black Saint" monster.
 The equipped monster gains 700 ATK.
 If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
 your opponent.

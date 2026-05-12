@@ -26,7 +26,7 @@ def main() -> None:
         # 161 equip
         ("equip", 922100161, "Fragment of Sagittarius - Left Leg", TYPE_EQUIP, setcode_fragment, 0, 0, 0, 0, 0),
         # 162 monster
-        ("mon", 922100162, "Desecrated Sagittarius - Reassembled Gold Cloth", TYPE_MONSTER | TYPE_EFFECT, SET_SAINT, 3000, 2500, 8, 1, 32),
+        ("mon", 922100162, "Desecrated Sagittarius - Reassembled Gold Cloth", TYPE_MONSTER | TYPE_EFFECT, (SET_BLACK_SAINT << 16) | SET_SAINT, 3000, 2500, 8, 1, 32),
         # 163 field
         ("spell", 922100163, "Death Queen Island", TYPE_SPELL | TYPE_FIELD, SET_SAINT, 0, 0, 0, 0, 0),
         ("spell", 922100164, "The Stolen Gold Cloth", TYPE_SPELL, SET_SAINT, 0, 0, 0, 0, 0),
