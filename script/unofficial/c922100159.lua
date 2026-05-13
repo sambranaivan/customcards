@@ -18,19 +18,8 @@
 --Fragment of Sagittarius - Right Arm
 local s,id=GetID()
 function s.initial_effect(c)
-	--Activate
-	local e0=Effect.CreateEffect(c)
-	e0:SetType(EFFECT_TYPE_ACTIVATE)
-	e0:SetCode(EVENT_FREE_CHAIN)
-	c:RegisterEffect(e0)
-
-	--Equip limit
-	local e1=Effect.CreateEffect(c)
-	e1:SetType(EFFECT_TYPE_SINGLE)
-	e1:SetCode(EFFECT_EQUIP_LIMIT)
-	e1:SetProperty(EFFECT_FLAG_CANNOT_DISABLE)
-	e1:SetValue(s.eqlimit)
-	c:RegisterEffect(e1)
+	--Activate: equip to 1 "Black Saint" monster you control
+	aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_BLACK_SAINT),s.eqlimit,nil,nil,nil,s.actcon)
 
 	--ATK +600
 	local e2=Effect.CreateEffect(c)
@@ -46,7 +35,7 @@ function s.initial_effect(c)
 	e3:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_TRIGGER_O)
 	e3:SetCode(EVENT_BATTLE_DESTROYING)
 	e3:SetRange(LOCATION_SZONE)
-	e3:SetCountLimit(1,id)
+	e3:SetCountLimit(1,{id,198})
 	e3:SetCondition(s.damcon)
 	e3:SetTarget(s.damtg)
 	e3:SetOperation(s.damop)
@@ -61,7 +50,7 @@ function s.initial_effect(c)
 	e4:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e4:SetRange(LOCATION_SZONE)
 	e4:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
-	e4:SetCountLimit(1,{id,1})
+	e4:SetCountLimit(1,{id,199})
 	e4:SetCost(s.cost)
 	e4:SetTarget(s.destg)
 	e4:SetOperation(s.desop)
@@ -74,10 +63,17 @@ function s.initial_effect(c)
 	e5:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e5:SetProperty(EFFECT_FLAG_DELAY)
 	e5:SetCode(EVENT_TO_GRAVE)
-	e5:SetCountLimit(1,{id,2})
+	e5:SetCountLimit(1,{id,199})
 	e5:SetTarget(s.gythtg)
 	e5:SetOperation(s.gythop)
 	c:RegisterEffect(e5)
+end
+
+function s.actcon(e,tp,eg,ep,ev,re,r,rp)
+	return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(function(tc)
+			return tc:IsFaceup() and tc:IsSetCard(SET_BLACK_SAINT) and tc:IsControler(tp)
+		end,tp,LOCATION_MZONE,0,1,nil)
 end
 
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
