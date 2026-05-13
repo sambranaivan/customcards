@@ -320,7 +320,8 @@ Effect (EN):
 Equip only to a "Black Saint" monster.
 The equipped monster gains 300 ATK.
 Once per turn (Quick Effect): You can send this face-up card to the GY; negate the activation of an opponent's card or effect that targets your equipped monster, and if you do, destroy that card.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Helmet" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
@@ -329,7 +330,8 @@ If this card is sent to the GY: You can add 1 "Black Saint" monster from your De
 Equip only to a "Black Saint" monster.
 The equipped monster gains 300 ATK.
 Once per turn (Quick Effect): You can send this face-up card to the GY; negate the activation of an opponent's card or effect that targets your equipped monster, and if you do, destroy that card.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Helmet" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Chestplate
@@ -351,7 +353,9 @@ Effect (EN):
 Equip only to a "Black Saint" monster.
 The equipped monster gains 500 DEF.
 If the equipped monster would be destroyed by battle or card effect, you can destroy this card instead.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 face-up monster your opponent controls; negate its effects until the end of this turn.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Chestplate" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
@@ -360,7 +364,9 @@ If this card is sent to the GY: You can add 1 "Black Saint" monster from your De
 Equip only to a "Black Saint" monster.
 The equipped monster gains 500 DEF.
 If the equipped monster would be destroyed by battle or card effect, you can destroy this card instead.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 face-up monster your opponent controls; negate its effects until the end of this turn.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Chestplate" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Skirt
@@ -382,7 +388,8 @@ Effect (EN):
 Equip only to a "Black Saint" monster.
 Your opponent's monsters that battle the equipped monster lose 500 ATK during damage calculation only.
 Once per turn (Quick Effect): You can send this face-up card to the GY; change 1 face-up monster your opponent controls to Defense Position.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Skirt" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
@@ -391,7 +398,8 @@ If this card is sent to the GY: You can add 1 "Black Saint" monster from your De
 Equip only to a "Black Saint" monster.
 Your opponent's monsters that battle the equipped monster lose 500 ATK during damage calculation only.
 Once per turn (Quick Effect): You can send this face-up card to the GY; change 1 face-up monster your opponent controls to Defense Position.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Skirt" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Left Arm
@@ -411,16 +419,20 @@ Archetypes:
 
 Effect (EN):
 Equip only to a "Black Saint" monster.
-Once per turn: You can target 1 card in your opponent's Spell & Trap Zone; return it to the hand.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+The equipped monster gains 400 ATK.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 card in your opponent's Spell & Trap Zone; return that target to the hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Left Arm" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
 
 ```text
 Equip only to a "Black Saint" monster.
-Once per turn: You can target 1 card in your opponent's Spell & Trap Zone; return it to the hand.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+The equipped monster gains 400 ATK.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 card in your opponent's Spell & Trap Zone; return that target to the hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Left Arm" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Right Arm
@@ -440,26 +452,22 @@ Archetypes:
 
 Effect (EN):
 Equip only to a "Black Saint" monster.
-The equipped monster gains 700 ATK.
-If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
-your opponent.
-Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up
-monster your opponent controls with original ATK less than or equal to the equipped
-monster's original ATK.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+The equipped monster gains 600 ATK.
+If the equipped monster destroys an opponent's monster by battle: Inflict 300 damage to your opponent.
+Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with original ATK less than or equal to the equipped monster's original ATK.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Right Arm" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
 
 ```text
 Equip only to a "Black Saint" monster.
-The equipped monster gains 700 ATK.
-If the equipped monster destroys an opponent's monster by battle: Inflict 500 damage to
-your opponent.
-Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up
-monster your opponent controls with original ATK less than or equal to the equipped
-monster's original ATK.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+The equipped monster gains 600 ATK.
+If the equipped monster destroys an opponent's monster by battle: Inflict 300 damage to your opponent.
+Once per turn (Quick Effect): You can send this face-up card to the GY; destroy 1 face-up monster your opponent controls with original ATK less than or equal to the equipped monster's original ATK.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Right Arm" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Right Leg
@@ -480,7 +488,9 @@ Archetypes:
 Effect (EN):
 Equip only to a "Black Saint" monster.
 The equipped monster can make a second attack during each Battle Phase, but only on monsters.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 face-up Attack Position monster your opponent controls; it loses 1000 ATK until the end of this turn.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Right Leg" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
@@ -488,7 +498,9 @@ If this card is sent to the GY: You can add 1 "Black Saint" monster from your De
 ```text
 Equip only to a "Black Saint" monster.
 The equipped monster can make a second attack during each Battle Phase, but only on monsters.
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 face-up Attack Position monster your opponent controls; it loses 1000 ATK until the end of this turn.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Right Leg" per turn, and only once that turn.
 ```
 
 ### Fragment of Sagittarius - Left Leg
@@ -508,16 +520,20 @@ Archetypes:
 
 Effect (EN):
 Equip only to a "Black Saint" monster.
-Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Left Leg".
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Your opponent cannot target the equipped monster with monster effects.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 "Fragment of Sagittarius" card in your GY, except "Fragment of Sagittarius - Left Leg"; add that target to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Left Leg" per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
 
 ```text
 Equip only to a "Black Saint" monster.
-Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Left Leg".
-If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
+Your opponent cannot target the equipped monster with monster effects.
+Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 "Fragment of Sagittarius" card in your GY, except "Fragment of Sagittarius - Left Leg"; add that target to your hand.
+If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
+You can only use 1 effect of "Fragment of Sagittarius - Left Leg" per turn, and only once that turn.
 ```
 
 ---
