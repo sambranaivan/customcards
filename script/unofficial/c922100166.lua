@@ -1,7 +1,7 @@
 --Oath of the Shadow
 --[==[
 -- ID: 922100166
--- Type: Trap / Continuous Trap
+-- Type: Spell / Continuous Spell
 --
 -- Archetypes:
 -- - saint-seiya
