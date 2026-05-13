@@ -262,5 +262,11 @@
         "deck": "SaintSeiyaBronzeOnly",
         "difficulty": 2,
         "masterRules": [ 5 ]
+    },
+    {
+        "name": "Saint Seiya - Black Saints",
+        "deck": "SaintSeiyaBlackSaints",
+        "difficulty": 2,
+        "masterRules": [ 5 ]
     }
 ]
