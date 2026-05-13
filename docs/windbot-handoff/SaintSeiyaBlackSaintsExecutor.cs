@@ -19,6 +19,8 @@ Goals:
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Dark Andromeda for draw when Fragments move by effects.
 - Boss (922100162): only attempt when 7+ different Fragment names are in GY/field (approximate counter in executor).
+- Fragment / Jango / etc. “add 1 Black Saint from Deck”: `ChooseBlackSaintForDeckSearch()` — Boss pivot when **5+**
+  Fragment cards across **GY + field (S/T + equips) + hand** (deduped); Ikki when 3+ BS; then scores.
 
 Maintenance: bump BuildVersion / BuildTag when behavior changes.
 ================================================================================
@@ -29,8 +31,11 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 1;
-        private const string BuildTag = "2026-05-13-v1-initial";
+        private const int BuildVersion = 4;
+        private const string BuildTag = "2026-05-13-v4-fragment-count-gy-field-hand";
+
+        /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
+        private const int FragmentQuickThreatAtkFloor = 1900;
         private static bool _buildTagLogged;
 
         public class CardId
@@ -171,6 +176,21 @@ namespace WindBot.Game.AI.Decks
         private bool IsMainPhase()
         {
             return Duel.Phase == DuelPhase.Main1 || Duel.Phase == DuelPhase.Main2;
+        }
+
+        private bool IsBattlePhase()
+        {
+            switch (Duel.Phase)
+            {
+                case DuelPhase.BattleStart:
+                case DuelPhase.BattleStep:
+                case DuelPhase.Damage:
+                case DuelPhase.DamageCal:
+                case DuelPhase.Battle:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private bool ChainIsEmpty()
@@ -392,19 +412,270 @@ namespace WindBot.Game.AI.Decks
             return best;
         }
 
+        /// <summary>Fragment cards (any name) in our GY only.</summary>
+        private int CountFragmentCardsInGraveyard()
+        {
+            var n = 0;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && IsFragmentId(c.Id))
+                    n++;
+            }
+            return n;
+        }
+
+        /// <summary>
+        /// Distinct Fragment cards we control in GY, hand, spell zones, and equipped (same physical card deduped).
+        /// Used for the “5+ Fragments” Boss deck-search rule (GY + field + hand).
+        /// </summary>
+        private int CountFragmentCardsInGraveFieldAndHand()
+        {
+            var seen = new HashSet<ClientCard>();
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && IsFragmentId(c.Id))
+                    seen.Add(c);
+            }
+            foreach (var c in Bot.Hand)
+            {
+                if (c != null && IsFragmentId(c.Id))
+                    seen.Add(c);
+            }
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z != null && IsFragmentId(z.Id))
+                        seen.Add(z);
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || m.EquipCards == null)
+                    continue;
+                foreach (var eq in m.EquipCards)
+                {
+                    if (eq != null && IsFragmentId(eq.Id))
+                        seen.Add(eq);
+                }
+            }
+            return seen.Count;
+        }
+
+        private int CountBlackSaintCardsInOurGraveyard()
+        {
+            var n = 0;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && IsBlackSaintMonsterId(c.Id))
+                    n++;
+            }
+            return n;
+        }
+
+        private int EnemyMaxFaceUpMonsterAtk()
+        {
+            var best = 0;
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                if (m.Attack > best)
+                    best = m.Attack;
+            }
+            return best;
+        }
+
+        private bool BlackSaintInMainDeck(int id)
+        {
+            return Bot.GetRemainingCount(id, (int)CardLocation.Deck) > 0;
+        }
+
+        private bool BotControlsFaceUpBlackSaint(int id)
+        {
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && m.IsCode(id))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Per-card priority when several Black Saints are still in the Deck (Fragment GY trigger, Jango, etc.).
+        /// Higher score = more likely to be selected.
+        /// </summary>
+        private int BlackSaintDeckSearchScore(int id)
+        {
+            var frGy = CountFragmentCardsInGraveyard();
+            var frSeen = CountFragmentCardsInGraveFieldAndHand();
+            var distFr = CountDistinctFragmentNamesOnFieldAndGrave();
+            var bs = CountBlackSaintMonstersFaceUp();
+            var enemyMax = EnemyMaxFaceUpMonsterAtk();
+            var gyBs = CountBlackSaintCardsInOurGraveyard();
+            var ikkiField = BotControlsFaceUpBlackSaint(CardId.Ikki);
+
+            switch (id)
+            {
+                case CardId.BossReassembled:
+                    // Desecrated Sagittarius — “fragment mass” uses GY + field + hand (see CountFragmentCardsInGraveFieldAndHand).
+                    {
+                        var s = 12;
+                        if (frSeen >= 3)
+                            s += 18;
+                        if (frSeen >= 4)
+                            s += 35;
+                        if (frSeen >= 5)
+                            s += 120;
+                        if (distFr >= 5)
+                            s += 22;
+                        if (distFr >= 6)
+                            s += 45;
+                        return s;
+                    }
+                case CardId.Ikki:
+                    // Leader — scales with board; huge bump when 3+ Black Saints (overlaps hard rule).
+                    {
+                        var s = 48;
+                        if (bs >= 1)
+                            s += 10;
+                        if (bs >= 2)
+                            s += 25;
+                        if (bs > 2)
+                            s += 220;
+                        if (HasBlackSaintEquippedWithFragment())
+                            s += 20;
+                        if (distFr >= 4)
+                            s += 14;
+                        return s;
+                    }
+                case CardId.Jango:
+                    // Starter / mill — prefer empty or small boards; deprioritize duplicate.
+                    {
+                        var s = 52;
+                        if (bs == 0)
+                            s += 42;
+                        if (bs == 1)
+                            s += 20;
+                        if (BotControlsFaceUpBlackSaint(CardId.Jango))
+                            s -= 38;
+                        if (frGy >= 2)
+                            s += 8;
+                        return s;
+                    }
+                case CardId.DarkPegasus:
+                    // Needs Black Saint + S/T zone for equip line.
+                    {
+                        var s = 40;
+                        if (bs >= 1 && HasFreeSpellZone())
+                            s += 26;
+                        if (HasBlackSaintEquippedWithFragment())
+                            s += 10;
+                        return s;
+                    }
+                case CardId.DarkPhoenix:
+                    // Deck line wants Ikki; extender when field is wide.
+                    {
+                        var s = 32;
+                        if (ikkiField)
+                            s += 48;
+                        if (bs >= 2)
+                            s += 14;
+                        return s;
+                    }
+                case CardId.DarkAndromeda:
+                    // Draw when Fragments move — reward milling.
+                    {
+                        var s = 38;
+                        s += Math.Min(32, frGy * 5);
+                        if (frGy >= 2)
+                            s += 12;
+                        return s;
+                    }
+                case CardId.DarkCygnus:
+                    // Quick negate — slightly higher when opponent shows tall monsters or mid-chain.
+                    {
+                        var s = 34;
+                        if (enemyMax >= 2000)
+                            s += 20;
+                        if (!ChainIsEmpty())
+                            s += 14;
+                        return s;
+                    }
+                case CardId.DarkDragon:
+                    // Beater — prefer when opponent has large ATK.
+                    {
+                        var s = 36;
+                        if (enemyMax >= 2200)
+                            s += 28;
+                        if (bs >= 2)
+                            s += 10;
+                        return s;
+                    }
+                case CardId.Esmeralda:
+                    // Low scale extender / LP utility.
+                    {
+                        var s = 24;
+                        if (bs >= 1)
+                            s += 22;
+                        if (Bot.LifePoints <= 3500)
+                            s += 26;
+                        if (frGy >= 2)
+                            s += 12;
+                        return s;
+                    }
+                case CardId.Guilty:
+                    // GY-based boss — prefer when recursion is live.
+                    {
+                        var s = 26;
+                        if (gyBs >= 2)
+                            s += 32;
+                        if (bs >= 2)
+                            s += 14;
+                        return s;
+                    }
+                default:
+                    return 0;
+            }
+        }
+
+        /// <summary>
+        /// Pick which Black Saint name to add from Deck (Fragment GY effects, Jango, etc.).
+        /// Hard rules: (1) more than 2 face-up Black Saints → Ikki; (2) else 5+ Fragment cards in **GY+field+hand** → Boss;
+        /// then highest <see cref="BlackSaintDeckSearchScore"/> among cards still in Deck.
+        /// </summary>
         private int ChooseBlackSaintForDeckSearch()
         {
-            var order = new[]
+            if (BlackSaintInMainDeck(CardId.Ikki) && CountBlackSaintMonstersFaceUp() > 2)
+                return CardId.Ikki;
+
+            if (BlackSaintInMainDeck(CardId.BossReassembled) && CountFragmentCardsInGraveFieldAndHand() >= 5)
+                return CardId.BossReassembled;
+
+            var bestId = CardId.Jango;
+            var bestScore = int.MinValue;
+            foreach (var mid in BlackSaintMonsterIds)
             {
-                CardId.Jango, CardId.DarkPegasus, CardId.DarkDragon, CardId.DarkCygnus,
-                CardId.DarkAndromeda, CardId.DarkPhoenix, CardId.Ikki
-            };
-            foreach (var id in order)
-            {
-                if (Bot.GetRemainingCount(id, 3) > 0)
-                    return id;
+                if (!BlackSaintInMainDeck(mid))
+                    continue;
+                var sc = BlackSaintDeckSearchScore(mid);
+                if (sc > bestScore)
+                {
+                    bestScore = sc;
+                    bestId = mid;
+                }
             }
-            return CardId.Jango;
+
+            if (!BlackSaintInMainDeck(bestId))
+            {
+                foreach (var mid in BlackSaintMonsterIds)
+                {
+                    if (BlackSaintInMainDeck(mid))
+                        return mid;
+                }
+            }
+
+            return bestId;
         }
 
         private bool ActivateHeist()
@@ -575,6 +846,153 @@ namespace WindBot.Game.AI.Decks
             return IsMainPhase();
         }
 
+        /// <summary>
+        /// Face-up equip Quick effects share a once/turn limit with the GY deck-search on each Fragment (Lua {id,199}).
+        /// Avoid auto-activating FREE_CHAIN Quicks in open Main1 — reserve for chain, battle, Main2, or clear threats.
+        /// </summary>
+        private bool FragmentQuickContextWorthSpending()
+        {
+            if (!ChainIsEmpty())
+                return true;
+            if (IsBattlePhase())
+                return true;
+            if (Duel.Phase == DuelPhase.Main2 && Duel.Player == 0)
+                return true;
+            var best = 0;
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                if (m.Attack > best)
+                    best = m.Attack;
+            }
+            return best >= FragmentQuickThreatAtkFloor;
+        }
+
+        private ClientCard FindMonsterHostingThisEquipSpell()
+        {
+            if (Card == null)
+                return null;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || m.EquipCards == null)
+                    continue;
+                foreach (var eq in m.EquipCards)
+                {
+                    if (eq != null && eq == Card)
+                        return m;
+                }
+            }
+            return null;
+        }
+
+        private static bool OpponentControlsFaceUpMonster(ClientField enemy)
+        {
+            foreach (var m in enemy.MonsterZone)
+            {
+                if (m != null && m.IsFaceup())
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool OpponentControlsFaceUpAttackMonster(ClientField enemy)
+        {
+            foreach (var m in enemy.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && m.Position == (int)CardPosition.FaceUpAttack)
+                    return true;
+            }
+            return false;
+        }
+
+        private static bool OpponentSpellTrapZoneOccupied(ClientField enemy)
+        {
+            if (enemy.SpellZone == null)
+                return false;
+            foreach (var z in enemy.SpellZone)
+            {
+                if (z != null)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool RightArmQuickHasDestroyableTarget(ClientCard host)
+        {
+            if (host == null || !host.IsFaceup())
+                return false;
+            var cap = host.Attack;
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup())
+                    continue;
+                if (m.Attack <= cap)
+                    return true;
+            }
+            return false;
+        }
+
+        private bool LeftLegOtherFragmentInGraveToRecycle()
+        {
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && IsFragmentId(c.Id) && !c.IsCode(CardId.FragmentLeftLeg))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>Face-up equip in SZONE: only the matching Quick (Lua), not the passive GY trigger.</summary>
+        private bool ActivateFragmentFaceUpEquipQuick()
+        {
+            var host = FindMonsterHostingThisEquipSpell();
+            if (host == null)
+                return false;
+
+            switch (Card.Id)
+            {
+                case CardId.FragmentHelmet:
+                    // Quick negates only on opponent chain targeting equipped monster (approx: chain + opponent).
+                    return !ChainIsEmpty() && IsLastChainFromOpponent();
+
+                case CardId.FragmentChestplate:
+                    if (!OpponentControlsFaceUpMonster(Enemy))
+                        return false;
+                    return FragmentQuickContextWorthSpending();
+
+                case CardId.FragmentSkirt:
+                    if (!OpponentControlsFaceUpAttackMonster(Enemy))
+                        return false;
+                    return FragmentQuickContextWorthSpending();
+
+                case CardId.FragmentLeftArm:
+                    if (!OpponentSpellTrapZoneOccupied(Enemy))
+                        return false;
+                    return FragmentQuickContextWorthSpending();
+
+                case CardId.FragmentRightArm:
+                    if (!RightArmQuickHasDestroyableTarget(host))
+                        return false;
+                    return FragmentQuickContextWorthSpending();
+
+                case CardId.FragmentRightLeg:
+                    if (!OpponentControlsFaceUpAttackMonster(Enemy))
+                        return false;
+                    return FragmentQuickContextWorthSpending();
+
+                case CardId.FragmentLeftLeg:
+                    if (!LeftLegOtherFragmentInGraveToRecycle())
+                        return false;
+                    if (!ChainIsEmpty() || IsBattlePhase())
+                        return true;
+                    return Duel.Phase == DuelPhase.Main2 && Duel.Player == 0;
+
+                default:
+                    return false;
+            }
+        }
+
         private bool ActivateAnyFragment()
         {
             if ((Card.Location & CardLocation.Hand) != 0)
@@ -597,7 +1015,7 @@ namespace WindBot.Game.AI.Decks
             }
 
             if ((Card.Location & CardLocation.SpellZone) != 0)
-                return true;
+                return ActivateFragmentFaceUpEquipQuick();
 
             return false;
         }
