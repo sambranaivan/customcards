@@ -57,8 +57,8 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
 
 ### Bronze Cloth (Equip Spells)
-All share a new generic GY trigger:
-**If this card is sent to the GY: You can add 1 Level 4 or lower "Saint" monster from your Deck or GY to your hand.**
+All share a generic GY trigger:
+**If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.**
 (Triggers from anywhere, not just S/T zone. OPYOT per cloth.)
 
 Each cloth also has unique on-field effects when equipped to its paired Saint.
@@ -471,8 +471,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 37;
-        private const string BuildTag = "2026-05-11-v37-all-reactive-cards-ignore-own-chain";
+        private const int BuildVersion = 38;
+        private const string BuildTag = "2026-05-12-v38-bronze-cloth-gy-search-deck-only";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -491,7 +491,7 @@ namespace WindBot.Game.AI.Decks
             public const int Mu = 922100010;
             public const int Kiki = 922100011;
 
-            // Cloth equips (GY trigger: add L4-or-lower Saint from Deck/GY)
+            // Cloth equips (GY trigger: add L4-or-lower Bronze Saint from Deck only — matches script filter)
             public const int ClothPegasus = 922100041;
             public const int ClothDragon = 922100042;
             public const int ClothCygnus = 922100043;
@@ -1507,7 +1507,7 @@ namespace WindBot.Game.AI.Decks
         /// Bronze Cloth effects (updated):
         /// - Hand: activate to equip to a face-up Saint (Stringid 0).
         /// - S/T zone: on-field unique effects per cloth (engine handles; bot always accepts).
-        /// - GY trigger: "If this card is sent to the GY: add 1 Level 4 or lower Saint from Deck or GY to hand."
+        /// - GY trigger: add 1 Level 4 or lower "Bronze Saint" from Deck to hand (Deck only; Lua gythfilter).
         ///   Triggers from anywhere (not just S/T zone). OPYOT applies per cloth.
         /// </summary>
         private bool ResolveClothActivate()
@@ -1519,7 +1519,7 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.Hand) != 0)
                 return ActivateBronzeClothEquipFromHand();
 
-            // GY → "sent to the GY" trigger: search a L4-or-lower Saint from Deck/GY.
+            // GY → "sent to the GY" trigger: search a L4-or-lower Bronze Saint from Deck only.
             if ((Card.Location & CardLocation.Grave) != 0)
                 return ResolveClothGySentSearch();
 
@@ -1564,48 +1564,48 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// New generic GY trigger on all Bronze Cloths: add 1 Level 4 or lower Saint from Deck or GY.
-        /// Fires when sent from anywhere, so always accept and pick the best Saint.
+        /// Bronze Cloth GY trigger: add 1 Level 4 or lower "Bronze Saint" from Deck (Deck only; see c922100041.lua gythfilter).
+        /// Fires when sent from anywhere, so always accept and pick the best target still in Deck.
         /// </summary>
         private bool ResolveClothGySentSearch()
         {
-            AI.SelectCard(ChooseLv4SaintForDeckOrGraveyardSearch());
+            AI.SelectCard(ChooseLv4BronzeSaintForClothDeckSearch());
             return true;
         }
 
-        /// <summary>
-        /// Picks the best L4-or-lower Saint to add from Deck or GY.
-        /// Similar to ChooseLv4SaintForDeckSearch but also considers Saints in the GY.
-        /// </summary>
-        private bool SaintAvailableInDeckOrGy(int id)
+        /// <summary>True if a copy of this Bronze Saint can still be added from the Deck (Cloth GY search is Deck-only).</summary>
+        private bool BronzeSaintAvailableInDeckForClothSearch(int id)
         {
-            return Bot.GetRemainingCount(id, 3) > 0
-                   || Bot.Graveyard.IsExistingMatchingCard(c => c.IsCode(id));
+            return Bot.GetRemainingCount(id, 3) > 0;
         }
 
-        private int ChooseLv4SaintForDeckOrGraveyardSearch()
+        /// <summary>
+        /// Picks the best L4-or-lower Bronze Saint to add from the Deck (Cloth GY trigger).
+        /// Same priority heuristics as before, but only cards still in Deck are valid.
+        /// </summary>
+        private int ChooseLv4BronzeSaintForClothDeckSearch()
         {
             var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
             var inHand = new HashSet<int>(Bot.Hand.Where(c => c != null).Select(c => c.Id));
 
             // Empty field: Seiya is the best combo starter (summon-search + self-SS).
             if (FieldIsEmpty()
-                && !inHand.Contains(CardId.Seiya) && SaintAvailableInDeckOrGy(CardId.Seiya))
+                && !inHand.Contains(CardId.Seiya) && BronzeSaintAvailableInDeckForClothSearch(CardId.Seiya))
                 return CardId.Seiya;
 
             // Ban priority for SS lines.
-            if (!onField.Contains(CardId.Ban) && !inHand.Contains(CardId.Ban) && SaintAvailableInDeckOrGy(CardId.Ban))
+            if (!onField.Contains(CardId.Ban) && !inHand.Contains(CardId.Ban) && BronzeSaintAvailableInDeckForClothSearch(CardId.Ban))
                 return CardId.Ban;
 
             // Jabu for free SS when we already control a Saint.
             if (ControlAnySaint()
                 && Bot.GetMonsterCount() < 5
-                && !onField.Contains(CardId.Jabu) && !inHand.Contains(CardId.Jabu) && SaintAvailableInDeckOrGy(CardId.Jabu))
+                && !onField.Contains(CardId.Jabu) && !inHand.Contains(CardId.Jabu) && BronzeSaintAvailableInDeckForClothSearch(CardId.Jabu))
                 return CardId.Jabu;
 
             // Distinct name we don't yet control.
             foreach (var id in Lv4Saints)
-                if (!onField.Contains(id) && !inHand.Contains(id) && SaintAvailableInDeckOrGy(id))
+                if (!onField.Contains(id) && !inHand.Contains(id) && BronzeSaintAvailableInDeckForClothSearch(id))
                     return id;
 
             return ChooseSaintToMaximizeDistinct();
