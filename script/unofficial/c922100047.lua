@@ -10,8 +10,8 @@
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- If an opponent's monster battles the equipped monster, after damage calculation: That opponent's monster loses 1000 ATK/DEF.
--- If the equipped monster is "Saint - Ichi of Hydra", and it attacks directly, your opponent cannot activate effects in the GY until the end of this turn.
--- If this card is sent to the GY: You can add 1 Level 4 or lower "Saint" monster from your Deck or GY to your hand.
+-- If the equipped monster is "Bronze Saint - Ichi of Hydra", and it attacks directly, your opponent cannot activate effects in the GY until the end of this turn.
+-- If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.
 -- You can only use 1 effect of "Bronze Cloth - Hydra" per turn, and only once that turn.
 --]==]
 --Bronze Cloth - Hydra
@@ -42,7 +42,7 @@ function s.initial_effect(c)
 	e2:SetOperation(s.gylockop)
 	c:RegisterEffect(e2)
 
-	--If sent to GY: add 1 Level 4 or lower "Saint" monster from Deck/GY
+	--If sent to GY: add 1 Level 4 or lower "Bronze Saint" monster from Deck
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,2))
 	e3:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -55,7 +55,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e3)
 end
 
-s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
+s.listed_series={SET_SAINT,SET_BRONZE_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
 s.listed_names={922100006}
 
 function s.actcon(e,tp,eg,ep,ev,re,r,rp)
@@ -104,15 +104,15 @@ function s.gylockop(e,tp,eg,ep,ev,re,r,rp)
 end
 
 function s.gythfilter(c)
-	return c:IsSetCard(SET_SAINT) and c:IsMonster() and c:GetLevel()>0 and c:GetLevel()<=4 and c:IsAbleToHand()
+	return c:IsSetCard(SET_BRONZE_SAINT) and c:IsMonster() and c:GetLevel()>0 and c:GetLevel()<=4 and c:IsAbleToHand()
 end
 function s.gythtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.gythfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.gythfilter,tp,LOCATION_DECK,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
 function s.gythop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,s.gythfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.gythfilter,tp,LOCATION_DECK,0,1,1,nil)
 	if #g>0 then
 		Duel.SendtoHand(g,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g)

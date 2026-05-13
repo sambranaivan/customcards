@@ -10,8 +10,8 @@
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- While the equipped monster is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
--- If this card is equipped to "Saint - Shun of Andromeda", the equipped monster can attack directly.
--- If this card is sent to the GY: You can add 1 Level 4 or lower "Saint" monster from your Deck or GY to your hand.
+-- If this card is equipped to "Bronze Saint - Shun of Andromeda", the equipped monster can attack directly.
+-- If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.
 -- You can only use 1 effect of "Bronze Cloth - Andromeda" per turn, and only once that turn.
 --]==]
 --Bronze Cloth - Andromeda
@@ -48,7 +48,7 @@ function s.initial_effect(c)
 	e3:SetValue(1)
 	c:RegisterEffect(e3)
 
-	--If sent to GY: add 1 Level 4 or lower "Saint" monster from Deck/GY
+	--If sent to GY: add 1 Level 4 or lower "Bronze Saint" monster from Deck
 	local e4=Effect.CreateEffect(c)
 	e4:SetDescription(aux.Stringid(id,1))
 	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -61,7 +61,7 @@ function s.initial_effect(c)
 	c:RegisterEffect(e4)
 end
 
-s.listed_series={SET_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
+s.listed_series={SET_SAINT,SET_BRONZE_SAINT,SET_CLOTH,SET_BRONZE_CLOTH}
 s.listed_names={922100003}
 
 function s.actcon(e,tp,eg,ep,ev,re,r,rp)
@@ -88,15 +88,15 @@ function s.actlimit(e,re,tp)
 end
 
 function s.gythfilter(c)
-	return c:IsSetCard(SET_SAINT) and c:IsMonster() and c:GetLevel()>0 and c:GetLevel()<=4 and c:IsAbleToHand()
+	return c:IsSetCard(SET_BRONZE_SAINT) and c:IsMonster() and c:GetLevel()>0 and c:GetLevel()<=4 and c:IsAbleToHand()
 end
 function s.gythtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsExistingMatchingCard(s.gythfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
-	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+	if chk==0 then return Duel.IsExistingMatchingCard(s.gythfilter,tp,LOCATION_DECK,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK)
 end
 function s.gythop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
-	local g=Duel.SelectMatchingCard(tp,s.gythfilter,tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.gythfilter,tp,LOCATION_DECK,0,1,1,nil)
 	if #g>0 then
 		Duel.SendtoHand(g,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,g)

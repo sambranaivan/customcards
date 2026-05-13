@@ -10,8 +10,7 @@
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
 -- Once per turn: You can target 1 "Fragment of Sagittarius" card in your GY; add it to your hand, except "Fragment of Sagittarius - Left Leg".
--- If this face-up card is sent to the GY by card effect: You can draw 1 card, then discard 1 card.
--- You can only use this effect of "Fragment of Sagittarius - Left Leg" once per turn.
+-- If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
 --]==]
 --Fragment of Sagittarius - Left Leg
 local s,id=GetID()
@@ -42,21 +41,36 @@ function s.initial_effect(c)
 	e2:SetOperation(s.thop)
 	c:RegisterEffect(e2)
 
-	--If sent to GY by effect: draw 1, then discard 1
+	--If sent to GY: add 1 "Black Saint" monster from Deck or GY
 	local e3=Effect.CreateEffect(c)
 	e3:SetDescription(aux.Stringid(id,1))
-	e3:SetCategory(CATEGORY_DRAW+CATEGORY_HANDES)
+	e3:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
 	e3:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e3:SetCode(EVENT_TO_GRAVE)
 	e3:SetProperty(EFFECT_FLAG_DELAY)
+	e3:SetCode(EVENT_TO_GRAVE)
 	e3:SetCountLimit(1,{id,1})
-	e3:SetCondition(s.drcon)
-	e3:SetTarget(s.drtg)
-	e3:SetOperation(s.drop)
+	e3:SetTarget(s.gythtg)
+	e3:SetOperation(s.gythop)
 	c:RegisterEffect(e3)
 end
 
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
+
+function s.gythfilter(c)
+	return c:IsSetCard(SET_BLACK_SAINT) and c:IsMonster() and c:IsAbleToHand()
+end
+function s.gythtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.gythfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+end
+function s.gythop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.gythfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	if #g>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
+end
 
 function s.eqlimit(e,c)
 	return c:IsSetCard(SET_BLACK_SAINT)
@@ -78,17 +92,4 @@ function s.thop(e,tp,eg,ep,ev,re,r,rp)
 		Duel.SendtoHand(tc,nil,REASON_EFFECT)
 		Duel.ConfirmCards(1-tp,Group.FromCards(tc))
 	end
-end
-
-function s.drcon(e,tp,eg,ep,ev,re,r,rp)
-	return (r&REASON_EFFECT)~=0
-end
-function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.IsPlayerCanDraw(tp,1) and Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,1,nil,REASON_EFFECT) end
-	Duel.SetOperationInfo(0,CATEGORY_DRAW,nil,0,tp,1)
-end
-function s.drop(e,tp,eg,ep,ev,re,r,rp)
-	if Duel.Draw(tp,1,REASON_EFFECT)==0 then return end
-	Duel.BreakEffect()
-	Duel.DiscardHand(tp,Card.IsDiscardable,1,1,REASON_EFFECT+REASON_DISCARD,nil,REASON_EFFECT)
 end

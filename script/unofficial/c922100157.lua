@@ -11,6 +11,7 @@
 -- Equip only to a "Black Saint" monster.
 -- Your opponent's monsters that battle the equipped monster lose 500 ATK during damage calculation only.
 -- Once per turn (Quick Effect): You can send this face-up card to the GY; change 1 face-up monster your opponent controls to Defense Position.
+-- If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck or GY to your hand.
 --]==]
 --Fragment of Sagittarius - Skirt
 local s,id=GetID()
@@ -50,9 +51,37 @@ function s.initial_effect(c)
 	e3:SetTarget(s.postg)
 	e3:SetOperation(s.posop)
 	c:RegisterEffect(e3)
+
+	--If sent to GY: add 1 "Black Saint" monster from Deck or GY
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,1))
+	e4:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetProperty(EFFECT_FLAG_DELAY)
+	e4:SetCode(EVENT_TO_GRAVE)
+	e4:SetCountLimit(1,{id,1})
+	e4:SetTarget(s.gythtg)
+	e4:SetOperation(s.gythop)
+	c:RegisterEffect(e4)
 end
 
 s.listed_series={SET_FRAGMENT_OF_SAGITTARIUS,SET_BLACK_SAINT}
+
+function s.gythfilter(c)
+	return c:IsSetCard(SET_BLACK_SAINT) and c:IsMonster() and c:IsAbleToHand()
+end
+function s.gythtg(e,tp,eg,ep,ev,re,r,rp,chk)
+	if chk==0 then return Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.gythfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,nil) end
+	Duel.SetOperationInfo(0,CATEGORY_TOHAND,nil,1,tp,LOCATION_DECK+LOCATION_GRAVE)
+end
+function s.gythop(e,tp,eg,ep,ev,re,r,rp)
+	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_ATOHAND)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.gythfilter),tp,LOCATION_DECK+LOCATION_GRAVE,0,1,1,nil)
+	if #g>0 then
+		Duel.SendtoHand(g,nil,REASON_EFFECT)
+		Duel.ConfirmCards(1-tp,g)
+	end
+end
 
 function s.eqlimit(e,c)
 	return c:IsSetCard(SET_BLACK_SAINT)
