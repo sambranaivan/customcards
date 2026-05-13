@@ -1,30 +1,20 @@
-# WindBot API Quick Reference
+# WindBot API Reference
 
-## Project Structure
+## Project Structure (Plugin Mode A)
 
 ```
-windbot/
-├── WindBot.sln                    # Solution (build this)
-├── WindBot.csproj                 # Main project (exe)
-├── ExecutorBase/                  # Shared library (dll)
-│   └── Game/AI/
-│       ├── Executor.cs            # Abstract base class
-│       ├── DefaultExecutor.cs     # Default helpers
-│       ├── AIUtil.cs              # Utility methods (Util.*)
-│       ├── GameAI.cs              # AI selection methods (AI.*)
-│       ├── CardExecutor.cs        # Executor entry (type, id, func)
-│       ├── ExecutorType.cs        # Enum: Summon, Activate, etc.
-│       ├── DeckAttribute.cs       # [Deck] attribute
-│       └── Enums/                 # Card enums (dangerous, floodgate, etc.)
-├── Game/
-│   ├── AI/Decks/                  # All executor .cs files go here
-│   ├── DecksManager.cs            # Auto-discovers [Deck] classes
-│   ├── GameBehavior.cs            # Wires AI to game client
-│   └── GameClient.cs              # Network client
-├── Decks/                         # .ydk deck files
-├── Dialogs/                       # .json dialog files
-├── bots.json                      # Bot roster for EDOPro
-└── Program.cs                     # Entry point
+WindBot/
+├── WindBot.exe              # Prebuilt main binary
+├── ExecutorBase.dll         # Shared API (DefaultExecutor, GameAI, etc.)
+├── Decks/                   # .ydk deck files (AI_{Name}.ydk)
+├── Dialogs/                 # .json dialog files
+│   └── default.json         # Default dialog (has "custom" array)
+├── bots.json                # Bot roster for EDOPro
+└── Executors/               # Plugin DLLs + source folders
+    ├── {Name}Executor.dll   # Compiled plugin
+    └── {Name}Executor/      # Source folder
+        ├── {Name}Executor.cs
+        └── {Name}Executor.csproj
 ```
 
 ## Card Enums (YGOSharp.OCGWrapper.Enums)
@@ -36,10 +26,9 @@ windbot/
 `Warrior`, `Spellcaster`, `Fairy`, `Fiend`, `Zombie`, `Machine`,
 `Aqua`, `Pyro`, `Rock`, `WingedBeast`, `Plant`, `Insect`,
 `Thunder`, `Dragon`, `Beast`, `BeastWarrior`, `Dinosaur`, `Fish`,
-`SeaSerpent`, `Reptile`, `Psychic`, `Divine`, `CreatorGod`,
-`Wyrm`, `Cyberse`
+`SeaSerpent`, `Reptile`, `Psychic`, `Divine`, `CreatorGod`, `Wyrm`, `Cyberse`
 
-### CardType (flags, can combine)
+### CardType (flags, combinable)
 `Monster`, `Spell`, `Trap`, `Normal`, `Effect`, `Fusion`, `Ritual`,
 `Synchro`, `Xyz`, `Pendulum`, `Link`, `Token`,
 `QuickPlay`, `Continuous`, `Equip`, `Field`, `Counter`,
@@ -52,66 +41,197 @@ windbot/
 ### CardPosition
 `FaceUpAttack`, `FaceDownAttack`, `FaceUpDefence`, `FaceDownDefence`
 
-## ClientField Properties (Bot / Enemy)
+### DuelPhase
+`Draw`, `Standby`, `Main1`, `Battle`, `BattleStart`, `BattleStep`,
+`Damage`, `DamageCal`, `Main2`, `End`
+
+### ExecutorType
+`Summon`, `SpSummon`, `Repos`, `MonsterSet`, `SpellSet`, `Activate`,
+`SummonOrSet`, `GoToBattlePhase`, `GoToMainPhase2`, `GoToEndPhase`
+
+---
+
+## Core Objects
+
+### Bot / Enemy (ClientField)
 
 ```csharp
-Bot.MonsterZone     // ClientCard[7] - monster zones (0-4 main, 5-6 extra)
-Bot.SpellZone       // ClientCard[8] - spell/trap zones (0-4 main, 5 field, 6-7 pendulum)
-Bot.Hand            // CardGroup
-Bot.Graveyard       // CardGroup
-Bot.Banished        // CardGroup
-Bot.Deck            // CardGroup
-Bot.ExtraDeck       // CardGroup
-Bot.LifePoints      // int
-Bot.BattlingMonster // ClientCard (during battle)
+Bot.MonsterZone       // ClientCard[7] — zones 0-4 main, 5-6 extra
+Bot.SpellZone         // ClientCard[8] — zones 0-4 main, 5 field, 6-7 pendulum
+Bot.Hand              // CardGroup
+Bot.Graveyard         // CardGroup
+Bot.Banished          // CardGroup
+Bot.Deck              // CardGroup
+Bot.ExtraDeck         // CardGroup
+Bot.LifePoints        // int
+Bot.BattlingMonster   // ClientCard (during battle)
 ```
 
-## Card ID Verification
+### Query Methods
 
-Always verify passcodes before writing an executor. Two methods:
-
-### Method 1: Local CDB (preferred, works for custom cards)
-
-Any `.cdb` in the project root is a SQLite database:
-
-```python
-import sqlite3
-conn = sqlite3.connect("cards.cdb")
-
-# Single card lookup
-row = conn.execute("""
-    SELECT t.name, t.desc, d.type, d.atk, d.def, d.level, d.race, d.attribute
-    FROM texts t JOIN datas d ON t.id = d.id
-    WHERE t.id = ?
-""", (PASSCODE,)).fetchone()
-
-# Batch verify entire YDK
-with open("Decks/AI_MyDeck.ydk") as f:
-    ids = [int(l.strip()) for l in f if l.strip().isdigit()]
-for cid in ids:
-    row = conn.execute("SELECT name FROM texts WHERE id=?", (cid,)).fetchone()
-    print(f"{cid} = {row[0] if row else '??? NOT FOUND'}")
+```csharp
+Bot.HasInHand(int id)
+Bot.HasInMonstersZone(int id)
+Bot.HasInSpellZone(int id)
+Bot.HasInGraveyard(int id)
+Bot.HasInExtra(int id)
+Bot.HasInBanished(int id)
+Bot.GetRemainingCount(int id, int originalCount) // copies left in deck
+Bot.GetMonsterCount()
+Bot.GetSpellCount()
+Bot.GetHandCount()
 ```
 
-**CDB Tables:**
-- `datas`: `id` (PK), `ot`, `alias`, `setcode`, `type`, `atk`, `def`, `level`, `race`, `attribute`, `category`
-- `texts`: `id` (PK), `name`, `desc`, `str1`..`str16` (str1-16 are effect descriptions for prompts)
+### Card Matching
 
-If a card is not found in one `.cdb`, check other `.cdb` files in the project (custom expansions).
-
-### Method 2: YGOPRODeck API (official cards only)
-
+```csharp
+Bot.MonsterZone.GetMatchingCardsCount(card => card.Level == 4)
+Bot.MonsterZone.IsExistingMatchingCard(card => card.IsTuner())
+Bot.Graveyard.GetMatchingCardsCount(card => card.HasRace(CardRace.Fairy))
+Bot.Hand.IsExistingMatchingCard(card => card.IsCode(CardId.X))
+Bot.Hand.Count(card => someArray.Contains(card.Id)) // LINQ
+Bot.MonsterZone.FirstOrDefault(c => c != null && c.IsFaceup() && c.IsCode(id))
+Bot.MonsterZone.Any(c => c != null && c.IsFaceup() && someSet.Contains(c.Id))
 ```
-GET https://db.ygoprodeck.com/api/v7/cardinfo.php?id={passcode}
+
+### ClientCard Properties
+
+```csharp
+Card.Id               // int passcode
+Card.Location          // CardLocation
+Card.Controller        // 0=bot, 1=opponent
+Card.IsCode(int id)
+Card.IsFacedown() / Card.IsFaceup()
+Card.IsAttack() / Card.IsDefense()
+Card.HasRace(CardRace.X)
+Card.HasAttribute(CardAttribute.X)
+Card.HasType(CardType.X)
+Card.IsTuner()
+Card.Level / Card.Rank / Card.LinkCount
+Card.Attack / Card.Defense
+Card.EquipCards         // List<ClientCard> (cards equipped to this)
+Card.EquipTarget        // ClientCard (card this is equipped to)
 ```
 
-Response includes: `id`, `name`, `type`, `race`, `atk`, `def`, `level`, `attribute`, `archetype`.
-Rate limit: 20 requests/second. Use the CDB batch script for large decks instead.
+### Duel Properties
 
-## Compilation Notes
+```csharp
+Duel.Player            // 0=bot's turn, 1=opponent's turn
+Duel.Turn              // int turn number
+Duel.Phase             // DuelPhase enum
+Duel.LastChainPlayer   // who activated last chain link
+Duel.CurrentChain      // IList of chain links (reflection needed for details)
+```
 
-- **Framework**: .NET Framework 4.0, C# 6, Platform x86
-- **ExecutorBase** uses `AnyCPU` platform; the solution maps `x86 → AnyCPU` for it
-- **Do NOT build the full .sln** if Xamarin is not installed — `libWindbot` will fail
-- Use `/t:WindBot /t:ExecutorBase` targets to skip libWindbot
-- Pre-existing warnings in other executors are normal and can be ignored
+### AI Selection
+
+```csharp
+AI.SelectCard(int id)                        // select one card by ID
+AI.SelectCard(int[] ids)                     // preference order
+AI.SelectCard(ClientCard card)               // select specific card object
+AI.SelectNextCard(int id)                    // for multi-select prompts
+AI.SelectNextCard(int[] ids)                 // preference order for next pick
+AI.SelectMaterials(int[] ids)                // summon materials
+AI.SelectMaterials(CardLocation loc)         // materials from location
+AI.SelectOption(int index)                   // option prompt
+AI.SelectYesNo(bool yes)                     // yes/no prompt
+AI.SelectPlace(int zones)                    // zone selection (Zones.z0, etc.)
+```
+
+### Util (AIUtil)
+
+```csharp
+Util.GetProblematicEnemyCard()       // highest priority threat
+Util.GetProblematicEnemyMonster()
+Util.GetProblematicEnemySpell()
+Util.GetBestEnemyCard()
+Util.GetBestEnemyMonster()
+Util.IsTurn1OrMain2()
+Util.IsChainTarget(ClientCard card)  // is this card targeted by current chain?
+Util.GetStringId(int cardId, int idx) // effect description ID for ActivateDescription matching
+```
+
+### ActivateDescription
+
+```csharp
+ActivateDescription    // int — set by engine before calling your Activate handler
+// Match against Lua StringId values to distinguish multi-effect cards:
+if (ActivateDescription == Util.GetStringId(CardId.MyCard, 0)) { /* effect 1 */ }
+if (ActivateDescription == Util.GetStringId(CardId.MyCard, 1)) { /* effect 2 */ }
+if (ActivateDescription == -1) { /* unknown/default */ }
+```
+
+---
+
+## Overridable Methods
+
+```csharp
+public override bool OnSelectHand()           // true=go first
+public override void OnNewTurn()              // reset per-turn flags
+public override bool OnSelectMonsterSummonOrSet(ClientCard card) // true=set, false=summon
+public override bool OnPreActivate(ClientCard card)              // gate before Activate handlers
+public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+public override BattlePhaseAction OnBattle(IList<ClientCard> attackers, IList<ClientCard> defenders)
+public override bool OnPreBattleBetween(ClientCard attacker, ClientCard defender)
+public override int OnSelectPlace(long cardId, int player, CardLocation location, int available)
+```
+
+---
+
+## Default Helper Methods
+
+| Method | Use for |
+|--------|---------|
+| `DefaultRaigeki` | Destroy all enemy monsters |
+| `DefaultDarkHole` | Destroy all monsters |
+| `DefaultHarpiesFeatherDusterFirst` | Destroy all enemy spells/traps |
+| `DefaultMysticalSpaceTyphoon` | Destroy a spell/trap |
+| `DefaultCosmicCyclone` | Banish a spell/trap |
+| `DefaultBookOfMoon` | Flip face-down |
+| `DefaultCompulsoryEvacuationDevice` | Bounce to hand |
+| `DefaultSolemnJudgment` | Negate (pay half LP) |
+| `DefaultSolemnWarning` | Negate summon |
+| `DefaultSolemnStrike` | Negate effect/summon |
+| `DefaultTorrentialTribute` | Destroy all on summon |
+| `DefaultTrap` | Generic trap |
+| `DefaultSpellSet` | Set spells/traps |
+| `DefaultMonsterSummon` | Summon if > tributes |
+| `DefaultMonsterRepos` | Smart position change |
+| `DefaultField` | Activate if no field |
+| `DefaultMaxxC` | Activate on opponent's turn |
+| `DefaultAshBlossomAndJoyousSpring` | Negate search/SS from deck |
+| `DefaultEffectVeiler` | Negate monster effect |
+| `DefaultCalledByTheGrave` | Banish from GY |
+| `DefaultInfiniteImpermanence` | Negate monster effect |
+| `DefaultCallOfTheHaunted` | Revive monster |
+
+---
+
+## WindBot Dialogs System
+
+### Dialog Class Fields (via reflection on `AI._dialogs`)
+
+| Field | Type | Triggered by |
+|-------|------|-------------|
+| `_welcome` | `string[]` | Bot joins room |
+| `_deckerror` | `string[]` | Deck loading error |
+| `_duelstart` | `string[]` | Duel begins |
+| `_newturn` | `string[]` | Bot's new turn |
+| `_endturn` | `string[]` | Bot ends turn |
+| `_directattack` | `string[]` | Bot attacks directly |
+| `_attack` | `string[]` | Bot attacks a monster |
+| `_ondirectattack` | `string[]` | Opponent attacks bot directly |
+| `_activate` | `string[]` | Bot activates an effect |
+| `_summon` | `string[]` | Bot summons a monster |
+| `_setmonster` | `string[]` | Bot sets a monster |
+| `_chaining` | `string[]` | Bot chains to an effect |
+| `Chat` | `Action<int,string>` | The chat callback |
+| `Rand` | `Random` | RNG for message selection |
+
+### Custom Messages
+
+The `default.json` dialog file supports a `"custom"` array. Access via `SendCustomChat(int index, params object[] args)` (reflection needed in plugin mode).
+
+### Silencing Default Dialogs
+
+To prevent spam, set all auto-triggered arrays to `new string[0]` via reflection in the constructor. See executor-template.md for the implementation.
