@@ -264,7 +264,7 @@ def main() -> None:
     md_path = (
         Path(sys.argv[1])
         if len(sys.argv) > 1
-        else Path(r"c:\ProjectIgnis\sets\saint_seiya\saint_cards_effects.md")
+        else Path(r"c:\ProjectIgnis\sets\saint_seiya\other_saints_card_effects.md")
     )
     cards = parse_cards_from_md(md_path.read_text(encoding="utf-8").splitlines())
     inserted, skipped = insert_cards(cards, source_path=md_path)

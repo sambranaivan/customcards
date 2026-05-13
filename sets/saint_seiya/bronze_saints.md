@@ -1,6 +1,6 @@
 # Bronze Saints (source of truth)
 
-This document replaces overlapping content from `saint_cards_effects.md` (Bronze Saints + Bronze Cloth sections) and `reviews/fix bronze cloth.md`. **Authoritative data:** `expansions/saint-seiya.cdb` (`datas` + `texts`) and `script/unofficial/c{card_id}.lua`.
+This document replaces overlapping PSCT from `other_saints_card_effects.md` (Bronze Saints + Bronze Cloth sections there are outdated). **Authoritative data:** `expansions/saint-seiya.cdb` (`datas` + `texts`) and `script/unofficial/c{card_id}.lua`.
 
 Older markdown used names like `Saint - Seiya of Pegasus` and outdated Equip Spell lines (hand discard to search; Standby re-equip). The game database uses **`Bronze Saint - …`** naming and the implemented GY effects on Bronze Cloth cards.
 

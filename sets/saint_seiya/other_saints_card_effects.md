@@ -1,6 +1,6 @@
-# Saint Cards Effects (PSCT)
+# Other Saints Card Effects (PSCT)
 
-Este documento compila las cartas nombradas en `archetype_saint_athena.md` con una redaccion PSCT en ingles lista para adaptar a EDOPro. Todos los nombres estan unificados en ingles para el formato Saint Seiya.
+Este archivo (`other_saints_card_effects.md`, antes `saint_cards_effects.md`) compila cartas nombradas en `archetype_saint_athena.md` con PSCT en ingles para adaptar a EDOPro — incluye lineas aun no reflejadas en `expansions/saint-seiya.cdb`. Los nombres siguen unificados en ingles para Saint Seiya.
 
 **Bronze scope:** For Bronze Saint monsters (`922100000`–`922100009`), Mu/Kiki (`922100010`–`922100011`), and Bronze Cloth Equip Spells (`922100041`–`922100050`), use [`bronze_saints.md`](bronze_saints.md) as the source of truth (aligned with `expansions/saint-seiya.cdb` and Lua). The **Bronze Saints** and **Bronze Cloth** sections below may be outdated.
 

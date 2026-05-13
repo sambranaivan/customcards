@@ -2,7 +2,7 @@
 
 Documento para una variante **deck solo Silver** de enfoque **Control/Opresion**, inspirada en la saga del Santuario cuando los Silver Saints obedecen al Patriarca.
 
-En esta version, los Silver Saints son **Effect Monsters de Main Deck** (no Synchro) y llevan el tag **"Envoy of the Pope"** en su nombre, identificandolos como parte del arquetipo del Pope. Esto los diferencia de las versiones Synchro del deck Bronze+Silver (`saint_cards_effects.md`), que comparten nombre de personaje y constelacion pero **no** el tag de envoy. El soporte central son las cartas "Pope's Mandate" y el boss final es `Pope Ares`.
+En esta version, los Silver Saints son **Effect Monsters de Main Deck** (no Synchro) y llevan el tag **"Envoy of the Pope"** en su nombre, identificandolos como parte del arquetipo del Pope. Esto los diferencia de las versiones Synchro del deck Bronze+Silver (`other_saints_card_effects.md`), que comparten nombre de personaje y constelacion pero **no** el tag de envoy. El soporte central son las cartas "Pope's Mandate" y el boss final es `Pope Ares`.
 
 ---
 
@@ -393,7 +393,7 @@ Flavor: Jango, el asesino del boomerang capaz de controlar mentalmente a sus opo
 
 ## Corrupted Gold Saints (High-Tier Envoys)
 
-Los Gold Saints que sirvieron fielmente al Pope/Saga durante la saga del Santuario. A diferencia de sus versiones Xyz "heroicas" en `saint_cards_effects.md`, estas son **Level 8 Effect Monsters** cuya Invocación Especial requiere **Tributar 1 `Envoy of the Pope`** (pagando con Silvers/Ghosts). Su poder se amplifica mientras `Pope Ares` esté en el campo.
+Los Gold Saints que sirvieron fielmente al Pope/Saga durante la saga del Santuario. A diferencia de sus versiones Xyz "heroicas" en `other_saints_card_effects.md`, estas son **Level 8 Effect Monsters** cuya Invocación Especial requiere **Tributar 1 `Envoy of the Pope`** (pagando con Silvers/Ghosts). Su poder se amplifica mientras `Pope Ares` esté en el campo.
 
 ### Gold Saint - Deathmask of Cancer, Envoy of the Pope
 - **Card Type**: Effect Monster

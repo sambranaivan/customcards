@@ -125,10 +125,9 @@ def main() -> None:
     lines.append("# Bronze Saints (source of truth)")
     lines.append("")
     lines.append(
-        "This document replaces overlapping content from "
-        "`saint_cards_effects.md` (Bronze Saints + Bronze Cloth sections) and "
-        "`reviews/fix bronze cloth.md`. **Authoritative data:** "
-        "`expansions/saint-seiya.cdb` (`datas` + `texts`) and "
+        "This document replaces overlapping PSCT from "
+        "`other_saints_card_effects.md` (Bronze Saints + Bronze Cloth sections there are outdated). "
+        "**Authoritative data:** `expansions/saint-seiya.cdb` (`datas` + `texts`) and "
         "`script/unofficial/c{card_id}.lua`."
     )
     lines.append("")
