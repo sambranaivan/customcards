@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- Once per turn: You can target 1 card in either GY; banish it.

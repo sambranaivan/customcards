@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- The equipped monster cannot be targeted by your opponent's card effects.

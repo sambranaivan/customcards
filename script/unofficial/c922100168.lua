@@ -8,8 +8,7 @@
 -- ATK/DEF: 400/1200
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
 -- (Quick Effect): You can Tribute this card, then target 1 "Black Saint" monster you control; it cannot be destroyed by battle or card effects this turn.

@@ -8,10 +8,8 @@
 -- ATK/DEF: 1600/1700
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can equip 1 "Fragment of Sagittarius" Equip Spell from your Deck to this card, but send it to the GY during the End Phase.
 -- Once per turn (Quick Effect): You can send 1 Equip Card equipped to this card to the GY; this card cannot be destroyed by battle or card effects this turn.

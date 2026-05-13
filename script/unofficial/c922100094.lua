@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Destroy all Spells and Traps on the field.
 -- You cannot activate this card if you control no "Saint" monsters.

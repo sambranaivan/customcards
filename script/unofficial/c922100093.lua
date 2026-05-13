@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Destroy all Attack Position monsters your opponent controls.
 -- If you control a "Saint" monster equipped with a "Cloth" card, your opponent cannot activate monster effects in response to this card's activation.

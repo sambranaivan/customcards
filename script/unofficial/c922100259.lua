@@ -8,8 +8,7 @@
 -- ATK/DEF: 1000/2000
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Poseidon, God of the Seas", 1 "Poseidon, God of the Seas - Awakened", or 1 "Pillar" card from your Deck to your hand.
 -- You can Tribute this card; Special Summon 1 "Marine General" monster from your hand or GY.

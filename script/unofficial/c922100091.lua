@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Discard 1 "Cloth" card; draw 2 cards.
 -- If this card is in your GY: You can banish this card; add 1 Level 4 or lower "Saint" monster from your GY to your hand.

@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Send 1 "Pillar" card from your Deck to the GY, or if you control a "Marine General" monster, you can send up to 2 "Pillar" cards with different names instead, also for the rest of this turn after this card resolves, you cannot Special Summon monsters, except WATER monsters.
 -- If this card is in your GY: You can banish this card; add 1 "Marine General" monster from your Deck to your hand.

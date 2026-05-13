@@ -8,10 +8,8 @@
 -- ATK/DEF: 1200/800
 --
 -- Archetypes:
--- - Envoy of the Pope
 -- - saint
--- - saint-seiya
---
+-- - Envoy of the Pope
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
 -- If this card is Normal or Special Summoned: You can send 1 "Envoy of the Pope" card from your Deck to the GY.

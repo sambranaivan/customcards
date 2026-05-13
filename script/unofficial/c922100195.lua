@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- You can discard this card; send 1 "Specter" monster from your Deck to the GY.
 -- If this card is sent to the GY: You can pay 500 LP; during the next Standby Phase, Special Summon this card.

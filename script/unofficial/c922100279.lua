@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Destroy all Spells and Traps your opponent controls. You cannot activate other Spell/Trap Cards the turn you activate this card, except Normal Spells.
 -- You can only activate 1 "Gale of Tartarus" per turn.

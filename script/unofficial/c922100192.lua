@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect, while you control a "God Warrior" monster or "Palace of Valhalla - Throne of Hilda": Negate the activation, and if you do, banish that card.
 -- Then, you can remove 1 Odin Sapphire Counter from your field, and if you do, place 1 Frost Counter on 1 face-up monster your opponent controls.

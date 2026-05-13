@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- If a card(s) would be returned from the field to the hand by your "Silver Saint" monster effect, you can send 1 "Cloth" card from your hand to the GY; return it to the Deck instead.

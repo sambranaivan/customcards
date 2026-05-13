@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- If the equipped monster battles an opponent's monster, after damage calculation: Inflict 400 damage to your opponent.

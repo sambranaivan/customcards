@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- If you have 1 or more "Specter" monsters in your GY: You can Special Summon this card from your hand.
 -- If this card is Normal or Special Summoned: You can add 1 "Hades" Spell/Trap from your Deck to your hand.

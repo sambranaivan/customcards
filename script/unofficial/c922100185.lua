@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Add 1 "God Warrior" monster or 1 "Hilda of Polaris - Odin's Representative" from your Deck to your hand.
 -- If you control "Palace of Valhalla - Throne of Hilda", you can add 1 "Nibelungen Ring" from your Deck to your hand instead.

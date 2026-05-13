@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Marine General
--- - saint-seiya
---
 -- Effect (EN):
 -- If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 -- If this card is Normal or Special Summoned: You can add 1 "Pillar" card or 1 "Poseidon, God of the Seas" from your Deck to your hand.

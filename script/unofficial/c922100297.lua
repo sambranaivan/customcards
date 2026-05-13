@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Any card sent to the GY is banished instead.
 --]==]

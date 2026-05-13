@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If your opponent controls more monsters than you do: Target up to 2 face-up monsters your opponent controls; place 1 Frost Counter on each target, also they cannot be used as material for a Special Summon from the Extra Deck this turn.
 -- If you control "Palace of Valhalla - Throne of Hilda", you can remove 1 Odin Sapphire Counter from your field; draw 1 card.

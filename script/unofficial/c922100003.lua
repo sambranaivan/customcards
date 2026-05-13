@@ -8,10 +8,8 @@
 -- ATK/DEF: 1300/1900
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- Your opponent cannot target other "Saint" monsters you control for attacks.
 -- If this card is equipped with a "Cloth" Equip Spell, it can attack while in Defense Position. Use its DEF for damage calculation.

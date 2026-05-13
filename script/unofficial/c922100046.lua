@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Bronze Cloth
---
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- The equipped monster can make a second attack during each Battle Phase, but only on monsters.

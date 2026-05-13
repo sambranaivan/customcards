@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Choose 1 occupied column; return all cards in that column to the hand.
 -- If you control "Poseidon, God of the Seas - Awakened", banish those cards instead.

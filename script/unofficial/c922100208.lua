@@ -8,10 +8,8 @@
 -- ATK/DEF: 2500/2000
 --
 -- Archetypes:
--- - Renegade Saint
 -- - saint
--- - saint-seiya
---
+-- - Renegade Saint
 -- Effect (EN):
 -- This card is also treated as a "Saint" monster while on the field and in the GY.
 -- Cannot be Normal Summoned/Set.

@@ -8,10 +8,8 @@
 -- ATK/DEF: 1600/1600
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 Level 5 or higher "Saint" monster from your Deck to your hand.
 -- If this card is in your GY: You can add 1 "Cloth" card from your GY to your hand, and if you do, banish this card.

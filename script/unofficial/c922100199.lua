@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is Special Summoned from the GY: You can negate the effects of all face-up monsters your opponent currently controls, until the end of this turn.
 -- If this card is sent to the GY: You can pay 500 LP; during the next Standby Phase, Special Summon this card.

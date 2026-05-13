@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Once per turn, if the number of "Specter" monsters in your GY changed this turn: You can draw 1 card.
 -- While you have 10 or more "Specter" monsters in your GY, your opponent cannot activate monster effects in the hand.

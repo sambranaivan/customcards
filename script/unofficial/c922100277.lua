@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Discard 1 card; destroy all face-up monsters your opponent controls.
 -- You can only activate 1 "Storm of Olympus" per turn.

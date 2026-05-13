@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- Once per turn: You can target 1 "Saint" monster in your GY; add it to your hand, then discard 1 card.

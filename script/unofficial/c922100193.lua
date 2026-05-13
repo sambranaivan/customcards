@@ -4,8 +4,7 @@
 -- Type: Spell / Field Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- "Specter" monsters in your GY cannot be banished by your opponent's card effects.
 -- Each time a "Specter" monster is Special Summoned from your GY: Inflict 500 damage to your opponent, and if you do, gain 500 LP.

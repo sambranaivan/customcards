@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Bronze Cloth
---
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- While the equipped monster is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.

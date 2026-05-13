@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Pay 1000 LP, then target 1 Spell/Trap on the field; banish it.
 --]==]

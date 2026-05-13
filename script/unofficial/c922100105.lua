@@ -8,8 +8,7 @@
 -- ATK/DEF: 1000/1800
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Pope's Mandate" card from your Deck to your hand, except "Pope Ares - Voice of the Sanctuary".
 -- While this card is face-up on the field, your opponent cannot target other "Envoy of the Pope" monsters you control with card effects.

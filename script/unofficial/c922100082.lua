@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If you control 3 or more "Saint" monsters with different names: When your opponent activates a card or effect: Negate the activation, and if you do, destroy that card.
 --]==]

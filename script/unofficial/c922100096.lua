@@ -8,8 +8,7 @@
 -- ATK/DEF: 1400/1600
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect that includes any of these effects (Quick Effect): You can discard this card; negate that effect.
 -- ● Add a card from the Deck to the hand.

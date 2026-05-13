@@ -4,8 +4,7 @@
 -- Type: Spell / Field Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- All "Saint" monsters on the field gain 300 ATK/DEF.
 -- Once per turn, if a "Saint" monster you control would be destroyed, you can send 1 "Cloth" Equip Card equipped to it to the GY instead.

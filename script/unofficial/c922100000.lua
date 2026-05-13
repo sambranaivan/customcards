@@ -8,10 +8,8 @@
 -- ATK/DEF: 1700/1200
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Cloth" Equip Spell or 1 "Saint" monster from your Deck to your hand.
 -- If you control no monsters: You can Special Summon this card from your hand.

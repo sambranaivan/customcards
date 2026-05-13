@@ -8,8 +8,7 @@
 -- ATK/DEF: 1800/2500
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- (Quick Effect): You can discard this card, then target 1 "Saint" monster you control; it cannot be destroyed by battle or card effects this turn, also any battle damage you take from battles involving that target this turn becomes 0.
 -- You can only use this effect of "Cassios' Intervention" once per turn.

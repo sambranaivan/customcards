@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Bronze Cloth
---
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- If the equipped monster destroys an opponent's monster by battle: Your opponent discards 1 random card.

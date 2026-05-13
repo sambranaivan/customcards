@@ -8,8 +8,7 @@
 -- ATK/DEF: 0/2000
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- You can Tribute this card; remove all Frost Counters from the field, then draw 1 card for every 2 counters removed (max. 3).
 -- You can only use this effect of "Flare (Freya) - Hope of Asgard" once per turn.

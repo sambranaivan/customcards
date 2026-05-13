@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Target 1 monster in either player's GY; Special Summon it.
 -- You can only activate 1 "Awakening of the Eighth Sense" per turn.

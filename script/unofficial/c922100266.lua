@@ -4,8 +4,7 @@
 -- Type: Trap / Normal Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If your opponent controls more cards than you do: Special Summon 1 "Marine General" monster from your hand or GY, then you can equip 1 "Scale" card from your GY to that monster.
 -- For the rest of this turn after this card resolves, you cannot Special Summon monsters from the Extra Deck, except WATER monsters.

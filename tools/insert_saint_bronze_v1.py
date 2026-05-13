@@ -1,3 +1,4 @@
+import re
 import sqlite3
 
 
@@ -198,7 +199,7 @@ def main() -> None:
     ]
 
     for cid, name, atk, defe, attribute, desc in cards:
-        setcode = 0 if cid == 922100010 else SET_SAINT
+        setcode = SET_SAINT if re.search(r"saint", name, re.I) else 0
         # datas: id, ot, alias, setcode, type, atk, def, level, race, attribute, category
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",

@@ -8,11 +8,9 @@
 -- ATK/DEF: 2400/1800
 --
 -- Archetypes:
--- - Envoy of the Pope
--- - Silver Saint
 -- - saint
--- - saint-seiya
---
+-- - Silver Saint
+-- - Envoy of the Pope
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
 -- Once per turn: You can target 1 face-up monster your opponent controls; it loses 800 ATK, also it cannot attack or activate its effects, until the end of this turn.

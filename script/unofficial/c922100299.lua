@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- When a card or effect is activated that includes any of these effects (Quick Effect): You can discard this card; negate that effect.
 -- - Add a card from the Deck to the hand.

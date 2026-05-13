@@ -4,8 +4,7 @@
 -- Type: Spell / Field Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- All "Black Saint" monsters you control gain 300 ATK/DEF.
 -- When this card is activated: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.

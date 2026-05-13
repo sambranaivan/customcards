@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Each time a "Saint" monster is Special Summoned, place 1 Cosmos Counter on this card (max. 5).
 -- While this card has 3 or more Cosmos Counters, your "Bronze Saint" monsters cannot be destroyed by card effects.

@@ -8,10 +8,8 @@
 -- ATK/DEF: 800/400
 --
 -- Archetypes:
--- - Envoy of the Pope
 -- - saint
--- - saint-seiya
---
+-- - Envoy of the Pope
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
 -- During your Main Phase: You can discard 1 "Envoy of the Pope" monster; Special Summon 1 Level 4 or lower "Ghost Saint" monster from your Deck, but its effects are negated.

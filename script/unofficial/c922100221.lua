@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Hades
--- - saint-seiya
---
 -- Effect (EN):
 -- All monsters your opponent controls that are not "Specter" or "Renegade Saint" monsters lose ATK/DEF equal to the number of monsters in your GY x 100.
 -- During your End Phase: Send the top 2 cards of your Deck to the GY.

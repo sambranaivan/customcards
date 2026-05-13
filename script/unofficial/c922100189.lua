@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- When your opponent activates a monster effect in the hand or GY in response to the activation of your "God Warrior" card or effect: Negate that effect.
 -- Then, if you control "Palace of Valhalla - Throne of Hilda", you can place 1 Frost Counter on 1 face-up monster your opponent controls.

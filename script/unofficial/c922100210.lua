@@ -8,10 +8,8 @@
 -- ATK/DEF: 1600/1800
 --
 -- Archetypes:
--- - Renegade Saint
 -- - saint
--- - saint-seiya
---
+-- - Renegade Saint
 -- Effect (EN):
 -- This card is also treated as a "Saint" monster while on the field and in the GY.
 -- If this card is Special Summoned by a "Renegade Saint" monster's effect: You can draw 1 card, then your opponent sends 1 card from their hand or field to the GY.

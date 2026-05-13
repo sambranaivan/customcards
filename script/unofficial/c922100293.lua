@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Target 1 face-up monster on the field; that target's original ATK is halved until the end of this turn.
 --]==]

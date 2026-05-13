@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Destroy all monsters your opponent controls. You cannot conduct your Battle Phase the turn you activate this card.
 -- You can only activate 1 "Wrath of Zeus" per turn.

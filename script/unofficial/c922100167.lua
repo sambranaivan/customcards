@@ -8,8 +8,7 @@
 -- ATK/DEF: 2600/1900
 --
 -- Archetypes:
--- - saint-seiya
---
+-- - saint
 -- Effect (EN):
 -- If your opponent controls a "Black Saint" monster, you can Special Summon this card (from your hand).
 -- If this card is Normal or Special Summoned: You can send 1 "Saint" monster from your Deck to the GY, then target 1 face-up "Black Saint" monster your opponent controls; negate its effects until the end of this turn.

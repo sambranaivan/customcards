@@ -8,10 +8,8 @@
 -- ATK/DEF: 1400/1800
 --
 -- Archetypes:
--- - Steel Saint
 -- - saint
--- - saint-seiya
---
+-- - Steel Saint
 -- Effect (EN):
 -- If a "Saint" monster(s) you control would be destroyed by battle or card effect (Quick Effect): You can discard this card; that monster(s) is not destroyed.
 -- Then, if you control a "Saint" monster, you can Special Summon this card from your hand.

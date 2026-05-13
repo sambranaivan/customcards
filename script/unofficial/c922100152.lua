@@ -8,10 +8,8 @@
 -- ATK/DEF: 1500/1300
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can target 1 face-up monster your opponent controls; change it to Defense Position.
 -- Once per turn (Quick Effect): You can send 1 "Fragment of Sagittarius" Equip Spell equipped to a monster you control to the GY, then target 1 face-up monster your opponent controls; negate its effects until the end of this turn.

@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When an opponent's monster declares an attack on a "Saint" monster you control: Negate that attack, and if you do, end the Battle Phase, then if you control "Gold Saint - Mu of Aries", destroy all Attack Position monsters your opponent controls.
 -- If you control "Gold Saint - Mu of Aries", you can activate this card from your hand.

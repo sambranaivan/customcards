@@ -8,9 +8,8 @@
 -- ATK/DEF: 3200/2800
 --
 -- Archetypes:
+-- - saint
 -- - Envoy of the Pope
--- - saint-seiya
---
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand, Deck, or GY) by Tributing 1 "Pope Ares" monster, OR when a "Pope Ares" monster you control is sent from the field to the GY by your opponent's card (in which case, Special Summon this card as a Quick Effect).
 -- If this card is Special Summoned this way: Negate the effects of all face-up cards your opponent currently controls, until the end of this turn.

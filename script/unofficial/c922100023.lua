@@ -9,9 +9,7 @@
 --
 -- Archetypes:
 -- - saint
--- - saint-seiya
 -- - Silver Saint
---
 -- Effect (EN):
 -- 1 Tuner + 1+ non-Tuner "Saint" monsters
 -- For the Synchro Summon of this card, you can treat 1 "Bronze Saint" monster you control as a Tuner.

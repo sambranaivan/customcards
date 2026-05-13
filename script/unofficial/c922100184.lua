@@ -8,10 +8,10 @@
 -- ATK/DEF: 4000/3000
 --
 -- Archetypes:
+-- - saint
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
+-- (This card is always treated as a "Saint" card.)
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand or GY) by removing 7 Odin Sapphire Counters from your field.
 -- When this card declares an attack: You can remove all Frost Counters from the field; this card gains 500 ATK for each counter removed, until the end of the Damage Step.

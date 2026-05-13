@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect that targets a "Saint" monster(s) you control: Negate the activation, and if you do, destroy that card.
 -- Then, if you control a "Steel Saint" monster, you can draw 1 card.

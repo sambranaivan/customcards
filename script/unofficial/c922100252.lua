@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 "Marine General" monster you control; move it to another of your Main Monster Zones, and if you do, you can activate 1 "Pillar" card directly from your Deck in that monster's new column.
 -- You can only activate 1 "Flood of the Sanctuary" per turn.

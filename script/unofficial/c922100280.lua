@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Discard 1 card, then target up to 2 Spells/Traps on the field; destroy them.
 --]==]

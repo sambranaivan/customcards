@@ -20,12 +20,14 @@ SET_SPECTER = 0x1E8
 SET_RENEGADE_SAINT = 0x1E9
 SET_META = 0x1EA
 
+# Cards that must keep SET_SAINT in DB without "Saint" in the card name (PSCT treated-as).
+TREATED_SAINT_IDS = frozenset({922100184})
+# Header tag `saint-seiya` is collection metadata only — does not map to a setcode.
+SKIP_ARCHETYPE_TO_SETCODE = frozenset({"saint-seiya"})
+
 
 ARCH_TO_SET = {
-    # comment tag -> setcode constant
-    "saint": SET_SAINT,
-    # Treat 'saint-seiya' as the umbrella archetype -> SET_SAINT
-    "saint-seiya": SET_SAINT,
+    # comment tag -> setcode constant (PSCT "Saint" archetype is applied via finalize_set_saint, not only this tag)
     "God Warrior": SET_GOD_WARRIOR,
     "Poseidon": SET_POSEIDON,
     "Marine General": SET_MARINE_GENERAL,
@@ -161,25 +163,74 @@ def extract_effect_en(block: str) -> str:
     return eff
 
 
-def encode_setcode(archetypes: list[str]) -> int:
-    # Unique, stable ordering: keep first as base, additional as 16-bit shifts.
-    # Always include umbrella SET_SAINT if 'saint-seiya' is present.
+def _has_segment(setcode: int, value: int) -> bool:
+    s = setcode
+    while s:
+        if (s & 0xFFFF) == value:
+            return True
+        s >>= 16
+    return False
+
+
+def _remove_segment_and_compact(setcode: int, remove: int = SET_SAINT) -> int:
+    segments: list[int] = []
+    s = setcode
+    while s:
+        seg = s & 0xFFFF
+        s >>= 16
+        if seg != 0 and seg != remove:
+            segments.append(seg)
+    out = 0
+    for i, seg in enumerate(segments[:4]):
+        out |= seg << (16 * i)
+    return out
+
+
+def finalize_set_saint(card_id: int, card_name: str, code: int, saint_archetype_tag: bool) -> int:
+    """Strip SET_SAINT then re-add only if name, treated id, or explicit `-- - saint` tag requires it."""
+    base = _remove_segment_and_compact(code, SET_SAINT)
+    want = (
+        saint_archetype_tag
+        or card_id in TREATED_SAINT_IDS
+        or bool(re.search(r"saint", card_name, re.I))
+    )
+    if not want:
+        return base
+    if _has_segment(base, SET_SAINT):
+        return base
+    segments: list[int] = []
+    s = base
+    while s:
+        segments.append(s & 0xFFFF)
+        s >>= 16
+    merged = [SET_SAINT] + [x for x in segments if x != SET_SAINT]
+    merged = merged[:4]
+    out = 0
+    for i, seg in enumerate(merged):
+        out |= seg << (16 * i)
+    return out
+
+
+def encode_setcode(archetypes: list[str], card_id: int, card_name: str) -> int:
     mapped: list[int] = []
+    saint_archetype_tag = False
     for a in archetypes:
+        if a in SKIP_ARCHETYPE_TO_SETCODE:
+            continue
+        if a == "saint":
+            saint_archetype_tag = True
+            continue
         if a not in ARCH_TO_SET:
             raise KeyError(f"unknown archetype: {a}")
         mapped.append(ARCH_TO_SET[a])
-    # If the card only has saint-seiya, we still map it to SET_SAINT via table.
     uniq: list[int] = []
     for x in mapped:
         if x not in uniq:
             uniq.append(x)
-    if not uniq:
-        uniq = [SET_SAINT]
     code = 0
     for idx, sc in enumerate(uniq[:4]):
         code |= sc << (16 * idx)
-    return code
+    return finalize_set_saint(card_id, card_name, code, saint_archetype_tag)
 
 
 def parse_card(path: Path) -> Card:
@@ -199,7 +250,7 @@ def parse_card(path: Path) -> Card:
     name = text.splitlines()[0].lstrip("-").strip() if text.splitlines() else path.stem
     arch = list_archetypes(block)
     desc = extract_effect_en(block)
-    setcode = encode_setcode(arch)
+    setcode = encode_setcode(arch, cid, name)
 
     # defaults
     atk = 0

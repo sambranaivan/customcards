@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Gold Cloth
---
 -- Effect (EN):
 -- Equip only to a "Gold Saint" monster.
 -- If the equipped monster battles an opponent's monster, before damage calculation: Destroy that opponent's monster.

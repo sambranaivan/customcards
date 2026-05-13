@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Envoy of the Pope
--- - saint-seiya
---
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Special Summon this card from your hand.
 -- This card can attack your opponent directly if your opponent controls no Effect Monsters.

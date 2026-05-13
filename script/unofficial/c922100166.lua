@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY, but negate its effects.
 -- While you control "Black Saint - Ikki, Leader of Death Queen Island", monsters Special Summoned by this effect can activate their effects.

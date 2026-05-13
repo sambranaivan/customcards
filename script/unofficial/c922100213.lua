@@ -8,8 +8,7 @@
 -- ATK/DEF: 2500/3500
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- 1 Level 8 "Specter" monster + 1 Level 8 "Renegade Saint" monster
 -- Cannot be Normal Summoned/Set.

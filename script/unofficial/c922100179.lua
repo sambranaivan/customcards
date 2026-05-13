@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can Special Summon 1 "Bud of Alcor" from your hand or Deck.
 -- You can only use this effect of "God Warrior - Syd of Mizar" once per turn.

@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- "Specter" and "Renegade Saint" monsters you control cannot be banished.
 -- Each time a monster(s) is sent from your opponent's Deck to the GY: You can send 1 "Specter" monster from your Deck to the GY.

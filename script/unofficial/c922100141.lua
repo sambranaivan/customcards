@@ -4,8 +4,7 @@
 -- Type: Trap / Continuous Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Your opponent cannot activate the effects of Level 4 or lower monsters they control.
 -- Once per turn: You can send 1 "Envoy of the Pope" card from your hand or face-up field to the GY; negate the activation of a monster effect, and if you do, destroy that monster.

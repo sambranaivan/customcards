@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Target 1 face-up monster on the field; until the end of this turn, that target is unaffected by other Spells/Traps, but loses 800 ATK.
 --]==]

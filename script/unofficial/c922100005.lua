@@ -8,10 +8,8 @@
 -- ATK/DEF: 1700/1000
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If you control a "Saint" monster: You can Special Summon this card from your hand.
 -- You can only Special Summon "Bronze Saint - Jabu of Unicorn" once per turn this way.

@@ -8,9 +8,7 @@
 -- ATK/DEF: 3000/2500
 --
 -- Archetypes:
--- - saint-seiya
 -- - Black Saint
---
 -- Effect (EN):
 -- (This card is always treated as a "Black Saint" card.)
 -- Cannot be Normal Summoned/Set.

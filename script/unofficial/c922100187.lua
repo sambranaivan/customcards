@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Place 1 Frost Counter on all face-up monsters your opponent controls.
 -- For the rest of this turn after this card resolves, your opponent cannot activate cards or effects in response to the Special Summon of a "God Warrior" monster(s).

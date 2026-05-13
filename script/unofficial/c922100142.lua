@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect, while you control an "Envoy of the Pope" monster: Send 1 "Envoy of the Pope" card from your hand or face-up field to the GY; negate the activation, and if you do, banish that card.
 -- If you control "Pope Ares - Usurper of the Sanctuary", your opponent cannot activate cards or effects with that banished card's original name until the end of your opponent's next turn.

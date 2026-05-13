@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 2 "Pillar" cards in your GY; shuffle them into the Deck, and if you do, draw 2 cards.
 -- If this card is in your GY: You can banish this card, then target 1 "Marine General" monster you control; equip 1 "Scale" card from your GY to that target.

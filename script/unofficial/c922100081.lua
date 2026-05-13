@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Send 1 "Saint" monster from your Deck to the GY; add 1 "Saint" monster with a different name from your Deck to your hand.
 -- You can only activate 1 "Inherited Cosmos" per turn.

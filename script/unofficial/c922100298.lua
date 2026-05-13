@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- All monsters on the field gain 200 ATK/DEF for each different Attribute among monsters on the field (max 1000 ATK/DEF).
 -- Once per turn, during your Main Phase: You can send 1 monster from your hand to the GY; draw 1 card.

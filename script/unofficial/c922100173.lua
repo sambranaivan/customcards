@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- Once per turn, if this card would be destroyed by battle or card effect, it is not destroyed.
 -- At the start of the Damage Step, if this card battles: You can place 1 Frost Counter on the opponent's monster.

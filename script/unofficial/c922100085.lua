@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 "Silver Saint" monster you control; equip 1 "Gold Cloth" Equip Spell from your Deck or GY to that target.
 -- Immediately after this effect resolves, Special Summon 1 Rank 8 "Gold Saint" Xyz Monster from your Extra Deck, by using that target as material. (This is treated as an Xyz Summon. Transfer its materials to the Summoned monster.)

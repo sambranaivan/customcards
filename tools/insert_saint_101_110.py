@@ -35,9 +35,10 @@ def main() -> None:
     ]
 
     for cid, name in counter_traps:
+        trap_sc = SET_SAINT if cid == 922100104 else 0
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (cid, 4, 0, SET_SAINT, TYPE_TRAP | TYPE_COUNTER, 0, 0, 0, 0, 0, 0),
+            (cid, 4, 0, trap_sc, TYPE_TRAP | TYPE_COUNTER, 0, 0, 0, 0, 0, 0),
         )
         c.execute(
             "INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -47,7 +48,7 @@ def main() -> None:
     cid, name, atk, defe, level, race, attr = pope_ares
     c.execute(
         "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-        (cid, 4, 0, SET_SAINT, TYPE_MONSTER | TYPE_EFFECT, atk, defe, level, race, attr, 0),
+        (cid, 4, 0, SET_ENVOY, TYPE_MONSTER | TYPE_EFFECT, atk, defe, level, race, attr, 0),
     )
     c.execute(
         "INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",

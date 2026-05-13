@@ -8,8 +8,7 @@
 -- ATK/DEF: 1600/1400
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- During your opponent's Main Phase (Quick Effect): You can discard this card, then target 1 Effect Monster your opponent controls; negate its effects until the end of this turn.
 -- If you control a "Silver Saint" monster, you can activate this effect during any phase.

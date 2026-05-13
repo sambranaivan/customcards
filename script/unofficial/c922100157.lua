@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Fragment of Sagittarius
--- - saint-seiya
---
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
 -- Your opponent's monsters that battle the equipped monster lose 500 ATK during damage calculation only.

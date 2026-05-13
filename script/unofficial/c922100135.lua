@@ -8,8 +8,7 @@
 -- ATK/DEF: 3200/2800
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand or GY) by sending 2 "Envoy of the Pope" monsters you control to the GY.

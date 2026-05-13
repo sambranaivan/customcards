@@ -4,8 +4,7 @@
 -- Type: Spell / Equip Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Equip only to a "Marine General" monster.
 -- If the equipped monster is a "Marine General", your opponent cannot Set cards in the equipped monster's column.

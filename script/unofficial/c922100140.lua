@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 face-up monster your opponent controls; its effects are negated, also it cannot attack, until the end of this turn.
 -- Then, if you control "Pope Ares - Usurper of the Sanctuary", you can destroy that target.

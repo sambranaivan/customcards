@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 "Silver Saint" monster you control and 1 monster your opponent controls; destroy them, and if you do, you can Special Summon 1 "Bronze Saint" monster from your Deck.
 -- If this card is in your GY: You can banish this card; add 1 "Silver Cloth" card from your Deck to your hand.

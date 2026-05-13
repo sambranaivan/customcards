@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect that targets "Pope Ares - Voice of the Sanctuary" you control: Negate that activation, and if you do, destroy that card.
 -- Then, you can Special Summon 1 "Envoy of the Pope" monster from your hand.

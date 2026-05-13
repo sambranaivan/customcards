@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Target 1 face-up monster on the field; change it to face-down Defense Position.
 --]==]

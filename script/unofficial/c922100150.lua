@@ -8,10 +8,8 @@
 -- ATK/DEF: 1800/1100
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- If you control a "Black Saint" monster, you can Special Summon this card (from your hand).
 -- You can only Special Summon "Black Saint - Dark Pegasus" once per turn this way.

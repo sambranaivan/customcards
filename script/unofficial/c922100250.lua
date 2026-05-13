@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Pillar
--- - saint-seiya
---
 -- Effect (EN):
 -- When this card is activated: you can place 1 "Pillar" card from your Deck or GY face-up in your Spell & Trap Zone.
 -- Once per turn: You can move 1 other face-up "Pillar" card you control to another Spell & Trap Zone.

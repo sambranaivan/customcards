@@ -8,10 +8,8 @@
 -- ATK/DEF: 2400/2400
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 3 Level 4 "Saint" monsters
 -- This card gains these effects based on the number of materials attached to it.

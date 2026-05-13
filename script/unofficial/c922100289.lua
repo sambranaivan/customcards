@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Discard 1 monster; Special Summon 1 Level 1 monster from your hand or Deck.
 -- You can only activate 1 "Seed of Yggdrasil" per turn.

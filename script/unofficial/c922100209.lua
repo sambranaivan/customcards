@@ -8,10 +8,8 @@
 -- ATK/DEF: 1800/1500
 --
 -- Archetypes:
--- - Renegade Saint
 -- - saint
--- - saint-seiya
---
+-- - Renegade Saint
 -- Effect (EN):
 -- This card is also treated as a "Saint" monster while on the field and in the GY.
 -- If you control "Renegade Saint - Shion of Aries" or "Renegade Saint - Saga of Gemini", you can Special Summon this card (from your hand).

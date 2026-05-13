@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When this card is activated: You can add 1 "Esmeralda, Light of Death Queen Island" or 1 "Guilty, Master of Hell" from your Deck to your hand.
 -- Once per turn, if a "Fragment of Sagittarius" Equip Spell you control is sent to the GY by card effect: You can draw 1 card, then discard 1 card.

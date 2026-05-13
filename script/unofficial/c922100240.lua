@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Pillar
--- - saint-seiya
---
 -- Effect (EN):
 -- When this card is activated: You can add 1 "Marine General" monster or 1 "Scale" card from your Deck to your hand.
 -- If your opponent activates a card or effect in this card's column: They discard 1 random card.

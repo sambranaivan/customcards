@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- 1 "God Warrior" monster
 -- Cannot be Normal Summoned/Set.

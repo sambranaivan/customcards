@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- While this card is in your GY, your opponent cannot activate cards or effects in response to the Special Summon of your "Specter" monster(s).
 -- If this card is sent to the GY: You can target 1 "Specter" monster in your GY, except "Specter - Raimi of Worm"; add it to your hand.

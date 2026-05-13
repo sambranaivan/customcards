@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Target 1 Spell/Trap on the field; destroy that target.
 --]==]

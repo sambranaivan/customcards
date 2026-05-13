@@ -4,8 +4,7 @@
 -- Type: Spell / Field Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- All "Marine General" monsters you control gain 300 ATK/DEF.
 -- Once per turn: You can move 1 face-up "Marine General" monster you control to another of your Main Monster Zones.

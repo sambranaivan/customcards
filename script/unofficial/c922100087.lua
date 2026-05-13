@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Reveal up to 3 "Cloth" cards in your hand, shuffle them into the Deck, then draw the same number of cards.
 -- If you control no "Saint" monsters, while this card is in your GY: You can banish this card; Special Summon 1 "Bronze Saint" monster from your Deck, but negate its effects, also for the rest of this turn, you cannot Special Summon from the Extra Deck, except "Saint" monsters.

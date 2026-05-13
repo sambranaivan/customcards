@@ -8,10 +8,8 @@
 -- ATK/DEF: 1500/1300
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If a "Saint" monster(s) you control is destroyed by battle: You can Special Summon this card from your hand.
 -- If this card is Special Summoned: You can target 1 "Saint" monster in your GY; add it to your hand.

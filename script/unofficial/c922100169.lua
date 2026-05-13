@@ -8,8 +8,7 @@
 -- ATK/DEF: 2100/1500
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If you control a "Black Saint" monster, you can Special Summon this card (from your hand).
 -- If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card

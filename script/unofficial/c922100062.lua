@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- When an opponent's monster activates its effect in the Battle Phase: The equipped monster gains 500 ATK until the end of this turn.

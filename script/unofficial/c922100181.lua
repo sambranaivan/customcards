@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Palace of Valhalla - Throne of Hilda" or 1 "Nibelungen Ring" from your Deck to your hand.
 -- Once per turn: You can target 1 face-up card your opponent controls; place 1 Frost Counter on it.

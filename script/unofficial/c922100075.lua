@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Gold Cloth
---
 -- Effect (EN):
 -- Equip only to a "Gold Saint" monster.
 -- The equipped monster gains 800 ATK.

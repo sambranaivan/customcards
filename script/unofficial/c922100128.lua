@@ -8,10 +8,8 @@
 -- ATK/DEF: 2400/1600
 --
 -- Archetypes:
--- - Envoy of the Pope
 -- - Silver Saint
--- - saint-seiya
---
+-- - Envoy of the Pope
 -- Effect (EN):
 -- If you control "Pope Ares" or a "Pope's Mandate" card, you can Normal Summon this card without Tributing, but its ATK becomes 1800 until the End Phase.
 -- If this card is Normal or Special Summoned: You can destroy 1 Spell/Trap your opponent controls, then this card gains 300 ATK until the end of this turn.

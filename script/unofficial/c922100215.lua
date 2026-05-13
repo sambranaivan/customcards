@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Send cards from the top of your Deck to the GY until 3 "Specter" monsters are sent to your GY.
 -- For the rest of this turn after this card resolves, you cannot Special Summon monsters, except "Specter", "Renegade Saint", or "Hades" monsters.

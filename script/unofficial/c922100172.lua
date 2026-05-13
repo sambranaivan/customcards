@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- All "God Warrior" monsters on the field gain 500 ATK/DEF.
 -- Each time a "God Warrior" monster you control leaves the field, place 1 Odin Sapphire Counter on this card (max. 7).

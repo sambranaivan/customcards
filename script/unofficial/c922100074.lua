@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Gold Cloth
---
 -- Effect (EN):
 -- Equip only to a "Gold Saint" monster.
 -- If the equipped monster is destroyed by battle, destroy the monster that destroyed it during the End Phase.

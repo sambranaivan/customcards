@@ -8,10 +8,8 @@
 -- ATK/DEF: 1500/1800
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- (Quick Effect): You can discard this card; "Cloth" cards you control cannot be destroyed by card effects until the end of this turn.
 -- You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card, also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.

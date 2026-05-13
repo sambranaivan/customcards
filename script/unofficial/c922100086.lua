@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 "Saint" monster you control; it cannot be destroyed by battle or card effects this turn.
 -- If a "Saint" monster you control would be destroyed by battle or card effect, you can banish this card from your GY instead.

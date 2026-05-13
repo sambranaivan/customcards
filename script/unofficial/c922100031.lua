@@ -8,10 +8,8 @@
 -- ATK/DEF: 2800/2800
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 2 Level 8 "Saint" monsters
 -- While this card has a "Gold Cloth" card as material, your opponent cannot activate card effects in the GY, also they cannot banish cards.

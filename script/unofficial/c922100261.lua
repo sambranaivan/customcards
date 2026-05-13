@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Reveal 1 "Marine General - Kanon of Sea Dragon" in your hand, or control 1 face-up "Gold Saint - Saga of Gemini"; apply 1 of these effects.
 -- ● Add 1 "Pillar" card from your Deck to your hand, then discard 1 card.

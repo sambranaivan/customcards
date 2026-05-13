@@ -8,10 +8,8 @@
 -- ATK/DEF: 2400/1800
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- If you control 2 or more "Black Saint" monsters, you can Special Summon this card
 -- (from your hand).

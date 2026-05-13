@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- Your opponent cannot Tribute face-up monsters with Frost Counters.
 -- Face-up monsters with Frost Counters cannot be used as material for a Special Summon from the Extra Deck.

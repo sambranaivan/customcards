@@ -5,7 +5,6 @@ def main() -> None:
     conn = sqlite3.connect("expansions/cards-unofficial.cdb")
     c = conn.cursor()
 
-    SET_SAINT = 0x1D7
     SET_CLOTH = 0x1D8
     SET_GOLD_CLOTH = 0x1DC
 
@@ -42,7 +41,7 @@ def main() -> None:
     for cid, name in field_cards:
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (cid, 4, 0, SET_SAINT, TYPE_FIELD, 0, 0, 0, 0, 0, 0),
+            (cid, 4, 0, 0, TYPE_FIELD, 0, 0, 0, 0, 0, 0),
         )
         c.execute(
             "INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",

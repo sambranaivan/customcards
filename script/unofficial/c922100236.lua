@@ -4,8 +4,7 @@
 -- Type: Spell / Equip Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Equip only to a "Marine General" monster.
 -- Once per turn: You can reveal 1 random card in your opponent's hand.

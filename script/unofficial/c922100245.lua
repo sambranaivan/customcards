@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Poseidon
--- - saint-seiya
---
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
 -- Must first be Special Summoned (from your hand or GY) by banishing 7 "Pillar" cards with different names from your hand, field, and/or GY. (This is treated as a Fusion Summon.)

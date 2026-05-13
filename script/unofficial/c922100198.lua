@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- While you have 3 or more "Specter" monsters in your GY, your opponent cannot activate card effects in the GY.
 -- If this card is sent to the GY: You can send 1 "Specter" monster from your Deck to the GY.

@@ -8,8 +8,7 @@
 -- ATK/DEF: 0/0
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- (Quick Effect): You can discard this card; this turn, each time your opponent Special Summons a monster(s) from the Extra Deck, immediately draw 1 card (max. 2 draws).
 -- You can only use this effect of "Mitsumasa Kido - Legacy of the Foundation" once per turn.

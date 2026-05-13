@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Send 1 "Envoy of the Pope" monster from your Deck to the GY; add 1 "Pope's Mandate" card from your Deck to your hand, except "Pope's Mandate - Extermination Order".
 -- If your opponent controls a Level 4 or lower monster, you can apply this effect after this card resolves.

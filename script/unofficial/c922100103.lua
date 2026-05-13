@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a Spell/Trap Card or effect, while you control a "Saint" monster equipped with a "Cloth" card: Negate the activation, and if you do, Set that card in your opponent's Spell & Trap Zone, and it cannot be activated until the end of the next turn.
 -- You can only activate 1 "The Pope's Verdict" per turn.

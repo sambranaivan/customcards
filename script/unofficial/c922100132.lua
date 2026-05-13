@@ -8,11 +8,9 @@
 -- ATK/DEF: 2800/2100
 --
 -- Archetypes:
--- - Envoy of the Pope
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
+-- - Envoy of the Pope
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand or GY) by Tributing 1 "Envoy of the Pope" monster.
 -- This card's attacks cannot be negated, also this card can attack all monsters your opponent controls once each.

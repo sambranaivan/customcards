@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Shuffle all your banished "Specter" monsters into the Deck, and if you do, draw 1 card for every 3 cards shuffled.
 -- Then, if you have 12 or more "Specter" monsters in your GY, you can add 1 "Hades, Emperor of the Eternal Underworld" from your Extra Deck to your hand.

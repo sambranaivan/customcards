@@ -8,10 +8,8 @@
 -- ATK/DEF: 2500/2800
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 3 Level 4 "Saint" monsters
 -- Once per turn, when an opponent's monster declares an attack: You can detach 1 material from this card; negate that attack, and if you do, destroy that monster, then inflict 1000 damage to your opponent.

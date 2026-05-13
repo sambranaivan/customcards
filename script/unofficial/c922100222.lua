@@ -4,8 +4,7 @@
 -- Type: Trap / Normal Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If you have 5 or more "Specter" monsters in your GY, when your opponent activates a monster effect: Declare 1 card type (Monster, Spell, or Trap); your opponent sends 1 card of that type from their Deck to the GY, or else negate that activation, and if you do, destroy that card.
 -- You can only activate 1 "Judgment of Lune's Scale" per turn.

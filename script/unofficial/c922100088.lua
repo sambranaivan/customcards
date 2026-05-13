@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Add 1 Level 4 or lower "Saint" monster from your Deck to your hand, also, if you control no monsters, add 1 "Kiki - Messenger of the Cloth Sculptor" from your Deck to your hand.
 -- You can only activate 1 "Athena's Call" per turn.

@@ -4,8 +4,7 @@
 -- Type: Spell / Equip Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Equip only to a "Marine General" monster.
 -- Once per turn (Quick Effect): You can target 1 card in the equipped monster's column; return it to the hand.

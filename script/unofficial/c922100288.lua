@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Activate this card by targeting 1 monster in your GY; Special Summon it. When this card leaves the field, destroy that monster. When that monster is destroyed, destroy this card.
 --]==]

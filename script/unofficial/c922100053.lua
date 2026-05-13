@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Silver Cloth
---
 -- Effect (EN):
 -- Equip only to a "Silver Saint" monster.
 -- If the equipped monster is attacked, before damage calculation: The attacking monster loses 1000 ATK.

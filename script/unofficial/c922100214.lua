@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Hades
--- - saint-seiya
---
 -- Effect (EN):
 -- 1 Level 8 "Specter" monster + 1 Level 8 "Renegade Saint" monster
 -- Cannot be Normal Summoned/Set.

@@ -8,10 +8,8 @@
 -- ATK/DEF: 1200/1000
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If this card is sent to the GY as Link Material or Tributed: You can draw 1 card, then discard 1 card.
 -- You can shuffle 1 "Cloth" card from your GY into the Deck, then draw 1 card.

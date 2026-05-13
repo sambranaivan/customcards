@@ -8,10 +8,8 @@
 -- ATK/DEF: 1800/1000
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If this card is in your GY: You can discard 1 "Saint" card; Special Summon this card.
 -- You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card, also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.

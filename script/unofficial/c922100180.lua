@@ -8,8 +8,7 @@
 -- ATK/DEF: 2400/2400
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If a "God Warrior - Syd of Mizar" you control would be destroyed or banished by an opponent's card effect: You can Special Summon this card from your hand or GY, and if you do, negate that effect.
 -- While "God Warrior - Syd of Mizar" is in your GY, this card gains 1000 ATK.

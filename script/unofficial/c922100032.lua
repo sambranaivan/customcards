@@ -8,10 +8,8 @@
 -- ATK/DEF: 3000/2500
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 2 Level 8 "Saint" monsters
 -- (Quick Effect): You can detach 2 materials from this card; destroy all cards in 1 column, and if you do, inflict 1000 damage to your opponent.

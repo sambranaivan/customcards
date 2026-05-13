@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect while you control a "Pillar" card and a "Marine General" monster: Banish 1 "Pillar" card from your GY; negate the activation, and if you do, destroy that card.
 -- If you control "Poseidon, God of the Seas" or "Poseidon, God of the Seas - Awakened", you can activate this card from your hand.

@@ -8,11 +8,9 @@
 -- ATK/DEF: 2700/2700
 --
 -- Archetypes:
--- - Envoy of the Pope
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
+-- - Envoy of the Pope
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set. Must be Special Summoned (from your hand or GY) by Tributing 1 "Envoy of the Pope" monster.
 -- If this card is Special Summoned: Place 1 Royal Demon Rose Counter on each monster your opponent controls.

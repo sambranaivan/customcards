@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is sent to the GY: You can send 2 "Specter" monsters from your Deck to the GY.
 -- If this card is sent to the GY by card effect: You can add 1 "Hades" Spell/Trap from your Deck to your hand.

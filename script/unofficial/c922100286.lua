@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Both players must Set Spell Cards before activating them, and cannot activate them until their next turn.
 --]==]

@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Draw 3 cards, then discard 2 cards.
 -- You can only activate 1 "Blessing of the Moirai" per turn.

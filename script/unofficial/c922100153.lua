@@ -8,10 +8,8 @@
 -- ATK/DEF: 1400/1900
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- Your opponent cannot target other "Black Saint" monsters you control for attacks.
 -- Once per turn: You can equip 1 "Fragment of Sagittarius" Equip Spell from your hand or GY to this card.

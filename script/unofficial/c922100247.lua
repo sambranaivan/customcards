@@ -8,8 +8,7 @@
 -- ATK/DEF: 1000/1000
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Pillar" card or 1 "Submarine Sanctuary" from your Deck to your hand.
 -- If you control a "Marine General" monster: You can banish this card from your GY; add 1 "Pillar" card from your Deck to your hand.

@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 monster your opponent controls; send it to the GY, and if you do, your opponent cannot Special Summon monsters with that original name during their next 2 turns.
 -- If you control a "Renegade Saint" monster, you can activate this card from your hand during your opponent's turn.

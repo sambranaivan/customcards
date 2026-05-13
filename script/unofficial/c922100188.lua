@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- The activation and effects of your "Hilda of Polaris - Odin's Representative" cannot be negated.
 -- Once per turn, when your opponent activates the effect of a monster with a Frost Counter: That effect becomes "Return 1 card you control to the hand".

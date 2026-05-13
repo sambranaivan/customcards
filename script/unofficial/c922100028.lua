@@ -8,10 +8,8 @@
 -- ATK/DEF: 2500/-
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 2+ "Saint" monsters
 -- This card gains 500 ATK for each Equip Card on the field.

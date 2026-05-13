@@ -14,7 +14,7 @@ def main() -> None:
     TYPE_EQUIP = 0x40002  # Spell + Equip
 
     setcode_black = SET_SAINT | (SET_BLACK_SAINT << 16)
-    setcode_fragment = SET_FRAGMENT | (SET_SAINT << 16)
+    setcode_fragment = SET_FRAGMENT
 
     monsters = [
         (922100151, "Black Saint - Dark Dragon", 1600, 1700, 4, 1, 32),

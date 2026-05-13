@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Poseidon
--- - saint-seiya
---
 -- Effect (EN):
 -- Requires 3 Tributes to Normal Summon (cannot be Normal Set).
 -- If this card is Tribute Summoned: You can target up to 2 "Pillar" cards in your GY; add them to your hand.

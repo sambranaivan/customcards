@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Target 1 "Saint" monster you control; this turn, it cannot be destroyed by battle or card effects.
 -- Then, if you have a "Steel Saint" monster in your GY, you can Special Summon 1 "Steel Saint" monster with a different name from your hand.

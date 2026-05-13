@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When this card is activated: You can send 1 "Pillar" card from your Deck to the GY.
 -- Once per turn: You can banish 1 WATER monster from your hand or GY; add 1 "Pillar" card from your GY to your hand.

@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Marine General
--- - saint-seiya
---
 -- Effect (EN):
 -- If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 -- If this card battles, your opponent cannot activate cards or effects until the end of the Damage Step.

@@ -8,11 +8,9 @@
 -- ATK/DEF: 2700/2000
 --
 -- Archetypes:
--- - Envoy of the Pope
--- - Silver Saint
 -- - saint
--- - saint-seiya
---
+-- - Silver Saint
+-- - Envoy of the Pope
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand) by controlling 2 or more "Envoy of the Pope" monsters.

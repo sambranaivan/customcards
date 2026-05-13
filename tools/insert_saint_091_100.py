@@ -5,8 +5,6 @@ def main() -> None:
     conn = sqlite3.connect("expansions/cards-unofficial.cdb")
     c = conn.cursor()
 
-    SET_SAINT = 0x1D7
-
     TYPE_SPELL = 0x2
     TYPE_MONSTER = 0x1
     TYPE_EFFECT = 0x20
@@ -31,7 +29,7 @@ def main() -> None:
     for cid, name, typ in spell_entries:
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (cid, 4, 0, SET_SAINT, typ, 0, 0, 0, 0, 0, 0),
+            (cid, 4, 0, 0, typ, 0, 0, 0, 0, 0, 0),
         )
         c.execute(
             "INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
@@ -41,7 +39,7 @@ def main() -> None:
     for cid, name, atk, defe, level, race, attr in monster_entries:
         c.execute(
             "INSERT OR REPLACE INTO datas VALUES (?,?,?,?,?,?,?,?,?,?,?)",
-            (cid, 4, 0, SET_SAINT, TYPE_MONSTER | TYPE_EFFECT, atk, defe, level, race, attr, 0),
+            (cid, 4, 0, 0, TYPE_MONSTER | TYPE_EFFECT, atk, defe, level, race, attr, 0),
         )
         c.execute(
             "INSERT OR REPLACE INTO texts VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",

@@ -4,8 +4,7 @@
 -- Type: Spell / Normal Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If you control no monsters: Special Summon 1 "Bronze Saint" monster from your hand or Deck, but negate its effects, also it cannot attack this turn.
 -- Also, for the rest of this turn after this card resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.

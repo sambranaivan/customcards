@@ -17,7 +17,7 @@ def main() -> None:
     TYPE_CONTINUOUS = 0x20000
 
     setcode_envoy_gold = SET_SAINT | (SET_GOLD_SAINT << 16) | (SET_ENVOY << 32)
-    setcode_mandate = SET_POPES_MANDATE | (SET_SAINT << 16)
+    setcode_mandate = SET_POPES_MANDATE
 
     monsters = [
         # id, name, atk, def, level, race, attr, setcode
@@ -25,7 +25,7 @@ def main() -> None:
         (922100132, "Gold Saint - Shura of Capricorn, Envoy of the Pope", 2800, 2100, 8, 1, 1, setcode_envoy_gold),
         (922100133, "Gold Saint - Camus of Aquarius, Envoy of the Pope", 2700, 2600, 8, 1, 2, setcode_envoy_gold),
         (922100134, "Gold Saint - Aiolia of Leo, Envoy of the Pope", 2800, 2000, 8, 4, 16, setcode_envoy_gold),
-        (922100135, "Pope Ares - Usurper of the Sanctuary", 3200, 2800, 10, 2, 32, SET_SAINT),
+        (922100135, "Pope Ares - Usurper of the Sanctuary", 3200, 2800, 10, 2, 32, SET_ENVOY),
         (922100136, "Gold Saint - Saga of Gemini, Envoy of the Pope", 3200, 2800, 10, 1, 32, setcode_envoy_gold),
     ]
 

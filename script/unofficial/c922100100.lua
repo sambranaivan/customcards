@@ -8,8 +8,7 @@
 -- ATK/DEF: 1000/1000
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect that would inflict damage to you (Quick Effect): You can discard this card; negate that activation, and if you do, inflict 1000 damage to your opponent.
 -- You can only use this effect of "Tatsumi - Guardian of the Mansion" once per turn.

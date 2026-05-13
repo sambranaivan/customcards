@@ -18,15 +18,15 @@ def main() -> None:
     TYPE_CONTINUOUS = 0x20000
     TYPE_COUNTER = 0x100000
 
-    setcode_mandate = SET_POPES_MANDATE | (SET_SAINT << 16)
+    setcode_mandate = SET_POPES_MANDATE
     setcode_steel = SET_SAINT | (SET_STEEL_SAINT << 16)
     setcode_black = SET_SAINT | (SET_BLACK_SAINT << 16)
 
     traps_spells = [
         (922100141, "Pope's Mandate - Silence the Rebels", TYPE_TRAP | TYPE_CONTINUOUS, setcode_mandate),
         (922100142, "Pope's Mandate - Absolute Verdict", TYPE_TRAP | TYPE_COUNTER, setcode_mandate),
-        (922100146, "Steel Assistance System", TYPE_SPELL | TYPE_QUICKPLAY, SET_SAINT),
-        (922100147, "Interception Protocol", TYPE_TRAP | TYPE_COUNTER, SET_SAINT),
+        (922100146, "Steel Assistance System", TYPE_SPELL | TYPE_QUICKPLAY, SET_STEEL_SAINT),
+        (922100147, "Interception Protocol", TYPE_TRAP | TYPE_COUNTER, SET_STEEL_SAINT),
     ]
 
     monsters = [

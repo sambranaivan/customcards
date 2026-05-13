@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- You can discard this card; add 1 Level 8 "Specter" monster or 1 "Renegade Saint" monster from your Deck to your hand.
 -- If this card is sent to the GY: You can pay 500 LP; during the next Standby Phase, Special Summon this card.

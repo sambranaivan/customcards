@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- Once per turn: You can make this card become FIRE until the end of this turn.
 -- If this card becomes FIRE: You can target up to 2 face-up monsters on the field with Frost Counters; destroy them.

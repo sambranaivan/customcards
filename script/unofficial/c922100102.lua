@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent declares an attack, or when a monster effect is activated on the field: Detach 1 material from a "Saint" monster you control; negate that attack or activation, and if you do, change all Attack Position monsters your opponent controls to face-down Defense Position.
 -- You can only activate 1 "Circular Defense" per turn.

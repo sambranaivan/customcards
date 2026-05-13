@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Fragment of Sagittarius
--- - saint-seiya
---
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
 -- The equipped monster can make a second attack during each Battle Phase, but only on monsters.

@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Special Summon 1 "God Warrior" monster from your hand or GY, then you can move that monster to another of your Main Monster Zones.
 -- If this card is activated while your opponent controls an Extra Deck monster, you can place 1 Frost Counter on 1 face-up monster your opponent controls.

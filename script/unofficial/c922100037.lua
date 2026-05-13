@@ -8,10 +8,8 @@
 -- ATK/DEF: 2500/2100
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 3 Level 4 "Saint" monsters
 -- Once per turn: You can detach 1 material from this card, then target 1 card on the field; send it to the GY.

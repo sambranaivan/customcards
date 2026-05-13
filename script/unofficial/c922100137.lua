@@ -4,8 +4,7 @@
 -- Type: Spell / Continuous Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When this card is activated: You can add 1 "Envoy of the Pope" monster from your Deck to your hand.
 -- Once per turn: You can reveal 1 "Envoy of the Pope" monster in your hand; Special Summon 1 "Envoy of the Pope" monster with a different name from your hand.

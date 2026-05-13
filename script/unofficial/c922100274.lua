@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Destroy all monsters on the field. Monsters destroyed by this effect cannot be Special Summoned from the GY for the rest of this turn.
 -- You can only activate 1 "Cosmic Singularity" per turn.

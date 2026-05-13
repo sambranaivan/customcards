@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - God Warrior
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can Special Summon 2 "Wolf Token" (Beast/WATER/Level 4/ATK 500/DEF 500).
 -- You cannot Special Summon monsters from the Extra Deck the turn you activate this effect, except "God Warrior" monsters.

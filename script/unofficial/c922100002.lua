@@ -8,10 +8,8 @@
 -- ATK/DEF: 1600/1400
 --
 -- Archetypes:
--- - Bronze Saint
 -- - saint
--- - saint-seiya
---
+-- - Bronze Saint
 -- Effect (EN):
 -- If this card attacks an opponent's monster, before damage calculation: Change that opponent's monster to Defense Position, and if you do, negate its effects until the end of your opponent's next turn.
 -- You can pay 500 LP; equip 1 "Cloth" Equip Spell from your GY to this card, also, for the rest of this turn after this effect resolves, you cannot Special Summon from the Extra Deck, except "Saint" monsters.

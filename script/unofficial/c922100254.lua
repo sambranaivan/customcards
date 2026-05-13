@@ -4,8 +4,7 @@
 -- Type: Spell / Quick-Play Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- Special Summon 1 "Marine General" monster from your hand, but negate its effects until the end of this turn.
 -- If this card is in your GY, except the turn it was sent there: You can banish this card, then target 1 monster on the field; move it to an adjacent Main Monster Zone.

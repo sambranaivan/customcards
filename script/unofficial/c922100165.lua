@@ -4,8 +4,7 @@
 -- Type: Trap / Counter Trap
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When your opponent activates a card or effect, while you control a "Black Saint" monster equipped with a "Fragment of Sagittarius" card: Send 1 "Fragment of Sagittarius" Equip Spell you control to the GY; negate the activation, and if you do, destroy that card.
 -- Then, if you control "Black Saint - Ikki, Leader of Death Queen Island", you can destroy 1 card your opponent controls.

@@ -5,8 +5,6 @@
 --
 -- Archetypes:
 -- - Meta
--- - saint-seiya
---
 -- Effect (EN):
 -- Destroy 1 face-up monster your opponent controls with the highest DEF (your choice, if tied).
 --]==]

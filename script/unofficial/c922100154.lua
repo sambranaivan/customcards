@@ -8,10 +8,8 @@
 -- ATK/DEF: 1700/1000
 --
 -- Archetypes:
--- - Black Saint
 -- - saint
--- - saint-seiya
---
+-- - Black Saint
 -- Effect (EN):
 -- If you control "Black Saint - Ikki, Leader of Death Queen Island": You can Special Summon this card from your hand.
 -- If this card is Normal or Special Summoned: You can send 1 "Fragment of Sagittarius" card from your Deck to the GY.

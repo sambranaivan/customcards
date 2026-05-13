@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Specter
--- - saint-seiya
---
 -- Effect (EN):
 -- Cannot be Normal Summoned/Set.
 -- Must be Special Summoned (from your hand) while you have 6 or more "Specter" monsters in your GY.

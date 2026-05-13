@@ -4,8 +4,7 @@
 -- Type: Spell / Field Spell
 --
 -- Archetypes:
--- - saint-seiya
---
+-- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- All "Saint" monsters on the field gain 300 ATK/DEF.
 -- You can only use each of the following effects of "Athena's Sanctuary - Reforged" once per turn.

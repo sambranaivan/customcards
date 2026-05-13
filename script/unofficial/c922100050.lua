@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Bronze Cloth
---
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- The equipped monster gains 300 ATK/DEF.

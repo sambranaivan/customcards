@@ -6,7 +6,6 @@
 -- Archetypes:
 -- - cloth
 -- - Bronze Cloth
---
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
 -- Once per turn: You can target 1 face-up card your opponent controls; negate its effects until the end of this turn.

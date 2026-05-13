@@ -8,10 +8,8 @@
 -- ATK/DEF: 2100/2600
 --
 -- Archetypes:
--- - Gold Saint
 -- - saint
--- - saint-seiya
---
+-- - Gold Saint
 -- Effect (EN):
 -- 2 Level 8 "Saint" monsters
 -- You can detach 1 material; add 1 "Cloth" card from your GY to your hand, or if that card was a "Gold Cloth", you can equip it to a monster you control instead.

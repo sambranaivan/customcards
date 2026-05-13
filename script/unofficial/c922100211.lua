@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Hades
--- - saint-seiya
---
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Renegade Saint" monster or 1 "Hades" Spell/Trap from your Deck to your hand.
 -- Once per turn: You can target up to 3 of your banished "Specter" monsters; return them to the GY.

@@ -9,8 +9,6 @@
 --
 -- Archetypes:
 -- - Marine General
--- - saint-seiya
---
 -- Effect (EN):
 -- If you control a "Pillar" card: You can Special Summon this card from your hand to your Main Monster Zone in the same column as that "Pillar" card.
 -- If this card is Summoned: You can target 1 face-up monster your opponent controls; until the end of this turn, this card's name becomes that target's name, also it gains that target's original effects.
