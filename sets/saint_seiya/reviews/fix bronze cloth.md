@@ -1,5 +1,7 @@
 # Review: Fix Bronze Cloth Effects
 
+**Superseded for card text:** Implemented PSCT and stats are documented in [`../bronze_saints.md`](../bronze_saints.md) (exported from `expansions/saint-seiya.cdb`). This file kept as historical design notes.
+
 **Date**: 2026-05-11
 **Scope**: All 10 Bronze Cloth Equip Spells (IDs 922100041–922100050)
 
