@@ -17,7 +17,7 @@ Goals:
 - Go first: establish Death Queen Island, mill/send Fragments, Normal Summon Jango or extenders,
   equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
-- Use Oath / Guilty / Esmeralda for recursion; Dark Andromeda for draw when Fragments move by effects.
+- Use Oath / Guilty / Esmeralda for recursion; Esmeralda (c922100168) also defends with Maiden-like Ikki SS when targeted (1 card effect/turn shared with her Deck search). Dark Andromeda for draw when Fragments move by effects.
 - Boss (922100162): only attempt when 7+ different Fragment names are in GY/field (approximate counter in executor).
 - Fragment / Jango / etc. “add 1 Black Saint from Deck”: `ChooseBlackSaintForDeckSearch()` — Boss pivot when **5+**
   Fragment cards across **GY + field (S/T + equips) + hand** (deduped); Ikki when 3+ BS; then scores.
@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 9;
-        private const string BuildTag = "2026-05-13-v9-oath-continuous-spell-effect";
+        private const int BuildVersion = 10;
+        private const string BuildTag = "2026-05-13-v10-esmeralda-922100168-maidens-ikki";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -190,6 +190,18 @@ namespace WindBot.Game.AI.Decks
                 && card.IsCode(CardId.EsmeraldasLastWill)
                 && IsOpenOwnMainPhaseNoChain())
                 return false;
+
+            // Esmeralda (c922100168) Stringid 1: Quick when targeted — bias Ikki pick (hand then GY; deck left to default).
+            if (card != null
+                && card.IsCode(CardId.Esmeralda)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && IsEsmeraldaQuickIkkiActivateDescription())
+            {
+                var ikki = ChooseEsmeraldaIkkiClientCardForSelectNext();
+                if (ikki != null)
+                    AI.SelectNextCard(ikki);
+            }
+
             return base.OnPreActivate(card);
         }
 
@@ -865,7 +877,7 @@ namespace WindBot.Game.AI.Decks
                         return s;
                     }
                 case CardId.Esmeralda:
-                    // Low scale extender / LP utility.
+                    // L2 tuner body + Deck search; Maiden-like Ikki lines when targeted (c922100168).
                     {
                         var s = 24;
                         if (bs >= 1)
@@ -874,6 +886,8 @@ namespace WindBot.Game.AI.Decks
                             s += 26;
                         if (frGy >= 2)
                             s += 12;
+                        if (Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave | CardLocation.Deck)) > 0)
+                            s += 8;
                         return s;
                     }
                 case CardId.Guilty:
@@ -1070,10 +1084,63 @@ namespace WindBot.Game.AI.Decks
             return CountBlackSaintMonstersFaceUp() >= 2;
         }
 
+        /// <summary>
+        /// Esmeralda (c922100168): Stringid 1 = Quick when targeted (EVENT_BECOME_TARGET) SS Ikki;
+        /// Stringid 2 = battle target negate + position + optional Ikki. Same once-per-turn pool as on-summon search (see c922100168.lua).
+        /// </summary>
         private bool ActivateEsmeralda()
         {
-            // Esmeralda (c922100168): no ignorable field Quick; Ikki paths are EVENT_BECOME_TARGET / battle target (engine prompts).
+            if (Card == null || !Card.IsCode(CardId.Esmeralda))
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            var quickDesc = Util.GetStringId(CardId.Esmeralda, 1);
+            var battleDesc = Util.GetStringId(CardId.Esmeralda, 2);
+            var d = ActivateDescription;
+
+            if (d == battleDesc)
+                return true;
+
+            if (d == quickDesc)
+            {
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave | CardLocation.Deck)) > 0;
+            }
+
+            if (d == -1 && !ChainIsEmpty())
+                return true;
+
             return false;
+        }
+
+        /// <summary>True when engine is offering Esmeralda's Quick (Stringid 1) vs her other MMZ activations.</summary>
+        private bool IsEsmeraldaQuickIkkiActivateDescription()
+        {
+            return ActivateDescription == Util.GetStringId(CardId.Esmeralda, 1);
+        }
+
+        /// <summary>First Ikki in hand, then GY, for SelectNextCard bias (deck targets often not addressable here).</summary>
+        private ClientCard ChooseEsmeraldaIkkiClientCardForSelectNext()
+        {
+            if (Bot.Hand != null)
+            {
+                foreach (var c in Bot.Hand)
+                {
+                    if (c != null && c.IsCode(CardId.Ikki))
+                        return c;
+                }
+            }
+            if (Bot.Graveyard != null)
+            {
+                foreach (var c in Bot.Graveyard)
+                {
+                    if (c != null && c.IsCode(CardId.Ikki))
+                        return c;
+                }
+            }
+            return null;
         }
 
         private bool ActivateGuilty()
