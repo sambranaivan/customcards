@@ -167,8 +167,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 38;
-        private const string BuildTag = "2026-05-12-v38-bronze-cloth-gy-search-deck-only";
+        private const int BuildVersion = 39;
+        private const string BuildTag = "2026-05-13-v39-summon-position-cloth-atk-buff";
         private static bool _buildTagLogged;
 
         public class CardId
@@ -360,6 +360,12 @@ namespace WindBot.Game.AI.Decks
 
             int enemyBestAtk = Util.GetBestAttack(Enemy);
             if (enemyBestAtk <= 0)
+                return false;
+
+            int combatAtk = card.Attack + ProbableBronzeClothAtkBonusAfterSummon(card.Id);
+
+            // If DEF cannot wall but printed ATK + probable Cloth buff can match or beat their line, summon face-up ATK.
+            if (enemyBestAtk > card.Defense && enemyBestAtk <= combatAtk)
                 return false;
 
             // If even DEF won't wall, set to at least prevent direct attack lines this turn.
@@ -824,6 +830,97 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>Count vacant main S/T zones (0–4) for stacking multiple equips.</summary>
+        private int CountVacantMainSpellZonesForEquip()
+        {
+            int n = 0;
+            for (var i = 0; i < 5; i++)
+                if (Bot.SpellZone[i] == null)
+                    n++;
+            return n;
+        }
+
+        /// <summary>Passive ATK from equipping a Bronze Cloth (EFFECT_UPDATE_ATTACK on equip; matches scripts c922100041–050).</summary>
+        private static int BronzeClothPassiveAtkBuff(int clothId)
+        {
+            switch (clothId)
+            {
+                case CardId.ClothPegasus: return 500;
+                case CardId.ClothPhoenix: return 1000;
+                case CardId.ClothLionet: return 600;
+                case CardId.ClothDragon:
+                case CardId.ClothCygnus:
+                case CardId.ClothAndromeda:
+                case CardId.ClothUnicorn:
+                case CardId.ClothHydra:
+                case CardId.ClothBear:
+                case CardId.ClothWolf:
+                    return 300;
+                default:
+                    return 0;
+            }
+        }
+
+        private int MaxBronzeClothAtkBuffInHand()
+        {
+            int best = 0;
+            foreach (var c in Bot.Hand)
+            {
+                if (c == null || !Cloths.Contains(c.Id))
+                    continue;
+                int b = BronzeClothPassiveAtkBuff(c.Id);
+                if (b > best)
+                    best = b;
+            }
+            return best;
+        }
+
+        private int MaxBronzeClothAtkBuffInGraveyard()
+        {
+            int best = 0;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c == null || !Cloths.Contains(c.Id))
+                    continue;
+                int b = BronzeClothPassiveAtkBuff(c.Id);
+                if (b > best)
+                    best = b;
+            }
+            return best;
+        }
+
+        /// <summary>Main Bronze Saints with pay-500 equip Cloth from GY (922100000–004).</summary>
+        private static bool SupportsPayEquipClothFromGraveyard(int saintMonsterId)
+        {
+            return saintMonsterId == CardId.Seiya
+                || saintMonsterId == CardId.Shiryu
+                || saintMonsterId == CardId.Hyoga
+                || saintMonsterId == CardId.Shun
+                || saintMonsterId == CardId.Ikki;
+        }
+
+        /// <summary>
+        /// Upper bound on extra ATK this turn after the summon resolves: equip from hand and/or pay-equip from GY.
+        /// Uses vacant S/T count (two zones → can stack both lines optimistically).
+        /// </summary>
+        private int ProbableBronzeClothAtkBonusAfterSummon(int saintMonsterId)
+        {
+            int free = CountVacantMainSpellZonesForEquip();
+            if (free <= 0)
+                return 0;
+
+            int maxHand = MaxBronzeClothAtkBuffInHand();
+            int maxGy = 0;
+            if (SupportsPayEquipClothFromGraveyard(saintMonsterId)
+                && Bot.LifePoints >= 500
+                && HasClothInGraveyard())
+                maxGy = MaxBronzeClothAtkBuffInGraveyard();
+
+            if (free == 1)
+                return System.Math.Max(maxHand, maxGy);
+            return maxHand + maxGy;
+        }
+
         /// <summary>Bronze Saint → matching Cloth for synergy (Mu/Kiki have no pairing).</summary>
         private static int? ClothMatchingSaint(int saintMonsterId)
         {
@@ -1109,25 +1206,26 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF mode walls better (or solo / behind-on-ATK lines).
+        /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF mode walls better.
+        /// <paramref name="combatAtk"/> = printed ATK + probable Bronze Cloth equip buff (hand and/or pay-from-GY).
         /// </summary>
-        private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions)
+        private bool PreferFaceUpDefenceSummon(int combatAtk, int defStat, IList<CardPosition> positions)
         {
             if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
                 return false;
 
             int enemyBestAtk = Util.GetBestAttack(Enemy);
 
-            // Classic wall: loses as attacker (ATK) but survives battle when defending (DEF vs their best ATK).
-            if (enemyBestAtk > atkStat && enemyBestAtk <= defStat)
+            // Classic wall: loses as attacker (combat ATK) but survives battle when defending (DEF vs their best ATK).
+            if (enemyBestAtk > combatAtk && enemyBestAtk <= defStat)
                 return true;
 
             // Solo body (no other monsters yet): do not leave ATK into their best attacker if DEF is legal.
-            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= atkStat)
+            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= combatAtk)
                 return true;
 
-            // Multi-monster: any visible attacker beats our printed ATK — DEF avoids an unfavourable crash when attacked.
-            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > atkStat))
+            // Multi-monster: any visible attacker beats our combat ATK — DEF avoids an unfavourable crash when attacked.
+            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > combatAtk))
                 return true;
 
             return false;
@@ -1141,6 +1239,8 @@ namespace WindBot.Game.AI.Decks
 
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
+            int clothBonus = ProbableBronzeClothAtkBonusAfterSummon(cardId);
+            int combatAtk = atkStat + clothBonus;
 
             // Shun + Andromeda Cloth (922100044): DEF unlocks the "protect other monsters / freeze SS'd monsters" line;
             // ATK enables declaring attacks including direct attack while equipped.
@@ -1156,13 +1256,13 @@ namespace WindBot.Game.AI.Decks
                     if (Bot.GetMonsterCount() == 0 && positions.Contains(CardPosition.FaceUpAttack))
                     {
                         int enemyBest = Util.GetBestAttack(Enemy);
-                        if (enemyBest <= atkStat || Enemy.LifePoints <= 2500)
+                        if (enemyBest <= combatAtk || Enemy.LifePoints <= 2500)
                             return CardPosition.FaceUpAttack;
                     }
                 }
             }
 
-            if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
+            if (PreferFaceUpDefenceSummon(combatAtk, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
             return base.OnSelectPosition(cardId, positions);

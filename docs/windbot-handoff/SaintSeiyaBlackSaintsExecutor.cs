@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 6;
-        private const string BuildTag = "2026-05-13-v6-bronze-common-ai-patterns";
+        private const int BuildVersion = 7;
+        private const string BuildTag = "2026-05-13-v7-fragment-projected-atk-position";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -252,21 +252,32 @@ namespace WindBot.Game.AI.Decks
 
         /// <summary>
         /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF walls better (or solo lines).
+        /// For Black Saints, projects equip ATK/DEF from Fragments in hand + free S/T zones (see card Lua EFFECT_UPDATE_ATTACK).
         /// </summary>
-        private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions)
+        private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions, int monsterCardId)
         {
             if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
                 return false;
 
+            int projAtk = atkStat;
+            int projDef = defStat;
+            if (IsBlackSaintMonsterId(monsterCardId))
+            {
+                int k = Math.Min(CountFreeSpellZones(), CountFragmentsInHand());
+                projAtk = atkStat + SumBestFragmentAtkBuffsFromHand(k);
+                int chest = CountFragmentChestplateInHand();
+                projDef = defStat + 500 * Math.Min(k, chest);
+            }
+
             int enemyBestAtk = Util.GetBestAttack(Enemy);
 
-            if (enemyBestAtk > atkStat && enemyBestAtk <= defStat)
+            if (enemyBestAtk > projAtk && enemyBestAtk <= projDef)
                 return true;
 
-            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= atkStat)
+            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= projAtk)
                 return true;
 
-            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > atkStat))
+            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > projAtk))
                 return true;
 
             return false;
@@ -280,8 +291,9 @@ namespace WindBot.Game.AI.Decks
 
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
+            int monsterId = Card != null ? Card.Id : cardId;
 
-            if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
+            if (PreferFaceUpDefenceSummon(atkStat, defStat, positions, monsterId))
                 return CardPosition.FaceUpDefence;
 
             return base.OnSelectPosition(cardId, positions);
@@ -424,6 +436,81 @@ namespace WindBot.Game.AI.Decks
                 if (Bot.SpellZone[i] == null)
                     return true;
             return false;
+        }
+
+        /// <summary>How many S/T zones we can still place an equip in (Fragment activates from hand).</summary>
+        private int CountFreeSpellZones()
+        {
+            var n = 0;
+            for (var i = 0; i < 5; i++)
+            {
+                if (Bot.SpellZone[i] == null)
+                    n++;
+            }
+            return n;
+        }
+
+        /// <summary>Static ATK bonus from Fragment equip (matches script/unofficial c922100155–161.lua).</summary>
+        private static int FragmentStaticEquipAtkBonus(int id)
+        {
+            switch (id)
+            {
+                case CardId.FragmentRightArm:
+                    return 600;
+                case CardId.FragmentLeftArm:
+                    return 400;
+                case CardId.FragmentHelmet:
+                case CardId.FragmentChestplate:
+                case CardId.FragmentSkirt:
+                case CardId.FragmentRightLeg:
+                case CardId.FragmentLeftLeg:
+                    return 300;
+                default:
+                    return 0;
+            }
+        }
+
+        private int CountFragmentsInHand()
+        {
+            var n = 0;
+            foreach (var c in Bot.Hand)
+            {
+                if (c != null && IsFragmentId(c.Id))
+                    n++;
+            }
+            return n;
+        }
+
+        private int CountFragmentChestplateInHand()
+        {
+            var n = 0;
+            foreach (var c in Bot.Hand)
+            {
+                if (c != null && c.IsCode(CardId.FragmentChestplate))
+                    n++;
+            }
+            return n;
+        }
+
+        /// <summary>Best-case total ATK from equipping up to <paramref name="maxEquips"/> Fragments from hand (greedy by bonus).</summary>
+        private int SumBestFragmentAtkBuffsFromHand(int maxEquips)
+        {
+            if (maxEquips <= 0)
+                return 0;
+            var bonuses = new List<int>();
+            foreach (var c in Bot.Hand)
+            {
+                if (c == null)
+                    continue;
+                var b = FragmentStaticEquipAtkBonus(c.Id);
+                if (b > 0)
+                    bonuses.Add(b);
+            }
+            bonuses.Sort((a, b) => b.CompareTo(a));
+            var s = 0;
+            for (var i = 0; i < bonuses.Count && i < maxEquips; i++)
+                s += bonuses[i];
+            return s;
         }
 
         private bool ControlAnyBlackSaintFaceUp()
