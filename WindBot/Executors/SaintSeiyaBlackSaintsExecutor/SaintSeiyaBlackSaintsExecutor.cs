@@ -15,7 +15,7 @@ Strategy reference: sets/saint_seiya/black_saints_effects.md + script/unofficial
 
 Goals:
 - Go first: establish Death Queen Island, mill/send Fragments, Normal Summon Jango or extenders,
-  equip Fragments to Black Saints, set The Heist / Oath, end with Ikki + Fragment lines when possible.
+  equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Dark Andromeda for draw when Fragments move by effects.
 - Boss (922100162): only attempt when 7+ different Fragment names are in GY/field (approximate counter in executor).
@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 8;
-        private const string BuildTag = "2026-05-13-v8-skirt-battle-margin-position";
+        private const int BuildVersion = 9;
+        private const string BuildTag = "2026-05-13-v9-oath-continuous-spell-effect";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -975,12 +975,16 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
+        /// <summary>
+        /// Activate <see cref="CardId.OathOfShadow"/> from hand (place Continuous Spell) or use its ignition on field:
+        /// send 1 Fragment from hand or face-up field to GY; Special Summon 1 Black Saint from GY (optional equip from GY if Ikki — handled by engine).
+        /// </summary>
         private bool ActivateOathOfShadow()
         {
             if (!IsMainPhase())
                 return false;
-            if (!Bot.Graveyard.IsExistingMatchingCard(c => IsBlackSaintMonsterId(c.Id)))
-                return false;
+
+            var hasGyBs = Bot.Graveyard.IsExistingMatchingCard(c => IsBlackSaintMonsterId(c.Id));
             var handFrag = Bot.Hand.IsExistingMatchingCard(c => IsFragmentId(c.Id));
             var fieldFrag = false;
             foreach (var z in Bot.SpellZone)
@@ -993,7 +997,24 @@ namespace WindBot.Game.AI.Decks
                     break;
                 }
             }
-            return handFrag || fieldFrag;
+            var canPayIgnitionCost = handFrag || fieldFrag;
+
+            // Continuous Spell from hand — only when a follow-up ignition line exists (GY target + Fragment cost).
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (Bot.HasInSpellZone(CardId.OathOfShadow))
+                    return false;
+                return hasGyBs && canPayIgnitionCost;
+            }
+
+            // Ignition on field: same gates + room to Special Summon.
+            if ((Card.Location & CardLocation.SpellZone) == 0)
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+            if (!hasGyBs)
+                return false;
+            return canPayIgnitionCost;
         }
 
         private bool ActivateBossFromHandOrGrave()
@@ -1462,6 +1483,7 @@ namespace WindBot.Game.AI.Decks
 
             if (Card.IsCode(CardId.OathOfShadow))
             {
+                // Continuous Spell — set to bluff / end phase; same heuristics as before (card was mis-typed as Trap in DB once).
                 if (CountBlackSaintCardsInOurGraveyard() >= 1)
                     return true;
                 if (ControlAnyBlackSaintFaceUp())

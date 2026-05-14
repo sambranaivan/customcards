@@ -686,7 +686,7 @@ You can only activate 1 "Desecrated Sagittarius - The Heist" per turn.
 ### Oath of the Shadow
 - **Card ID**: `922100166`
 - **Lua**: `script/unofficial/c922100166.lua`
-- **Card type**: Continuous Spell
+- **Card type**: Magia continua (Continuous Spell)
 
 **Lua reference** (header block in script):
 
@@ -698,17 +698,15 @@ Archetypes:
 - saint-seiya
 
 Effect (EN):
-Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY, but negate its effects.
-While you control "Black Saint - Ikki, Leader of Death Queen Island", monsters Special Summoned by this effect can activate their effects.
-If this face-up card leaves the field, destroy all monsters Special Summoned by this effect.
+Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY.
+While you control "Black Saint - Ikki, Leader of Death Queen Island", you can equip 1 "Fragment of Sagittarius" card from your GY to the monster Special Summoned by this effect.
 ```
 
 **Card text** (`texts.desc`):
 
 ```text
-Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY, but negate its effects.
-While you control "Black Saint - Ikki, Leader of Death Queen Island", monsters Special Summoned by this effect can activate their effects.
-If this face-up card leaves the field, destroy all monsters Special Summoned by this effect.
+Once per turn: You can send 1 "Fragment of Sagittarius" card from your hand or face-up field to the GY; Special Summon 1 "Black Saint" monster from your GY.
+While you control "Black Saint - Ikki, Leader of Death Queen Island", you can equip 1 "Fragment of Sagittarius" card from your GY to the monster Special Summoned by this effect.
 ```
 
 ---
