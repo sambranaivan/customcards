@@ -28,9 +28,10 @@ function s.initial_effect(c)
 	e_atk:SetValue(300)
 	c:RegisterEffect(e_atk)
 
-	--Negate 1 face-up card
+	--Once per turn: negate 1 face-up opponent card (targeting rules permissive; WindBot prioritizes)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,1))
+	e1:SetCategory(CATEGORY_DISABLE)
 	e1:SetType(EFFECT_TYPE_IGNITION)
 	e1:SetProperty(EFFECT_FLAG_CARD_TARGET)
 	e1:SetRange(LOCATION_SZONE)
@@ -62,14 +63,16 @@ function s.actcon(e,tp,eg,ep,ev,re,r,rp)
 		end,tp,LOCATION_MZONE,0,1,nil)
 end
 
-function s.negfilter(c)
-	return c:IsFaceup()
+-- Any face-up opponent card on the field that can be targeted (smarter picks left to WindBot executor).
+function s.negfilter(c,e,tp)
+	return c and c:IsFaceup() and c:IsControler(1-tp) and c:IsOnField() and c:IsCanBeEffectTarget(e)
 end
 function s.negtg(e,tp,eg,ep,ev,re,r,rp,chk,chkc)
-	if chkc then return chkc:IsControler(1-tp) and chkc:IsLocation(LOCATION_ONFIELD) and s.negfilter(chkc) end
-	if chk==0 then return Duel.IsExistingTarget(s.negfilter,tp,0,LOCATION_ONFIELD,1,nil) end
+	local loc=LOCATION_MZONE|LOCATION_SZONE|LOCATION_FZONE
+	if chkc then return chkc:IsControler(1-tp) and chkc:IsOnField() and s.negfilter(chkc,e,tp) end
+	if chk==0 then return Duel.IsExistingTarget(s.negfilter,tp,0,loc,1,nil,e,tp) end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_FACEUP)
-	Duel.SelectTarget(tp,s.negfilter,tp,0,LOCATION_ONFIELD,1,1,nil)
+	Duel.SelectTarget(tp,s.negfilter,tp,0,loc,1,1,nil,e,tp)
 end
 function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()

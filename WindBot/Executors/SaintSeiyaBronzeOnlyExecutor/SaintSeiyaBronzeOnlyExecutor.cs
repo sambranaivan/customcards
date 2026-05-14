@@ -167,8 +167,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 40;
-        private const string BuildTag = "2026-05-13-v40-hydra-conservative-enemy-atk-margin";
+        private const int BuildVersion = 42;
+        private const string BuildTag = "2026-05-13-v42-cygnus-permissive-lua-executor-filters";
 
         /// <summary>
         /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
@@ -466,6 +466,18 @@ namespace WindBot.Game.AI.Decks
                 && (card.Location & CardLocation.SpellZone) != 0)
             {
                 PreselectDiscardSaintPriority();
+            }
+
+            // Cygnus (922100043) Stringid 1: negate 1 face-up opponent card (Lua accepts any; executor ranks S/T vs monster).
+            // Bias target selection — default AI tends to over-pick monsters.
+            if (card != null
+                && card.IsCode(CardId.ClothCygnus)
+                && (card.Location & CardLocation.SpellZone) != 0
+                && IsCygnusNegateIgnitionForCard(card))
+            {
+                var cygTgt = ChooseCygnusNegateTarget();
+                if (cygTgt != null)
+                    AI.SelectNextCard(cygTgt);
             }
 
             if (card != null
@@ -1349,10 +1361,127 @@ namespace WindBot.Game.AI.Decks
             return ResolveSeiyaDeckSearch();
         }
 
+        private bool IsCygnusNegateIgnitionForCard(ClientCard clothCard)
+        {
+            if (clothCard == null || !clothCard.IsCode(CardId.ClothCygnus))
+                return false;
+            if ((clothCard.Location & CardLocation.SpellZone) == 0)
+                return false;
+            int neg = (int)Util.GetStringId(CardId.ClothCygnus, 1);
+            return ActivateDescription == neg || ActivateDescription == -1;
+        }
+
+        /// <summary>Opponent MMZ — any face-up monster (Lua allows any face-up card; executor ranks threats).</summary>
+        private static bool CygnusNegateValidOpponentMonster(ClientCard c)
+        {
+            if (c == null || !c.IsFaceup())
+                return false;
+            return (c.Location & CardLocation.MonsterZone) != 0;
+        }
+
+        /// <summary>Opponent S/T zones — any face-up Spell/Trap (matches permissive c922100043.lua negfilter).</summary>
+        private static bool CygnusNegateValidOpponentSpellTrap(ClientCard c)
+        {
+            if (c == null || !c.IsFaceup())
+                return false;
+            if ((c.Location & CardLocation.MonsterZone) != 0)
+                return false;
+            if ((c.Location & CardLocation.SpellZone) == 0 && (c.Location & CardLocation.FieldZone) == 0)
+                return false;
+            return c.HasType(CardType.Spell) || c.HasType(CardType.Trap);
+        }
+
+        private static int CygnusSpellTrapNegatePriority(ClientCard c)
+        {
+            int p = 0;
+            if (c.HasType(CardType.Field)) p += 480;
+            if (c.HasType(CardType.Continuous)) p += 360;
+            if (c.HasType(CardType.Pendulum)) p += 260;
+            if (c.HasType(CardType.Equip)) p += 140;
+            if (c.HasType(CardType.QuickPlay)) p += 90;
+            if (p == 0 && (c.HasType(CardType.Spell) || c.HasType(CardType.Trap))) p += 50;
+            return p;
+        }
+
+        private static int CygnusMonsterNegatePriority(ClientCard m, ClientCard preferredProblem)
+        {
+            int a = m.Attack;
+            if (a < 0)
+                a = 0;
+            int bonus = (preferredProblem != null && ReferenceEquals(m, preferredProblem)) ? 450 : 0;
+            if (m.HasType(CardType.Effect))
+                bonus += 120;
+            return a + bonus;
+        }
+
+        /// <summary>Negate target for Bronze Cloth - Cygnus (executor picks best face-up S/T vs monster).</summary>
+        private ClientCard ChooseCygnusNegateTarget()
+        {
+            ClientCard bestSt = null;
+            int bestStP = -1;
+            var sz = Enemy.SpellZone;
+            if (sz != null)
+            {
+                for (var z = 0; z < sz.Length; z++)
+                {
+                    var c = sz[z];
+                    if (!CygnusNegateValidOpponentSpellTrap(c))
+                        continue;
+                    int p = CygnusSpellTrapNegatePriority(c);
+                    try
+                    {
+                        var probS = Util.GetProblematicEnemySpell();
+                        if (probS != null && ReferenceEquals(c, probS))
+                            p += 520;
+                    }
+                    catch
+                    {
+                    }
+                    if (p > bestStP)
+                    {
+                        bestStP = p;
+                        bestSt = c;
+                    }
+                }
+            }
+
+            ClientCard bestM = null;
+            int bestMP = -1;
+            ClientCard preferredMon = null;
+            try
+            {
+                preferredMon = Util.GetProblematicEnemyMonster();
+            }
+            catch
+            {
+            }
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (!CygnusNegateValidOpponentMonster(m))
+                    continue;
+                int p = CygnusMonsterNegatePriority(m, preferredMon);
+                if (p > bestMP)
+                {
+                    bestMP = p;
+                    bestM = m;
+                }
+            }
+
+            if (bestSt == null)
+                return bestM;
+            if (bestM == null)
+                return bestSt;
+            if (bestStP < 220 && bestMP >= 2100)
+                return bestM;
+            if (bestMP >= bestStP + 900)
+                return bestM;
+            return bestSt;
+        }
+
         /// <summary>
         /// Bronze Cloth effects (updated):
         /// - Hand: activate to equip to a face-up Saint (Stringid 0).
-        /// - S/T zone: on-field unique effects per cloth (engine handles; bot always accepts).
+        /// - S/T zone: Cygnus negate (Stringid 1) biases target in OnPreActivate; other on-field cloth effects — engine handles.
         /// - GY trigger: add 1 Level 4 or lower "Bronze Saint" from Deck to hand (Deck only; Lua gythfilter).
         ///   Triggers from anywhere (not just S/T zone). OPYOT applies per cloth.
         /// </summary>
@@ -1369,9 +1498,13 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.Grave) != 0)
                 return ResolveClothGySentSearch();
 
-            // S/T zone on-field effects (Cygnus negate, Wolf recycle, etc.) — always accept when engine offers.
+            // S/T zone: Cygnus negate needs a legal target; others (Wolf, etc.) — engine handles.
             if ((Card.Location & CardLocation.SpellZone) != 0)
+            {
+                if (IsCygnusNegateIgnitionForCard(Card) && ChooseCygnusNegateTarget() == null)
+                    return false;
                 return true;
+            }
 
             return false;
         }
