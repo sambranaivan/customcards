@@ -31,11 +31,13 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 7;
-        private const string BuildTag = "2026-05-13-v7-fragment-projected-atk-position";
+        private const int BuildVersion = 8;
+        private const string BuildTag = "2026-05-13-v8-skirt-battle-margin-position";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
+        /// <summary>Skirt: opponent loses 500 ATK during damage calc only — conservative ATK margin vs their printed ATK.</summary>
+        private const int FragmentSkirtBattleMarginAtk = 500;
         private static bool _buildTagLogged;
 
         public class CardId
@@ -253,6 +255,7 @@ namespace WindBot.Game.AI.Decks
         /// <summary>
         /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF walls better (or solo lines).
         /// For Black Saints, projects equip ATK/DEF from Fragments in hand + free S/T zones (see card Lua EFFECT_UPDATE_ATTACK).
+        /// If Skirt is among the greedy top-<c>k</c> equips from hand, adds <see cref="FragmentSkirtBattleMarginAtk"/> for battle ATK comparisons (Skirt damage-step −500 to opponent).
         /// </summary>
         private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions, int monsterCardId)
         {
@@ -261,23 +264,27 @@ namespace WindBot.Game.AI.Decks
 
             int projAtk = atkStat;
             int projDef = defStat;
+            var skirtAmongK = false;
             if (IsBlackSaintMonsterId(monsterCardId))
             {
                 int k = Math.Min(CountFreeSpellZones(), CountFragmentsInHand());
                 projAtk = atkStat + SumBestFragmentAtkBuffsFromHand(k);
+                skirtAmongK = HasSkirtAmongBestKFragmentHandPicks(k);
                 int chest = CountFragmentChestplateInHand();
                 projDef = defStat + 500 * Math.Min(k, chest);
             }
 
+            int projAtkBattle = projAtk + (skirtAmongK ? FragmentSkirtBattleMarginAtk : 0);
+
             int enemyBestAtk = Util.GetBestAttack(Enemy);
 
-            if (enemyBestAtk > projAtk && enemyBestAtk <= projDef)
+            if (enemyBestAtk > projAtkBattle && enemyBestAtk <= projDef)
                 return true;
 
-            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= projAtk)
+            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= projAtkBattle)
                 return true;
 
-            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > projAtk))
+            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > projAtkBattle))
                 return true;
 
             return false;
@@ -511,6 +518,50 @@ namespace WindBot.Game.AI.Decks
             for (var i = 0; i < bonuses.Count && i < maxEquips; i++)
                 s += bonuses[i];
             return s;
+        }
+
+        /// <summary>
+        /// True if <c>Fragment of Sagittarius - Skirt</c> is one of the top-<paramref name="maxEquips"/> Fragment picks from hand
+        /// (same greedy order as <see cref="SumBestFragmentAtkBuffsFromHand"/>: ATK bonus desc, Skirt before other +300 ties).
+        /// </summary>
+        private bool HasSkirtAmongBestKFragmentHandPicks(int maxEquips)
+        {
+            if (maxEquips <= 0)
+                return false;
+            var ids = new List<int>();
+            foreach (var c in Bot.Hand)
+            {
+                if (c == null)
+                    continue;
+                if (!IsFragmentId(c.Id))
+                    continue;
+                if (FragmentStaticEquipAtkBonus(c.Id) <= 0)
+                    continue;
+                ids.Add(c.Id);
+            }
+            if (ids.Count == 0)
+                return false;
+            ids.Sort((a, b) =>
+            {
+                int ba = FragmentStaticEquipAtkBonus(a);
+                int bb = FragmentStaticEquipAtkBonus(b);
+                int cmp = bb.CompareTo(ba);
+                if (cmp != 0)
+                    return cmp;
+                bool sa = a == CardId.FragmentSkirt;
+                bool sb = b == CardId.FragmentSkirt;
+                if (sa && !sb)
+                    return -1;
+                if (!sa && sb)
+                    return 1;
+                return a.CompareTo(b);
+            });
+            for (var i = 0; i < maxEquips && i < ids.Count; i++)
+            {
+                if (ids[i] == CardId.FragmentSkirt)
+                    return true;
+            }
+            return false;
         }
 
         private bool ControlAnyBlackSaintFaceUp()

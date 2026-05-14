@@ -167,8 +167,14 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 39;
-        private const string BuildTag = "2026-05-13-v39-summon-position-cloth-atk-buff";
+        private const int BuildVersion = 40;
+        private const string BuildTag = "2026-05-13-v40-hydra-conservative-enemy-atk-margin";
+
+        /// <summary>
+        /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
+        /// We only credit part of that when Hydra is a realistic equip — avoids over-trusting a delayed debuff.
+        /// </summary>
+        private const int HydraConservativeOpponentAtkMargin = 500;
         private static bool _buildTagLogged;
 
         public class CardId
@@ -363,13 +369,14 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             int combatAtk = card.Attack + ProbableBronzeClothAtkBonusAfterSummon(card.Id);
+            int enemyPress = System.Math.Max(0, enemyBestAtk - ConservativeOpponentAtkMarginForHydra(card.Id));
 
             // If DEF cannot wall but printed ATK + probable Cloth buff can match or beat their line, summon face-up ATK.
-            if (enemyBestAtk > card.Defense && enemyBestAtk <= combatAtk)
+            if (enemyPress > card.Defense && enemyPress <= combatAtk)
                 return false;
 
             // If even DEF won't wall, set to at least prevent direct attack lines this turn.
-            if (enemyBestAtk > card.Defense)
+            if (enemyPress > card.Defense)
                 return true;
 
             // Emergency: if we're setting Jabu because we have no better line, allow set even if DEF could wall.
@@ -921,6 +928,48 @@ namespace WindBot.Game.AI.Decks
             return maxHand + maxGy;
         }
 
+        /// <summary>
+        /// True if Hydra is among equips we can still place this turn (hand and/or GY pay-equip line).
+        /// </summary>
+        private bool HydraAmongAccessibleEquips(int saintMonsterId)
+        {
+            if (!HasFreeMainSpellZoneForEquip())
+                return false;
+            if (Bot.Hand.Any(c => c != null && c.IsCode(CardId.ClothHydra)))
+                return true;
+            if (SupportsPayEquipClothFromGraveyard(saintMonsterId)
+                && Bot.LifePoints >= 500
+                && Bot.Graveyard.Any(c => c != null && c.IsCode(CardId.ClothHydra)))
+                return true;
+            return false;
+        }
+
+        private int ConservativeOpponentAtkMarginForHydra(int saintMonsterId)
+        {
+            return HydraAmongAccessibleEquips(saintMonsterId) ? HydraConservativeOpponentAtkMargin : 0;
+        }
+
+        private int AdjustedEnemyBestAttackForSizing(int saintMonsterId)
+        {
+            int raw = Util.GetBestAttack(Enemy);
+            int m = ConservativeOpponentAtkMarginForHydra(saintMonsterId);
+            return System.Math.Max(0, raw - m);
+        }
+
+        private bool AnyEnemyFaceUpBeatsCombatAtkConsideringHydra(int saintMonsterId, int combatAtk)
+        {
+            int m = ConservativeOpponentAtkMarginForHydra(saintMonsterId);
+            foreach (var mon in Enemy.GetMonsters())
+            {
+                if (mon == null || !mon.IsFaceup())
+                    continue;
+                int eff = System.Math.Max(0, mon.Attack - m);
+                if (eff > combatAtk)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>Bronze Saint → matching Cloth for synergy (Mu/Kiki have no pairing).</summary>
         private static int? ClothMatchingSaint(int saintMonsterId)
         {
@@ -1208,13 +1257,14 @@ namespace WindBot.Game.AI.Decks
         /// <summary>
         /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF mode walls better.
         /// <paramref name="combatAtk"/> = printed ATK + probable Bronze Cloth equip buff (hand and/or pay-from-GY).
+        /// When Hydra (922100047) is an accessible equip, enemy ATK is discounted by a conservative margin (post-battle debuff).
         /// </summary>
-        private bool PreferFaceUpDefenceSummon(int combatAtk, int defStat, IList<CardPosition> positions)
+        private bool PreferFaceUpDefenceSummon(int monsterId, int combatAtk, int defStat, IList<CardPosition> positions)
         {
             if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
                 return false;
 
-            int enemyBestAtk = Util.GetBestAttack(Enemy);
+            int enemyBestAtk = AdjustedEnemyBestAttackForSizing(monsterId);
 
             // Classic wall: loses as attacker (combat ATK) but survives battle when defending (DEF vs their best ATK).
             if (enemyBestAtk > combatAtk && enemyBestAtk <= defStat)
@@ -1225,7 +1275,7 @@ namespace WindBot.Game.AI.Decks
                 return true;
 
             // Multi-monster: any visible attacker beats our combat ATK — DEF avoids an unfavourable crash when attacked.
-            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > combatAtk))
+            if (AnyEnemyFaceUpBeatsCombatAtkConsideringHydra(monsterId, combatAtk))
                 return true;
 
             return false;
@@ -1255,14 +1305,14 @@ namespace WindBot.Game.AI.Decks
 
                     if (Bot.GetMonsterCount() == 0 && positions.Contains(CardPosition.FaceUpAttack))
                     {
-                        int enemyBest = Util.GetBestAttack(Enemy);
+                        int enemyBest = AdjustedEnemyBestAttackForSizing(CardId.Shun);
                         if (enemyBest <= combatAtk || Enemy.LifePoints <= 2500)
                             return CardPosition.FaceUpAttack;
                     }
                 }
             }
 
-            if (PreferFaceUpDefenceSummon(combatAtk, defStat, positions))
+            if (PreferFaceUpDefenceSummon(cardId, combatAtk, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
             return base.OnSelectPosition(cardId, positions);
