@@ -8,6 +8,7 @@
 -- - Bronze Cloth
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- The equipped monster can make a second attack during each Battle Phase, but only on monsters.
 -- If the equipped monster is "Bronze Saint - Jabu of Unicorn", you gain this effect.
 -- ● During your Main Phase, you can Normal Summon 1 "Bronze Saint" monster in addition to your Normal Summon/Set. (You can only gain this effect once per turn.)
@@ -20,6 +21,13 @@ function s.initial_effect(c)
 	--Activate: equip to 1 "Saint" monster
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--Equipped monster can make a second attack on monsters
 	local e1=Effect.CreateEffect(c)

@@ -7,6 +7,7 @@
 -- - Fragment of Sagittarius
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- Your opponent cannot target the equipped monster with monster effects.
 -- Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 "Fragment of Sagittarius" card in your GY, except "Fragment of Sagittarius - Left Leg"; add that target to your hand.
 -- If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
@@ -17,6 +18,13 @@ local s,id=GetID()
 function s.initial_effect(c)
 	--Activate: equip to 1 "Black Saint" monster you control
 	aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_BLACK_SAINT),s.eqlimit,nil,nil,nil,s.actcon)
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--Cannot be targeted by opponent's monster effects
 	local e2=Effect.CreateEffect(c)

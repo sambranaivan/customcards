@@ -8,6 +8,7 @@
 -- - Bronze Cloth
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- Once per turn: You can target 1 face-up card your opponent controls; negate its effects until the end of this turn.
 -- If the equipped monster is "Bronze Saint - Hyoga of Cygnus", monsters negated by this card's effect cannot change their battle positions, also they cannot be used as material for a Special Summon from the Extra Deck while this card is face-up on the field.
 -- If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.
@@ -19,6 +20,13 @@ function s.initial_effect(c)
 	--Activate: equip to 1 "Saint" monster
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--Negate 1 face-up card
 	local e1=Effect.CreateEffect(c)

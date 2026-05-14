@@ -8,7 +8,7 @@
 -- - Bronze Cloth
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
--- The equipped monster gains 1000 DEF.
+-- The equipped monster gains 300 ATK and 1000 DEF.
 -- The equipped monster cannot be destroyed by monster effects.
 -- If the equipped monster is "Bronze Saint - Shiryu of Dragon", your opponent cannot target it with card effects.
 -- Once per turn, if the equipped monster in Defense Position would be destroyed by battle, it is not destroyed, and if you do, you can destroy 1 card your opponent controls.
@@ -21,6 +21,13 @@ function s.initial_effect(c)
 	--Activate: equip to 1 "Saint" monster
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--DEF +1000
 	local e1=Effect.CreateEffect(c)

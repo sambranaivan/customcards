@@ -8,6 +8,7 @@
 -- - Bronze Cloth
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- While the equipped monster is in Defense Position, your opponent cannot declare attacks on other monsters you control, also they cannot activate the effects of monsters that were Special Summoned this turn.
 -- If this card is equipped to "Bronze Saint - Shun of Andromeda", the equipped monster can attack directly.
 -- If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.
@@ -19,6 +20,13 @@ function s.initial_effect(c)
 	--Activate: equip to 1 "Saint" monster
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--While equipped monster is in DEF: opponent cannot attack other monsters; cannot activate effects of SS'd monsters this turn
 	local e1=Effect.CreateEffect(c)

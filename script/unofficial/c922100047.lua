@@ -8,6 +8,7 @@
 -- - Bronze Cloth
 -- Effect (EN):
 -- Equip only to a "Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- If an opponent's monster battles the equipped monster, after damage calculation: That opponent's monster loses 1000 ATK/DEF.
 -- If the equipped monster is "Bronze Saint - Ichi of Hydra", and it attacks directly, your opponent cannot activate effects in the GY until the end of this turn.
 -- If this card is sent to the GY: You can add 1 Level 4 or lower "Bronze Saint" monster from your Deck to your hand.
@@ -19,6 +20,13 @@ function s.initial_effect(c)
 	--Activate: equip to 1 "Saint" monster
 	local e0=aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_SAINT),nil,nil,nil,nil,s.actcon)
 	e0:SetDescription(aux.Stringid(id,0))
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--After damage calculation if battles equipped: opponent loses 1000 ATK/DEF
 	local e1=Effect.CreateEffect(c)

@@ -7,6 +7,7 @@
 -- - Fragment of Sagittarius
 -- Effect (EN):
 -- Equip only to a "Black Saint" monster.
+-- The equipped monster gains 300 ATK.
 -- The equipped monster can make a second attack during each Battle Phase, but only on monsters.
 -- Once per turn (Quick Effect): You can send this face-up card to the GY, then target 1 face-up Attack Position monster your opponent controls; it loses 1000 ATK until the end of this turn.
 -- If this card is sent to the GY: You can add 1 "Black Saint" monster from your Deck to your hand.
@@ -17,6 +18,13 @@ local s,id=GetID()
 function s.initial_effect(c)
 	--Activate: equip to 1 "Black Saint" monster you control
 	aux.AddEquipProcedure(c,0,aux.FilterBoolFunction(Card.IsSetCard,SET_BLACK_SAINT),s.eqlimit,nil,nil,nil,s.actcon)
+
+	--ATK +300
+	local e_atk=Effect.CreateEffect(c)
+	e_atk:SetType(EFFECT_TYPE_EQUIP)
+	e_atk:SetCode(EFFECT_UPDATE_ATTACK)
+	e_atk:SetValue(300)
+	c:RegisterEffect(e_atk)
 
 	--Extra attack on monsters
 	local e2=Effect.CreateEffect(c)
