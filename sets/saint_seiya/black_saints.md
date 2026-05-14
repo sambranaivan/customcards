@@ -777,18 +777,18 @@ Archetypes:
 
 Effect (EN):
 If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
-If this card is targeted for an attack: Negate the attack, and if you do, change this card's battle position, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
-(Quick Effect): You can activate this when this card is targeted by a card effect; Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
-You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn, also you can only use 1 of the effects that Special Summon "Black Saint - Ikki, Leader of Death Queen Island" when this card is targeted for an attack or by a card effect per turn.
+When a card or effect is activated that targets this card (Quick Effect): You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+When this card is targeted for an attack: You can negate the attack, and if you do, change the battle position of this card, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+You can only use 1 "Esmeralda, Light of Death Queen Island" effect per turn, and only once that turn.
 ```
 
 **Card text** (`texts.desc`):
 
 ```text
 If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
-If this card is targeted for an attack: Negate the attack, and if you do, change this card's battle position, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
-(Quick Effect): You can activate this when this card is targeted by a card effect; Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
-You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn, also you can only use 1 of the effects that Special Summon "Black Saint - Ikki, Leader of Death Queen Island" when this card is targeted for an attack or by a card effect per turn.
+When a card or effect is activated that targets this card (Quick Effect): You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+When this card is targeted for an attack: You can negate the attack, and if you do, change the battle position of this card, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+You can only use 1 "Esmeralda, Light of Death Queen Island" effect per turn, and only once that turn.
 ```
 
 ### Guilty, Master of Hell

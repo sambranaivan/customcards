@@ -11,21 +11,21 @@
 -- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
--- If this card is targeted for an attack: Negate the attack, and if you do, change this card's battle position, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
--- (Quick Effect): You can activate this when this card is targeted by a card effect; Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
--- You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn, also you can only use 1 of the effects that Special Summon "Black Saint - Ikki, Leader of Death Queen Island" when this card is targeted for an attack or by a card effect per turn.
+-- When a card or effect is activated that targets this card (Quick Effect): You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+-- When this card is targeted for an attack: You can negate the attack, and if you do, change the battle position of this card, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+-- You can only use 1 "Esmeralda, Light of Death Queen Island" effect per turn, and only once that turn.
 --]==]
 --Esmeralda, Light of Death Queen Island
 local s,id=GetID()
 function s.initial_effect(c)
-	--On summon: add "Death Queen Island" or 1 Black Saint S/T
+	--On summon: add "Death Queen Island" or 1 Black Saint S/T (CountLimit shared with e4/e5)
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetCategory(CATEGORY_SEARCH+CATEGORY_TOHAND)
 	e1:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
 	e1:SetCode(EVENT_SUMMON_SUCCESS)
 	e1:SetProperty(EFFECT_FLAG_DELAY)
-	e1:SetCountLimit(1,id)
+	e1:SetCountLimit(1,{id,0})
 	e1:SetTarget(s.thtg)
 	e1:SetOperation(s.thop)
 	c:RegisterEffect(e1)
@@ -33,29 +33,29 @@ function s.initial_effect(c)
 	e1b:SetCode(EVENT_SPSUMMON_SUCCESS)
 	c:RegisterEffect(e1b)
 
-	--If targeted for attack: negate attack, change position, then can SS Ikki (H/D/GY) — c88241506 pattern
-	local e4=Effect.CreateEffect(c)
-	e4:SetDescription(aux.Stringid(id,1))
-	e4:SetCategory(CATEGORY_POSITION+CATEGORY_SPECIAL_SUMMON)
-	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
-	e4:SetCode(EVENT_BE_BATTLE_TARGET)
-	e4:SetCountLimit(1,{id,1})
-	e4:SetTarget(s.battg)
-	e4:SetOperation(s.batop)
-	c:RegisterEffect(e4)
-
-	--(Quick Effect): targeted by a card effect — SS Ikki (H/D/GY); shares once/turn with e4
+	--When targeted by an effect (Quick): SS Ikki — EVENT_BECOME_TARGET; shares CountLimit with e1/e4
 	local e5=Effect.CreateEffect(c)
-	e5:SetDescription(aux.Stringid(id,2))
+	e5:SetDescription(aux.Stringid(id,1))
 	e5:SetCategory(CATEGORY_SPECIAL_SUMMON)
 	e5:SetType(EFFECT_TYPE_QUICK_O)
 	e5:SetRange(LOCATION_MZONE)
 	e5:SetCode(EVENT_BECOME_TARGET)
-	e5:SetCountLimit(1,{id,1})
+	e5:SetCountLimit(1,{id,0})
 	e5:SetCondition(s.tgcon)
 	e5:SetTarget(s.tgtg)
 	e5:SetOperation(s.tgop)
 	c:RegisterEffect(e5)
+
+	--When targeted for an attack: negate, change position, optional SS Ikki — shares CountLimit with e1/e5
+	local e4=Effect.CreateEffect(c)
+	e4:SetDescription(aux.Stringid(id,2))
+	e4:SetCategory(CATEGORY_POSITION+CATEGORY_SPECIAL_SUMMON)
+	e4:SetType(EFFECT_TYPE_SINGLE+EFFECT_TYPE_TRIGGER_O)
+	e4:SetCode(EVENT_BE_BATTLE_TARGET)
+	e4:SetCountLimit(1,{id,0})
+	e4:SetTarget(s.battg)
+	e4:SetOperation(s.batop)
+	c:RegisterEffect(e4)
 end
 
 s.listed_series={SET_BLACK_SAINT}

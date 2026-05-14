@@ -1072,12 +1072,8 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateEsmeralda()
         {
-            if (!IsMainPhase())
-                return false;
-            // Quick (Stringid 1) only on field; hand is Normal Summon / SummonOrSet path.
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
-                return false;
-            return true;
+            // Esmeralda (c922100168): no ignorable field Quick; Ikki paths are EVENT_BECOME_TARGET / battle target (engine prompts).
+            return false;
         }
 
         private bool ActivateGuilty()
