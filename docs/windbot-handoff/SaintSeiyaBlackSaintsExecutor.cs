@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 5;
-        private const string BuildTag = "2026-05-13-v5-ikki-quick-ai-selection";
+        private const int BuildVersion = 6;
+        private const string BuildTag = "2026-05-13-v6-bronze-common-ai-patterns";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -115,6 +115,8 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.SpSummon, CardId.Guilty, SpSummonGuiltyFromHand);
             AddExecutor(ExecutorType.SpSummon, CardId.Ikki, SpSummonIkkiFromHand);
 
+            AddExecutor(ExecutorType.SummonOrSet, CardId.Esmeralda, SummonOrSetEsmeraldaEmergencyDefense);
+
             AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkki);
@@ -131,7 +133,7 @@ namespace WindBot.Game.AI.Decks
             foreach (var mid in NormalSummonPriorityIds)
                 AddExecutor(ExecutorType.Summon, mid, PrioritizedNormalSummon);
 
-            AddExecutor(ExecutorType.SpellSet, SpellSetBlackBackrow);
+            AddExecutor(ExecutorType.SpellSet, SpellSetPolicy);
             AddExecutor(ExecutorType.Repos, DefaultMonsterRepos);
         }
 
@@ -171,6 +173,118 @@ namespace WindBot.Game.AI.Decks
         public override bool OnSelectHand()
         {
             return true;
+        }
+
+        /// <summary>Open Main1/Main2 on our turn with no chain — typical misuse window for reactive Quick-Plays.</summary>
+        private bool IsOpenOwnMainPhaseNoChain()
+        {
+            return Duel.Player == 0 && IsMainPhase() && ChainIsEmpty();
+        }
+
+        /// <summary>Block burning reactive Quick-Plays during an open Main Phase on our own turn.</summary>
+        public override bool OnPreActivate(ClientCard card)
+        {
+            if (card != null
+                && card.IsCode(CardId.EsmeraldasLastWill)
+                && IsOpenOwnMainPhaseNoChain())
+                return false;
+            return base.OnPreActivate(card);
+        }
+
+        /// <summary>
+        /// Allow Normal Set only in "survive" lines; keep Jango face-up as the primary starter.
+        /// </summary>
+        public override bool OnSelectMonsterSummonOrSet(ClientCard card)
+        {
+            if (card == null)
+                return false;
+
+            if (Duel.Player != 0 || !IsMainPhase())
+                return false;
+
+            if (Bot.GetMonsterCount() != 0)
+                return false;
+
+            if (Enemy.GetMonsterCount() == 0)
+                return false;
+
+            if (card.IsCode(CardId.Jango))
+                return false;
+
+            int enemyBestAtk = Util.GetBestAttack(Enemy);
+            if (enemyBestAtk <= 0)
+                return false;
+
+            if (enemyBestAtk > card.Defense)
+                return true;
+
+            if (card.IsCode(CardId.Esmeralda) && !Bot.HasInHand(CardId.Jango))
+                return true;
+
+            return false;
+        }
+
+        /// <summary>Esmeralda: allow Summon-or-Set path when we need a body under pressure without Jango.</summary>
+        private bool SummonOrSetEsmeraldaEmergencyDefense()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (Duel.Player != 0)
+                return false;
+            if ((Card.Location & CardLocation.Hand) == 0)
+                return false;
+            if (!Card.IsCode(CardId.Esmeralda))
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+
+            if (ControlAnyBlackSaintFaceUp())
+                return false;
+
+            if (Enemy.GetMonsterCount() > 0)
+                return true;
+
+            if (!Bot.HasInHand(CardId.Jango) && Bot.GetHandCount() <= 4)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Prefer FaceUpDefence when their strongest line threatens ATK mode but DEF walls better (or solo lines).
+        /// </summary>
+        private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions)
+        {
+            if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
+                return false;
+
+            int enemyBestAtk = Util.GetBestAttack(Enemy);
+
+            if (enemyBestAtk > atkStat && enemyBestAtk <= defStat)
+                return true;
+
+            if (Bot.GetMonsterCount() == 0 && enemyBestAtk >= atkStat)
+                return true;
+
+            if (Enemy.GetMonsters().Any(m => m != null && m.IsFaceup() && m.Attack > atkStat))
+                return true;
+
+            return false;
+        }
+
+        public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
+        {
+            var named = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
+            if (named != null && named.Attack == 0 && positions != null && positions.Contains(CardPosition.FaceUpDefence))
+                return CardPosition.FaceUpDefence;
+
+            int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
+            int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
+
+            if (PreferFaceUpDefenceSummon(atkStat, defStat, positions))
+                return CardPosition.FaceUpDefence;
+
+            return base.OnSelectPosition(cardId, positions);
         }
 
         private bool IsMainPhase()
@@ -799,7 +913,12 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateEsmeralda()
         {
-            return IsMainPhase();
+            if (!IsMainPhase())
+                return false;
+            // Quick (Stringid 1) only on field; hand is Normal Summon / SummonOrSet path.
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            return true;
         }
 
         private bool ActivateGuilty()
@@ -1180,15 +1299,42 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        private bool SpellSetBlackBackrow()
+        private bool SpellSetPolicy()
         {
+            if (!IsMainPhase())
+                return false;
             if (Card == null)
                 return false;
-            if (!Card.IsTrap())
+
+            if (Card.IsCode(CardId.StolenGoldCloth))
                 return false;
-            if (Duel.Phase == DuelPhase.Main2 && Duel.Player == 0)
-                return true;
-            return false;
+
+            if (Card.IsCode(CardId.EsmeraldasLastWill))
+                return Duel.Player == 0 && Duel.Phase == DuelPhase.Main2;
+
+            if (Card.IsCode(CardId.Heist))
+            {
+                if (HasBlackSaintEquippedWithFragment())
+                    return true;
+                if (ControlAnyBlackSaintFaceUp()
+                    && Bot.Hand.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id)))
+                    return true;
+                return Duel.Player == 0 && Duel.Phase == DuelPhase.Main2;
+            }
+
+            if (Card.IsCode(CardId.OathOfShadow))
+            {
+                if (CountBlackSaintCardsInOurGraveyard() >= 1)
+                    return true;
+                if (ControlAnyBlackSaintFaceUp())
+                    return true;
+                return Duel.Player == 0 && Duel.Phase == DuelPhase.Main2;
+            }
+
+            if (Card.IsCode(CardId.GuiltysCruelTrial))
+                return Duel.Player == 0 && Duel.Phase == DuelPhase.Main2;
+
+            return DefaultSpellSet();
         }
     }
 }
