@@ -273,9 +273,9 @@ You can only use each effect of "Bronze Saint - Seiya, Cosmos of His Companions"
 
 ```text
 If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
-(Quick Effect): You can Tribute this card, then target 1 "Black Saint" monster you control; it cannot be destroyed by battle or card effects this turn.
-If this card is sent from the field to the GY by an opponent's card: You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand or GY.
-You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn.
+If this card is targeted for an attack: Negate the attack, and if you do, change this card's battle position, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+(Quick Effect): You can activate this when this card is targeted by a card effect; Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
+You can only use each effect of "Esmeralda, Light of Death Queen Island" once per turn, also you can only use 1 of the effects that Special Summon "Black Saint - Ikki, Leader of Death Queen Island" when this card is targeted for an attack or by a card effect per turn.
 ```
 
 ### Guilty, Master of Hell
