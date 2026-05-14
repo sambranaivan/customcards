@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 4;
-        private const string BuildTag = "2026-05-13-v4-fragment-count-gy-field-hand";
+        private const int BuildVersion = 5;
+        private const string BuildTag = "2026-05-13-v5-ikki-quick-ai-selection";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -807,9 +807,138 @@ namespace WindBot.Game.AI.Decks
             return IsMainPhase();
         }
 
+        /// <summary>
+        /// Ikki Quick (Lua Stringid 3): pre-select Fragment cost then destroy target (humans unaffected — Lua unchanged).
+        /// Uses <see cref="ActivateDescription"/> vs <see cref="Util.GetStringId"/> to avoid mixing with summon add (2) or GY (1).
+        /// </summary>
         private bool ActivateIkki()
         {
+            if (!Card.IsCode(CardId.Ikki))
+                return IsMainPhase() || !ChainIsEmpty();
+
+            var quickDesc = Util.GetStringId(CardId.Ikki, 3);
+            if (ActivateDescription == quickDesc && (Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                var cost = ChooseIkkiFragmentEquipForQuickCost();
+                var kill = ChooseIkkiDestroyTargetPreferOpponent(Card);
+                if (cost != null && kill != null)
+                {
+                    AI.SelectCard(cost);
+                    AI.SelectNextCard(kill);
+                    return true;
+                }
+                return false;
+            }
+
             return IsMainPhase() || !ChainIsEmpty();
+        }
+
+        /// <summary>Face-up Fragment Equip in SZONE (spell row or equipped) for Ikki Quick cost.</summary>
+        private ClientCard ChooseIkkiFragmentEquipForQuickCost()
+        {
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z != null && z.IsFaceup() && IsFragmentId(z.Id))
+                        return z;
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || m.EquipCards == null)
+                    continue;
+                foreach (var eq in m.EquipCards)
+                {
+                    if (eq != null && eq.IsFaceup() && IsFragmentId(eq.Id))
+                        return eq;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>Destroy target: prefer enemy monster (highest ATK), then enemy S/T, then own non-core.</summary>
+        private ClientCard ChooseIkkiDestroyTargetPreferOpponent(ClientCard handler)
+        {
+            ClientCard best = null;
+            var bestScore = int.MinValue;
+
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup() || m == handler)
+                    continue;
+                var sc = 100000 + m.Attack;
+                if (sc > bestScore)
+                {
+                    bestScore = sc;
+                    best = m;
+                }
+            }
+            if (Enemy.SpellZone != null)
+            {
+                foreach (var z in Enemy.SpellZone)
+                {
+                    if (z == null || !z.IsFaceup() || z == handler)
+                        continue;
+                    var sc = 50000 + z.Attack;
+                    if (sc > bestScore)
+                    {
+                        bestScore = sc;
+                        best = z;
+                    }
+                }
+            }
+            if (best != null)
+                return best;
+
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z == null || !z.IsFaceup() || z == handler || IsFragmentId(z.Id))
+                        continue;
+                    var sc = 8000;
+                    if (sc > bestScore)
+                    {
+                        bestScore = sc;
+                        best = z;
+                    }
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || !m.IsFaceup() || m == handler || IsBlackSaintMonsterId(m.Id))
+                    continue;
+                var sc = 4000 + m.Attack;
+                if (sc > bestScore)
+                {
+                    bestScore = sc;
+                    best = m;
+                }
+            }
+            if (best != null)
+                return best;
+
+            foreach (var m in Enemy.MonsterZone)
+            {
+                if (m == null || m == handler)
+                    continue;
+                return m;
+            }
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z != null && z.IsFaceup() && z != handler)
+                        return z;
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && m != handler)
+                    return m;
+            }
+            return null;
         }
 
         private bool ActivateJango()
