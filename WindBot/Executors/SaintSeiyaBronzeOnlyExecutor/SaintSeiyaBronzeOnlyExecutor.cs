@@ -167,14 +167,14 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 42;
-        private const string BuildTag = "2026-05-13-v42-cygnus-permissive-lua-executor-filters";
+        private const int BuildVersion = 45;
+        private const string BuildTag = "2026-05-15-v45-cloth-buff-jabu";
 
         /// <summary>
         /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
         /// We only credit part of that when Hydra is a realistic equip — avoids over-trusting a delayed debuff.
         /// </summary>
-        private const int HydraConservativeOpponentAtkMargin = 500;
+        private const int HydraConservativeOpponentAtkMargin = 900;
         private static bool _buildTagLogged;
 
         public class CardId
@@ -867,11 +867,11 @@ namespace WindBot.Game.AI.Decks
                 case CardId.ClothPegasus: return 500;
                 case CardId.ClothPhoenix: return 1000;
                 case CardId.ClothLionet: return 600;
+                case CardId.ClothHydra:return 1000;
                 case CardId.ClothDragon:
                 case CardId.ClothCygnus:
                 case CardId.ClothAndromeda:
                 case CardId.ClothUnicorn:
-                case CardId.ClothHydra:
                 case CardId.ClothBear:
                 case CardId.ClothWolf:
                     return 300;
@@ -908,6 +908,98 @@ namespace WindBot.Game.AI.Decks
             return best;
         }
 
+        /// <summary>Best passive ATK still in Main Deck (Seiya on-summon search, Kiki equip-from-Deck, etc.).</summary>
+        private int MaxBronzeClothAtkBuffAccessibleFromDeck()
+        {
+            int best = 0;
+            foreach (var clothId in Cloths)
+            {
+                if (Bot.GetRemainingCount(clothId, (int)CardLocation.Deck) <= 0)
+                    continue;
+                int b = BronzeClothPassiveAtkBuff(clothId);
+                if (b > best)
+                    best = b;
+            }
+            return best;
+        }
+
+        /// <summary>
+        /// Kiki (hand): discard → equip 1 Cloth from Deck or GY to a Saint (typical post–Normal Summon ATK line).
+        /// </summary>
+        private int MaxBronzeClothAtkBuffViaKiki(int saintMonsterId)
+        {
+            if (!Bot.HasInHand(CardId.Kiki))
+                return 0;
+            if (!HasFreeMainSpellZoneForEquip())
+                return 0;
+
+            int best = 0;
+            var preferred = ClothMatchingSaint(saintMonsterId);
+            if (preferred.HasValue && ClothAccessibleFromDeckOrGraveyard(preferred.Value))
+                best = BronzeClothPassiveAtkBuff(preferred.Value);
+
+            foreach (var clothId in Cloths)
+            {
+                if (!ClothAccessibleFromDeckOrGraveyard(clothId))
+                    continue;
+                int b = BronzeClothPassiveAtkBuff(clothId);
+                if (b > best)
+                    best = b;
+            }
+            return best;
+        }
+
+        /// <summary>Seiya NS/SS: add 1 Cloth Equip from Deck (c922100000.lua).</summary>
+        private int MaxBronzeClothAtkBuffFromSeiyaOnSummon(int saintMonsterId)
+        {
+            if (saintMonsterId != CardId.Seiya)
+                return 0;
+            if (!HasFreeMainSpellZoneForEquip())
+                return 0;
+            return MaxBronzeClothAtkBuffAccessibleFromDeck();
+        }
+
+        /// <summary>Mu NS/SS: add up to 2 Cloth Equips from GY to hand, then equip (c922100010.lua).</summary>
+        private int MaxBronzeClothAtkBuffFromMuOnSummon(int saintMonsterId)
+        {
+            if (saintMonsterId != CardId.Mu)
+                return 0;
+            if (!HasFreeMainSpellZoneForEquip())
+                return 0;
+            return MaxBronzeClothAtkBuffInGraveyard();
+        }
+
+        /// <summary>
+        /// After this Normal Summon, a Level 4 Saint will be on the field so Jabu can Special Summon from hand;
+        /// on SS, add 1 Cloth from GY to hand then discard (c922100005.lua). Not credited for NS Jabu alone.
+        /// </summary>
+        private bool SaintBoardEnablesJabuSpecialSummonAfterThisNormalSummon(int saintMonsterId)
+        {
+            if (Bot.MonsterZone.Any(c => c != null && c.IsFaceup() && Lv4Saints.Contains(c.Id)))
+                return true;
+            return Bot.GetMonsterCount() == 0
+                && Lv4Saints.Contains(saintMonsterId)
+                && saintMonsterId != CardId.Jabu;
+        }
+
+        /// <summary>Jabu in hand: SS if a Saint is on field → add Cloth from GY (then discard 1).</summary>
+        private int MaxBronzeClothAtkBuffFromJabuAfterSaintOnField(int saintMonsterId)
+        {
+            if (!Bot.HasInHand(CardId.Jabu))
+                return 0;
+            if (!HasFreeMainSpellZoneForEquip())
+                return 0;
+            if (!HasClothInGraveyard())
+                return 0;
+            if (Bot.GetMonsterCount() >= 5)
+                return 0;
+            if (Bot.GetHandCount() < 2)
+                return 0;
+            if (!SaintBoardEnablesJabuSpecialSummonAfterThisNormalSummon(saintMonsterId))
+                return 0;
+            return MaxBronzeClothAtkBuffInGraveyard();
+        }
+
         /// <summary>Main Bronze Saints with pay-500 equip Cloth from GY (922100000–004).</summary>
         private static bool SupportsPayEquipClothFromGraveyard(int saintMonsterId)
         {
@@ -919,8 +1011,8 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Upper bound on extra ATK this turn after the summon resolves: equip from hand and/or pay-equip from GY.
-        /// Uses vacant S/T count (two zones → can stack both lines optimistically).
+        /// Upper bound on extra ATK this turn after the summon resolves: Cloth in hand, pay-equip from GY,
+        /// Kiki (Deck/GY equip), Seiya/Mu on-summon Cloth access, Jabu SS → Cloth from GY. Uses vacant S/T zones.
         /// </summary>
         private int ProbableBronzeClothAtkBonusAfterSummon(int saintMonsterId)
         {
@@ -935,9 +1027,37 @@ namespace WindBot.Game.AI.Decks
                 && HasClothInGraveyard())
                 maxGy = MaxBronzeClothAtkBuffInGraveyard();
 
+            int maxKiki = MaxBronzeClothAtkBuffViaKiki(saintMonsterId);
+            int maxSeiyaSearch = MaxBronzeClothAtkBuffFromSeiyaOnSummon(saintMonsterId);
+            int maxMuRecover = MaxBronzeClothAtkBuffFromMuOnSummon(saintMonsterId);
+            int maxJabuLine = MaxBronzeClothAtkBuffFromJabuAfterSaintOnField(saintMonsterId);
+
+            int bestSingle = maxHand;
+            if (maxGy > bestSingle)
+                bestSingle = maxGy;
+            if (maxKiki > bestSingle)
+                bestSingle = maxKiki;
+            if (maxSeiyaSearch > bestSingle)
+                bestSingle = maxSeiyaSearch;
+            if (maxMuRecover > bestSingle)
+                bestSingle = maxMuRecover;
+            if (maxJabuLine > bestSingle)
+                bestSingle = maxJabuLine;
+
             if (free == 1)
-                return System.Math.Max(maxHand, maxGy);
-            return maxHand + maxGy;
+                return bestSingle;
+
+            int combined = maxHand;
+            int bestOther = maxGy;
+            if (maxKiki > bestOther)
+                bestOther = maxKiki;
+            if (maxSeiyaSearch > bestOther)
+                bestOther = maxSeiyaSearch;
+            if (maxMuRecover > bestOther)
+                bestOther = maxMuRecover;
+            if (maxJabuLine > bestOther)
+                bestOther = maxJabuLine;
+            return combined + bestOther;
         }
 
         /// <summary>
@@ -952,6 +1072,21 @@ namespace WindBot.Game.AI.Decks
             if (SupportsPayEquipClothFromGraveyard(saintMonsterId)
                 && Bot.LifePoints >= 500
                 && Bot.Graveyard.Any(c => c != null && c.IsCode(CardId.ClothHydra)))
+                return true;
+            if (Bot.HasInHand(CardId.Kiki) && ClothAccessibleFromDeckOrGraveyard(CardId.ClothHydra))
+                return true;
+            if (saintMonsterId == CardId.Seiya
+                && Bot.GetRemainingCount(CardId.ClothHydra, (int)CardLocation.Deck) > 0)
+                return true;
+            if (saintMonsterId == CardId.Mu
+                && Bot.Graveyard.Any(c => c != null && c.IsCode(CardId.ClothHydra)))
+                return true;
+            if (Bot.HasInHand(CardId.Jabu)
+                && HasClothInGraveyard()
+                && Bot.Graveyard.Any(c => c != null && c.IsCode(CardId.ClothHydra))
+                && SaintBoardEnablesJabuSpecialSummonAfterThisNormalSummon(saintMonsterId)
+                && Bot.GetHandCount() >= 2
+                && Bot.GetMonsterCount() < 5)
                 return true;
             return false;
         }

@@ -10,7 +10,7 @@
 -- Archetypes:
 -- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
--- If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" or 1 "Black Saint" Spell/Trap from your Deck to your hand.
+-- If this card is Normal or Special Summoned: You can add 1 "Death Queen Island" from your Deck to your hand.
 -- When a card or effect is activated that targets this card (Quick Effect): You can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
 -- When this card is targeted for an attack: You can negate the attack, and if you do, change the battle position of this card, then you can Special Summon 1 "Black Saint - Ikki, Leader of Death Queen Island" from your hand, Deck, or GY.
 -- You can only use 1 "Esmeralda, Light of Death Queen Island" effect per turn, and only once that turn.
@@ -62,7 +62,7 @@ s.listed_series={SET_BLACK_SAINT}
 s.listed_names={922100148,922100163}
 
 function s.thfilter(c)
-	return (c:IsCode(922100163) or (c:IsSetCard(SET_BLACK_SAINT) and c:IsSpellTrap())) and c:IsAbleToHand()
+	return c:IsCode(922100163) and c:IsAbleToHand()
 end
 function s.thtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.thfilter,tp,LOCATION_DECK,0,1,nil) end

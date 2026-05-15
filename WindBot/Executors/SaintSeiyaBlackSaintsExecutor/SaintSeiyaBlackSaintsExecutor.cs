@@ -18,9 +18,9 @@ Goals:
   equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Esmeralda (c922100168) also defends with Maiden-like Ikki SS when targeted (1 card effect/turn shared with her Deck search). Dark Andromeda for draw when Fragments move by effects.
-- Boss (922100162): only attempt when 7+ different Fragment names are in GY/field (approximate counter in executor).
-- Fragment / Jango / etc. “add 1 Black Saint from Deck”: `ChooseBlackSaintForDeckSearch()` — Boss pivot when **5+**
-  Fragment cards across **GY + field (S/T + equips) + hand** (deduped); Ikki when 3+ BS; then scores.
+- Boss (922100162): Special Summon when **7+ distinct Fragment names** on field/GY (matches c922100162.lua `ctfrags`).
+- While Boss is in hand/Deck/GY and distinct count is under 7, mill/setup (Jango, Death Queen Island, Stolen Gold Cloth, Oath, Dark Dragon equip) bias missing Fragment names from Deck.
+- Fragment / Jango GY search: `ChooseBlackSaintForDeckSearch()` — Boss when **6+ distinct** on field/GY; Ikki when 3+ BS and still building Boss; then scores.
 
 Maintenance: bump BuildVersion / BuildTag when behavior changes.
 ================================================================================
@@ -31,8 +31,11 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 13;
-        private const string BuildTag = "2026-05-13-v13-esmeralda-normal-summon-atk";
+        private const int BuildVersion = 18;
+        private const string BuildTag = "2026-05-15-v18-esmeralda-dqi-only-search";
+
+        /// <summary>Distinct Fragment names on field/GY required to Special Summon Boss (c922100162.lua).</summary>
+        private const int BossFragmentDistinctRequired = 7;
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -105,12 +108,14 @@ namespace WindBot.Game.AI.Decks
             SilenceDefaultDialogs(ai);
 
             AddExecutor(ExecutorType.Activate, CardId.Heist, ActivateHeist);
+            // Esmeralda defenses must win SelectEffectYn / SelectChain before generic spell handlers.
+            AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
+            AddExecutor(ExecutorType.Activate, CardId.BossReassembled, ActivateBossFromHandOrGrave);
             AddExecutor(ExecutorType.Activate, CardId.DeathQueenIsland, ActivateDeathQueenIsland);
             AddExecutor(ExecutorType.Activate, CardId.StolenGoldCloth, ActivateStolenGoldCloth);
             AddExecutor(ExecutorType.Activate, CardId.EsmeraldasLastWill, ActivateEsmeraldasLastWill);
             AddExecutor(ExecutorType.Activate, CardId.GuiltysCruelTrial, ActivateGuiltysCruelTrial);
             AddExecutor(ExecutorType.Activate, CardId.OathOfShadow, ActivateOathOfShadow);
-            AddExecutor(ExecutorType.Activate, CardId.BossReassembled, ActivateBossFromHandOrGrave);
 
             AddExecutor(ExecutorType.SpSummon, CardId.DarkPegasus, SpSummonDarkPegasusFromHand);
             AddExecutor(ExecutorType.SpSummon, CardId.DarkPhoenix, SpSummonDarkPhoenixFromHand);
@@ -119,7 +124,6 @@ namespace WindBot.Game.AI.Decks
 
             AddExecutor(ExecutorType.Summon, CardId.Esmeralda, PrioritizeEsmeraldaNormalSummon);
 
-            AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkki);
             AddExecutor(ExecutorType.Activate, CardId.Jango, ActivateJango);
@@ -191,15 +195,26 @@ namespace WindBot.Game.AI.Decks
                 && IsOpenOwnMainPhaseNoChain())
                 return false;
 
-            // Esmeralda (c922100168) Stringid 1: Quick when targeted — bias Ikki: Deck, then GY, then hand.
-            if (card != null
-                && card.IsCode(CardId.Esmeralda)
-                && (card.Location & CardLocation.MonsterZone) != 0
-                && IsEsmeraldaQuickIkkiActivateDescription())
+            if (card != null && card.IsCode(CardId.Esmeralda))
             {
-                var ikki = ChooseEsmeraldaIkkiClientCardForSelectNext();
-                if (ikki != null)
-                    AI.SelectNextCard(ikki);
+                var d = (int)ActivateDescription;
+                // Stringid 0: on-summon add Death Queen Island from Deck.
+                if (IsEsmeraldaSummonSearchDescription(d))
+                {
+                    var searchId = ChooseEsmeraldaDeckSearchCardId();
+                    if (searchId != 0)
+                        AI.SelectCard(searchId);
+                }
+                // Ikki bias: opponent-turn defend + Quick (Stringid 1).
+                else if ((card.Location & CardLocation.MonsterZone) != 0
+                    && (IsOpponentTurn()
+                        || IsEsmeraldaQuickIkkiActivateDescription()
+                        || IsEsmeraldaBattleActivateDescription(d)))
+                {
+                    var ikki = ChooseEsmeraldaIkkiClientCardForSelectNext();
+                    if (ikki != null)
+                        AI.SelectNextCard(ikki);
+                }
             }
 
             // Dark Dragon (c922100151) Stringid 0: on-summon equip Fragment from Deck.
@@ -208,7 +223,40 @@ namespace WindBot.Game.AI.Decks
                 && (card.Location & CardLocation.MonsterZone) != 0
                 && ActivateDescription == Util.GetStringId(CardId.DarkDragon, 0))
             {
-                var fragId = ChooseBestFragmentIdStillInDeck();
+                var fragId = ChooseFragmentIdForDeckMill();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
+            }
+
+            // Jango (c922100149) Stringid 0: send 1 Fragment from Deck to GY on summon.
+            if (card != null
+                && card.IsCode(CardId.Jango)
+                && ActivateDescription == Util.GetStringId(CardId.Jango, 0))
+            {
+                var fragId = ChooseFragmentIdForDeckMill();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
+            }
+
+            // Death Queen Island / Stolen Gold Cloth: Deck→GY Fragment (optional or mandatory mill).
+            if (card != null && PursuingBossCombo())
+            {
+                if (card.IsCode(CardId.DeathQueenIsland)
+                    || card.IsCode(CardId.StolenGoldCloth))
+                {
+                    var fragId = ChooseMissingFragmentIdFromDeck();
+                    if (fragId != 0)
+                        AI.SelectCard(fragId);
+                }
+            }
+
+            // Boss (c922100162) Stringid 1: after Special Summon, equip up to 2 Fragments from GY.
+            if (card != null
+                && card.IsCode(CardId.BossReassembled)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && ActivateDescription == Util.GetStringId(CardId.BossReassembled, 1))
+            {
+                var fragId = ChooseBestFragmentIdInGraveForBossEquip();
                 if (fragId != 0)
                     AI.SelectCard(fragId);
             }
@@ -266,6 +314,9 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             if (Bot.HasInHand(CardId.Jango) && Bot.GetMonsterCount() == 0 && !ControlAnyBlackSaintFaceUp())
+                return false;
+
+            if (PursuingBossCombo() && Bot.HasInHand(CardId.Jango))
                 return false;
 
             return true;
@@ -335,6 +386,12 @@ namespace WindBot.Game.AI.Decks
         private bool IsMainPhase()
         {
             return Duel.Phase == DuelPhase.Main1 || Duel.Phase == DuelPhase.Main2;
+        }
+
+        /// <summary>WindBot turn player index: 0 = us, 1 = opponent (see GameAI / Duel.Player).</summary>
+        private bool IsOpponentTurn()
+        {
+            return Duel.Player != 0;
         }
 
         private bool IsBattlePhase()
@@ -643,9 +700,10 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        private int CountDistinctFragmentNamesOnFieldAndGrave()
+        private void CollectDistinctFragmentCodesOnFieldAndGrave(HashSet<int> set)
         {
-            var set = new HashSet<int>();
+            if (set == null)
+                return;
             foreach (var z in Bot.SpellZone)
             {
                 if (z == null || !z.IsFaceup())
@@ -670,7 +728,54 @@ namespace WindBot.Game.AI.Decks
                 if (c != null && IsFragmentId(c.Id))
                     set.Add(c.Id);
             }
+        }
+
+        private int CountDistinctFragmentNamesOnFieldAndGrave()
+        {
+            var set = new HashSet<int>();
+            CollectDistinctFragmentCodesOnFieldAndGrave(set);
             return set.Count;
+        }
+
+        private int CountMissingDistinctFragmentNames()
+        {
+            var have = CountDistinctFragmentNamesOnFieldAndGrave();
+            if (have >= BossFragmentDistinctRequired)
+                return 0;
+            return BossFragmentDistinctRequired - have;
+        }
+
+        private bool BossAccessible()
+        {
+            if (Bot.HasInHand(CardId.BossReassembled))
+                return true;
+            if (Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.BossReassembled)))
+                return true;
+            return Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Deck) > 0;
+        }
+
+        /// <summary>Building toward Boss SS: Boss still reachable and fewer than 7 distinct Fragment names on field/GY.</summary>
+        private bool PursuingBossCombo()
+        {
+            return BossAccessible()
+                && CountDistinctFragmentNamesOnFieldAndGrave() < BossFragmentDistinctRequired;
+        }
+
+        private bool BossAlreadyOnField()
+        {
+            return Bot.MonsterZone.IsExistingMatchingCard(
+                m => m != null && m.IsFaceup() && m.IsCode(CardId.BossReassembled));
+        }
+
+        private bool BossSummonReady()
+        {
+            if (!IsMainPhase())
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+            if (BossAlreadyOnField())
+                return false;
+            return CountDistinctFragmentNamesOnFieldAndGrave() >= BossFragmentDistinctRequired;
         }
 
         private ClientCard BestBlackSaintForEquip()
@@ -796,7 +901,7 @@ namespace WindBot.Game.AI.Decks
             switch (id)
             {
                 case CardId.BossReassembled:
-                    // Desecrated Sagittarius — “fragment mass” uses GY + field + hand (see CountFragmentCardsInGraveFieldAndHand).
+                    // Desecrated Sagittarius — distinct names on field/GY gate the ignition (c922100162.lua).
                     {
                         var s = 12;
                         if (frSeen >= 3)
@@ -804,11 +909,13 @@ namespace WindBot.Game.AI.Decks
                         if (frSeen >= 4)
                             s += 35;
                         if (frSeen >= 5)
-                            s += 120;
+                            s += 40;
                         if (distFr >= 5)
-                            s += 22;
+                            s += 28;
                         if (distFr >= 6)
-                            s += 45;
+                            s += 95;
+                        if (distFr >= BossFragmentDistinctRequired)
+                            s += 220;
                         return s;
                     }
                 case CardId.Ikki:
@@ -839,6 +946,11 @@ namespace WindBot.Game.AI.Decks
                             s -= 38;
                         if (frGy >= 2)
                             s += 8;
+                        if (PursuingBossCombo())
+                        {
+                            s += 35;
+                            s += CountMissingDistinctFragmentNames() * 12;
+                        }
                         return s;
                     }
                 case CardId.DarkPegasus:
@@ -866,6 +978,8 @@ namespace WindBot.Game.AI.Decks
                     {
                         var s = 38;
                         s += Math.Min(32, frGy * 5);
+                        if (PursuingBossCombo())
+                            s += 18 + CountMissingDistinctFragmentNames() * 6;
                         if (frGy >= 2)
                             s += 12;
                         return s;
@@ -921,16 +1035,23 @@ namespace WindBot.Game.AI.Decks
 
         /// <summary>
         /// Pick which Black Saint name to add from Deck (Fragment GY effects, Jango, etc.).
-        /// Hard rules: (1) more than 2 face-up Black Saints → Ikki; (2) else 5+ Fragment cards in **GY+field+hand** → Boss;
-        /// then highest <see cref="BlackSaintDeckSearchScore"/> among cards still in Deck.
+        /// Hard rules: (1) 3+ face-up Black Saints and still building Boss → Ikki; (2) 6+ distinct Fragments on field/GY → Boss;
+        /// (3) pursuing Boss with &lt;6 distinct → Jango if in Deck; then highest <see cref="BlackSaintDeckSearchScore"/>.
         /// </summary>
         private int ChooseBlackSaintForDeckSearch()
         {
-            if (BlackSaintInMainDeck(CardId.Ikki) && CountBlackSaintMonstersFaceUp() > 2)
+            var distFr = CountDistinctFragmentNamesOnFieldAndGrave();
+
+            if (BlackSaintInMainDeck(CardId.Ikki)
+                && CountBlackSaintMonstersFaceUp() > 2
+                && distFr < 6)
                 return CardId.Ikki;
 
-            if (BlackSaintInMainDeck(CardId.BossReassembled) && CountFragmentCardsInGraveFieldAndHand() >= 5)
+            if (BlackSaintInMainDeck(CardId.BossReassembled) && distFr >= 6)
                 return CardId.BossReassembled;
+
+            if (PursuingBossCombo() && distFr < 6 && BlackSaintInMainDeck(CardId.Jango))
+                return CardId.Jango;
 
             var bestId = CardId.Jango;
             var bestScore = int.MinValue;
@@ -975,6 +1096,9 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (Bot.HasInSpellZone(CardId.DeathQueenIsland))
                 return false;
+            if (PursuingBossCombo() && CountMissingDistinctFragmentNames() > 0)
+                return Bot.GetRemainingCount(ChooseMissingFragmentIdFromDeck(), (int)CardLocation.Deck) > 0
+                    || CountFragmentsInHand() > 0;
             return true;
         }
 
@@ -984,6 +1108,15 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (!ControlAnyBlackSaintFaceUp())
                 return false;
+            if (PursuingBossCombo() && CountMissingDistinctFragmentNames() > 0)
+            {
+                if (!HasFreeSpellZone())
+                    return false;
+                if (CountFragmentCardsInGraveyard() < 1
+                    && Bot.GetRemainingCount(ChooseMissingFragmentIdFromDeck(), (int)CardLocation.Deck) <= 0)
+                    return false;
+                return true;
+            }
             return true;
         }
 
@@ -1047,11 +1180,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateBossFromHandOrGrave()
         {
-            if (!IsMainPhase())
-                return false;
-            if (CountDistinctFragmentNamesOnFieldAndGrave() < 7)
-                return false;
-            return true;
+            return BossSummonReady();
         }
 
         private bool SpSummonDarkPegasusFromHand()
@@ -1153,35 +1282,152 @@ namespace WindBot.Game.AI.Decks
             return bestId;
         }
 
+        /// <summary>While pursuing Boss, mill/equip a Fragment name not yet on field/GY; else highest static ATK still in Deck.</summary>
+        private int ChooseFragmentIdForDeckMill()
+        {
+            if (PursuingBossCombo())
+            {
+                var missing = ChooseMissingFragmentIdFromDeck();
+                if (missing != 0)
+                    return missing;
+            }
+            return ChooseBestFragmentIdStillInDeck();
+        }
+
+        /// <summary>Fragment name in Main Deck that is not yet among distinct names on field/GY (highest remaining copy count).</summary>
+        private int ChooseMissingFragmentIdFromDeck()
+        {
+            var seen = new HashSet<int>();
+            CollectDistinctFragmentCodesOnFieldAndGrave(seen);
+            var bestId = 0;
+            var bestRem = 0;
+            foreach (var fid in FragmentIds)
+            {
+                if (seen.Contains(fid))
+                    continue;
+                var rem = Bot.GetRemainingCount(fid, (int)CardLocation.Deck);
+                if (rem > bestRem)
+                {
+                    bestRem = rem;
+                    bestId = fid;
+                }
+            }
+            return bestId;
+        }
+
+        /// <summary>Highest static ATK Fragment in GY for Boss post-summon equip (c922100162 Stringid 1).</summary>
+        private int ChooseBestFragmentIdInGraveForBossEquip()
+        {
+            var bestId = 0;
+            var bestBonus = -1;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c == null || !IsFragmentId(c.Id))
+                    continue;
+                var b = FragmentStaticEquipAtkBonus(c.Id);
+                if (b > bestBonus)
+                {
+                    bestBonus = b;
+                    bestId = c.Id;
+                }
+            }
+            return bestId;
+        }
+
         /// <summary>
-        /// Esmeralda (c922100168): Stringid 1 = Quick when targeted (EVENT_BECOME_TARGET) SS Ikki;
-        /// Stringid 2 = battle target negate + position + optional Ikki. Same once-per-turn pool as on-summon search (see c922100168.lua).
+        /// Esmeralda (c922100168): Stringid 0 = on-summon search; Stringid 1 = Quick when targeted SS Ikki;
+        /// Stringid 2 = battle target negate + position + optional Ikki. Shared once/turn (see c922100168.lua).
+        /// On-summon uses OnSelectEffectYn (desc -1) — do not require MMZ yet; follow Seiya-style fallback on our turn.
         /// </summary>
         private bool ActivateEsmeralda()
         {
             if (Card == null || !Card.IsCode(CardId.Esmeralda))
                 return false;
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
-                return false;
 
-            var quickDesc = Util.GetStringId(CardId.Esmeralda, 1);
-            var battleDesc = Util.GetStringId(CardId.Esmeralda, 2);
-            var d = ActivateDescription;
+            var quickDesc = (int)Util.GetStringId(CardId.Esmeralda, 1);
+            var battleDesc = (int)Util.GetStringId(CardId.Esmeralda, 2);
+            var d = (int)ActivateDescription;
 
-            if (d == battleDesc)
-                return true;
-
-            if (d == quickDesc)
+            // Opponent turn: BE_BATTLE_TARGET / BECOME_TARGET (desc often -1 or 0 while Phase is still Main2).
+            if (IsOpponentTurn())
             {
-                if (Bot.GetMonsterCount() >= 5)
+                if ((Card.Location & CardLocation.MonsterZone) == 0)
                     return false;
-                return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave | CardLocation.Deck)) > 0;
+                if (d == quickDesc)
+                {
+                    if (Bot.GetMonsterCount() >= 5)
+                        return false;
+                    return EsmeraldaIkkiAccessible();
+                }
+                if (d == battleDesc || d == -1 || d == 0)
+                    return true;
+                return true;
             }
 
-            if (d == -1 && !ChainIsEmpty())
-                return true;
+            // Quick (Stringid 1) — only from MMZ.
+            if (d == quickDesc)
+            {
+                if ((Card.Location & CardLocation.MonsterZone) == 0)
+                    return false;
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return EsmeraldaIkkiAccessible();
+            }
+
+            if (d == battleDesc)
+                return false;
+
+            // Our turn: any other prompt = on-summon search (Ignis often sends desc -1, not id*16+0).
+            if (IsEsmeraldaSummonSearchDescription(d))
+                return EsmeraldaHasDeckSearchTarget();
 
             return false;
+        }
+
+        /// <summary>On-summon deck search (Stringid 0) — EffectYn uses -1/0; idle cmd may send Stringid hash.</summary>
+        private bool IsEsmeraldaSummonSearchDescription(int desc)
+        {
+            if (IsOpponentTurn())
+                return false;
+            if (desc == (int)Util.GetStringId(CardId.Esmeralda, 0))
+                return true;
+            if (desc == -1 || desc == 0)
+                return true;
+            // Not Quick or battle lines on our turn → treat as summon search (custom desc values).
+            if (desc != (int)Util.GetStringId(CardId.Esmeralda, 1)
+                && desc != (int)Util.GetStringId(CardId.Esmeralda, 2))
+                return true;
+            return false;
+        }
+
+        /// <summary>Esmeralda on-summon search adds only Death Queen Island (922100163).</summary>
+        private int ChooseEsmeraldaDeckSearchCardId()
+        {
+            if (BlackSaintInMainDeck(CardId.DeathQueenIsland))
+                return CardId.DeathQueenIsland;
+            return 0;
+        }
+
+        /// <summary>Battle negate (Stringid 2) or generic trigger desc during a battle window.</summary>
+        private bool IsEsmeraldaBattleActivateDescription(int desc)
+        {
+            if (desc == (int)Util.GetStringId(CardId.Esmeralda, 2))
+                return true;
+            if (desc != -1 && desc != 0)
+                return false;
+            if (IsOpponentTurn())
+                return true;
+            return IsBattlePhase();
+        }
+
+        private bool EsmeraldaHasDeckSearchTarget()
+        {
+            return ChooseEsmeraldaDeckSearchCardId() != 0;
+        }
+
+        private bool EsmeraldaIkkiAccessible()
+        {
+            return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave | CardLocation.Deck)) > 0;
         }
 
         /// <summary>True when engine is offering Esmeralda's Quick (Stringid 1) vs her other MMZ activations.</summary>
@@ -1380,7 +1626,11 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateDarkAndromeda()
         {
-            return IsMainPhase();
+            if (!IsMainPhase())
+                return false;
+            if (PursuingBossCombo() && CountFragmentsInHand() > 0 && HasFreeSpellZone())
+                return true;
+            return true;
         }
 
         private bool ActivateDarkPhoenix()

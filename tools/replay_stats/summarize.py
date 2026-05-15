@@ -29,6 +29,13 @@ from .constants import (
     MSG_SUMMONED,
     MSG_WIN,
     HINT_CARD,
+    PHASE_BATTLE,
+    PHASE_BATTLE_START,
+    PHASE_DRAW,
+    PHASE_END,
+    PHASE_MAIN1,
+    PHASE_MAIN2,
+    PHASE_STANDBY,
 )
 from .decompress import ReplayDecompressError, decompress
 from .header import read_replay_file
@@ -42,14 +49,32 @@ LOCATION_REMOVED = 0x20
 LOCATION_DECK = 0x01
 LOCATION_EXTRA = 0x40
 
-PHASE_NAMES = {
-    0: "Draw Phase",
-    1: "Standby Phase",
-    2: "Main Phase 1",
-    3: "Battle Phase",
-    4: "Main Phase 2",
-    5: "End Phase",
-}
+# Order matters for multi-bit values (pick the latest phase in the turn).
+_PHASE_LABEL_ORDER: tuple[tuple[int, str], ...] = (
+    (PHASE_END, "End Phase"),
+    (PHASE_MAIN2, "Main Phase 2"),
+    (PHASE_BATTLE, "Battle Phase"),
+    (PHASE_BATTLE_START, "Battle Phase"),
+    (PHASE_MAIN1, "Main Phase 1"),
+    (PHASE_STANDBY, "Standby Phase"),
+    (PHASE_DRAW, "Draw Phase"),
+)
+
+
+def _read_phase(data: bytes) -> int:
+    """MSG_NEW_PHASE carries the phase as uint16 little-endian (ocgapi bitflags)."""
+    if len(data) >= 2:
+        return struct.unpack_from("<H", data, 0)[0]
+    if data:
+        return data[0]
+    return 0
+
+
+def _phase_label(phase: int) -> str | None:
+    for mask, name in _PHASE_LABEL_ORDER:
+        if phase & mask:
+            return name
+    return None
 
 # EDOPro victory types — config/strings.conf (!victory 0xN)
 WIN_REASONS = {
@@ -217,11 +242,12 @@ def summarize_duel(
                 f"Turn {state.current_turn} — {pl_label(d[0])} begins their turn."
             )
         elif m == MSG_NEW_PHASE and d:
-            state.current_phase = d[0]
-            if d[0] in PHASE_NAMES:
-                phase = PHASE_NAMES[d[0]]
+            phase = _read_phase(d)
+            state.current_phase = phase
+            label = _phase_label(phase)
+            if label:
                 plays.append(
-                    f"Turn {state.current_turn} — {phase} ({pl_label(state.active_player)})."
+                    f"Turn {state.current_turn} — {label} ({pl_label(state.active_player)})."
                 )
         elif m == MSG_DRAW and len(d) >= 2:
             plays.append(
