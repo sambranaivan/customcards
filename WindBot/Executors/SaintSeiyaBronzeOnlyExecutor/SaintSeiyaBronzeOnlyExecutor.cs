@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 46;
-        private const string BuildTag = "2026-05-15-v46-seiya-miracle-bonds-extra";
+        private const int BuildVersion = 47;
+        private const string BuildTag = "2026-05-15-v47-miracle-bonds-gy-cloth-activate";
 
         /// <summary>
         /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
@@ -282,6 +282,7 @@ namespace WindBot.Game.AI.Decks
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
             AddExecutor(ExecutorType.SpSummon, CardId.SeiyaMiracleBonds, SpSummonSeiyaMiracleBondsFromExtra);
+            AddExecutor(ExecutorType.Activate, CardId.SeiyaMiracleBonds, ActivateSeiyaMiracleBonds);
             AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
 
@@ -485,6 +486,22 @@ namespace WindBot.Game.AI.Decks
                 var cygTgt = ChooseCygnusNegateTarget();
                 if (cygTgt != null)
                     AI.SelectNextCard(cygTgt);
+            }
+
+            // Miracle Bonds (922100303): after Fusion Summon, equip Bronze Cloth from GY (loop — bias ordered picks).
+            if (card != null
+                && card.IsCode(CardId.SeiyaMiracleBonds)
+                && (card.Location & CardLocation.MonsterZone) != 0)
+            {
+                var d = (int)ActivateDescription;
+                var eqD = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 1);
+                if (eqD == d || d == -1 || d == 0 || eqD == 0)
+                {
+                    var order = BuildPayEquipClothOrder(CardId.Seiya);
+                    var gyIds = order.Where(id => Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(id))).ToArray();
+                    if (gyIds.Length > 0)
+                        AI.SelectCard(gyIds);
+                }
             }
 
             if (card != null
@@ -1864,6 +1881,38 @@ namespace WindBot.Game.AI.Decks
                 AI.SelectCard(Cloths);
                 return true;
             }
+
+            return false;
+        }
+
+        /// <summary>
+        /// <c>c922100303.lua</c> Stringid 1: optional — equip as many <see cref="Cloths"/> from GY as zones allow after Fusion Summon.
+        /// </summary>
+        private bool ActivateSeiyaMiracleBonds()
+        {
+            if (Card == null || !Card.IsCode(CardId.SeiyaMiracleBonds))
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (!IsMainPhase() || Duel.Player != 0)
+                return false;
+
+            var equipDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 1);
+            var procDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 0);
+            var d = (int)ActivateDescription;
+
+            var equipLegal = HasFreeMainSpellZoneForEquip() && HasClothInGraveyard();
+
+            if (equipDesc != 0 && d == equipDesc)
+                return equipLegal;
+            if (procDesc != 0 && d == procDesc)
+                return false;
+
+            if (equipDesc == 0 && procDesc == 0)
+                return equipLegal;
+
+            if (d == -1 || d == 0)
+                return equipLegal;
 
             return false;
         }

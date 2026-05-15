@@ -92,14 +92,14 @@ end
 
 function s.bronzecloth_gy(c,ec)
 	if not ec or not ec:IsFaceup() then return false end
-	return c:IsSetCard(SET_BRONZE_CLOTH) and c:IsType(TYPE_EQUIP) and not c:IsForbidden()
-		and c:IsAbleToChangeControler() and c:CheckEquipTarget(ec)
+	if not c:IsSetCard(SET_BRONZE_CLOTH) or not c:IsType(TYPE_EQUIP) or c:IsForbidden() then return false end
+	return c:CheckEquipTarget(ec)
 end
 
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
-	if chk==0 then return c:IsFaceup() and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
-		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.bronzecloth_gy),tp,LOCATION_GRAVE,0,1,nil,c) end
+	if chk==0 then return c:IsFaceup() and c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(function(tc) return s.bronzecloth_gy(tc,c) end),tp,LOCATION_GRAVE,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_GRAVE)
 end
 
@@ -107,7 +107,7 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
 	if not c:IsFaceup() or not c:IsRelateToEffect(e) then return end
 	while Duel.GetLocationCount(tp,LOCATION_SZONE)>0 do
-		local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.bronzecloth_gy),tp,LOCATION_GRAVE,0,nil,c)
+		local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(function(tc) return s.bronzecloth_gy(tc,c) end),tp,LOCATION_GRAVE,0,nil)
 		if #g==0 then break end
 		Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
 		local tc=g:Select(tp,1,1,nil):GetFirst()
