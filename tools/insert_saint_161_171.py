@@ -11,6 +11,7 @@ def main() -> None:
 
     TYPE_MONSTER = 0x1
     TYPE_EFFECT = 0x20
+    TYPE_FUSION = 0x40
     TYPE_SPELL = 0x2
     TYPE_TRAP = 0x4
     TYPE_EQUIP = 0x40002
@@ -26,7 +27,7 @@ def main() -> None:
         # 161 equip
         ("equip", 922100161, "Fragment of Sagittarius - Left Leg", TYPE_EQUIP, setcode_fragment, 0, 0, 0, 0, 0),
         # 162 monster (no "Saint" in name — Black Saint / Gold Cloth theme only)
-        ("mon", 922100162, "Desecrated Sagittarius - Reassembled Gold Cloth", TYPE_MONSTER | TYPE_EFFECT, SET_BLACK_SAINT, 3000, 2500, 8, 1, 32),
+        ("mon", 922100162, "Desecrated Sagittarius - Reassembled Gold Cloth", TYPE_MONSTER | TYPE_EFFECT | TYPE_FUSION, SET_BLACK_SAINT, 3000, 2500, 8, 1, 32),
         # 163 field
         ("spell", 922100163, "Death Queen Island", TYPE_SPELL | TYPE_FIELD, 0, 0, 0, 0, 0, 0),
         ("spell", 922100164, "The Stolen Gold Cloth", TYPE_SPELL, 0, 0, 0, 0, 0, 0),

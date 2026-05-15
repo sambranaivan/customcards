@@ -1,7 +1,7 @@
 --Desecrated Sagittarius - Reassembled Gold Cloth
 --[==[
 -- ID: 922100162
--- Type: Monster / Effect Monster
+-- Type: Monster / Fusion / Effect Monster
 -- Level: 8
 -- Attribute: DARK
 -- Race: Warrior
@@ -12,7 +12,7 @@
 -- Effect (EN):
 -- (This card is always treated as a "Black Saint" card.)
 -- Cannot be Normal Summoned/Set.
--- Must be Special Summoned (from your hand or GY) while you have 7 or more "Fragment of Sagittarius" cards with different names on your field and/or GY.
+-- Must be Special Summoned from your Extra Deck (this is treated as a Fusion Summon) while you have 7 or more "Fragment of Sagittarius" cards with different names on your field and/or GY. (You do not use "Fusion" as an activation procedure.)
 -- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
 -- Gains these effects based on the number of Equip Cards equipped to it.
 -- ● 1+: Cannot be destroyed by battle.
@@ -37,16 +37,17 @@ function s.initial_effect(c)
 	e0b:SetCode(EFFECT_CANNOT_MSET)
 	c:RegisterEffect(e0b)
 
-	--Special Summon from hand/GY: 7+ different Fragments on field/GY (OPT)
+	--Fusion Summon from Extra Deck: 7+ different Fragments on field/GY (OPT); no Fusion Spell
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
-	e1:SetCategory(CATEGORY_SPECIAL_SUMMON)
-	e1:SetType(EFFECT_TYPE_IGNITION)
-	e1:SetRange(LOCATION_HAND+LOCATION_GRAVE)
+	e1:SetType(EFFECT_TYPE_FIELD)
+	e1:SetCode(EFFECT_SPSUMMON_PROC)
+	e1:SetProperty(EFFECT_FLAG_UNCOPYABLE)
+	e1:SetRange(LOCATION_EXTRA)
 	e1:SetCountLimit(1,id)
 	e1:SetCondition(s.spcon)
-	e1:SetTarget(s.sptg)
-	e1:SetOperation(s.spop0)
+	e1:SetOperation(s.spop)
+	e1:SetValue(SUMMON_TYPE_FUSION)
 	c:RegisterEffect(e1)
 
 	--If Special Summoned: equip up to 2 Fragments from GY
@@ -120,27 +121,25 @@ function s.ctfrags(tp)
 	return ct
 end
 
-function s.spcon(e,tp,eg,ep,ev,re,r,rp)
+function s.spcon(e,c)
+	if c==nil then return true end
+	local tp=c:GetControler()
 	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=7
 end
-function s.sptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	local c=e:GetHandler()
-	if chk==0 then return c:IsCanBeSpecialSummoned(e,0,tp,false,false) end
-	Duel.SetOperationInfo(0,CATEGORY_SPECIAL_SUMMON,c,1,0,0)
-end
-function s.spop0(e,tp,eg,ep,ev,re,r,rp)
-	local c=e:GetHandler()
-	if c:IsRelateToEffect(e) and Duel.GetLocationCount(tp,LOCATION_MZONE)>0 then
-		Duel.SpecialSummon(c,0,tp,tp,false,false,POS_FACEUP)
-	end
+
+function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
 end
 
-function s.fraggy(c)
-	return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and c:IsType(TYPE_EQUIP) and c:IsAbleToChangeControler()
+function s.fraggy(c,ec)
+	if not c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) or not c:IsType(TYPE_EQUIP) or c:IsForbidden() then return false end
+	if not ec or not ec:IsFaceup() then return false end
+	-- GY equips: CheckEquipTarget respects "Equip only to …" (IsAbleToChangeControler is unreliable in GY).
+	return c:CheckEquipTarget(ec)
 end
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
-		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(s.fraggy),tp,LOCATION_GRAVE,0,1,nil) end
+	local c=e:GetHandler()
+	if chk==0 then return c:IsRelateToEffect(e) and c:IsFaceup() and Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(aux.NecroValleyFilter(function(tc) return s.fraggy(tc,c) end),tp,LOCATION_GRAVE,0,1,nil) end
 	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_GRAVE)
 end
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
@@ -148,7 +147,7 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or not c:IsFaceup() then return end
 	local ft=Duel.GetLocationCount(tp,LOCATION_SZONE)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(s.fraggy),tp,LOCATION_GRAVE,0,1,math.min(2,ft),nil)
+	local g=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(function(tc) return s.fraggy(tc,c) end),tp,LOCATION_GRAVE,0,1,math.min(2,ft),nil)
 	for tc in aux.Next(g) do
 		Duel.Equip(tp,tc,c)
 	end

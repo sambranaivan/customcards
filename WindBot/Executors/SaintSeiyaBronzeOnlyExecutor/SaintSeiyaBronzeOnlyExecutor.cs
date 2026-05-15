@@ -30,7 +30,7 @@ This document is a **programming guide** for a WindBot executor for the deck:
 - Cards DB: `expansions/saint-seiya.cdb`
 - Scripts: `script/unofficial/c{ID}.lua`
 
-The deck is **Main-only** (no Extra/Side). Its win plan is:
+The deck is **Main-heavy** with a small **Extra Deck** (fusion bosses). Its win plan is:
 
 - **Go first**: build a board with
   - **3+ face-up "Saint" monsters with different names** (turns on `922100082`),
@@ -55,6 +55,9 @@ The deck is **Main-only** (no Extra/Side). Its win plan is:
 - `922100009` **Bronze Saint - Nachi of Wolf**
 - `922100010` **Mu - The Cloth Repairer**
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
+
+### Extra Deck
+- `922100303` **Bronze Saint - Seiya of the Miracle Bonds** (Fusion — alternate summon via banishing 5 `"Bronze Saint"` from GY including 1 Seiya; see `c922100303.lua`)
 
 ### Bronze Cloth (Equip Spells)
 All share a generic GY trigger:
@@ -167,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 45;
-        private const string BuildTag = "2026-05-15-v45-cloth-buff-jabu";
+        private const int BuildVersion = 46;
+        private const string BuildTag = "2026-05-15-v46-seiya-miracle-bonds-extra";
 
         /// <summary>
         /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
@@ -192,6 +195,9 @@ namespace WindBot.Game.AI.Decks
             public const int Nachi = 922100009;
             public const int Mu = 922100010;
             public const int Kiki = 922100011;
+
+            /// <summary>Fusion — alternate proc banishes 5 Bronze Saints from GY including Seiya (<c>c922100303.lua</c>).</summary>
+            public const int SeiyaMiracleBonds = 922100303;
 
             // Cloth equips (GY trigger: add L4-or-lower Bronze Saint from Deck only — matches script filter)
             public const int ClothPegasus = 922100041;
@@ -268,13 +274,14 @@ namespace WindBot.Game.AI.Decks
             foreach (var cloth in Cloths)
                 AddExecutor(ExecutorType.Activate, cloth, ResolveClothActivate);
 
-            // Pay-LP equip (Bronze Saints — guide: safe Extra lock in Main-only deck)
+            // Pay-LP equip (Bronze Saints — historically Extra-safe lines)
             AddExecutor(ExecutorType.Activate, CardId.Shiryu, ResolveShiryuActivate);
             AddExecutor(ExecutorType.Activate, CardId.Hyoga, ResolveHyogaActivate);
             AddExecutor(ExecutorType.Activate, CardId.Shun, ResolveShunActivate);
 
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
+            AddExecutor(ExecutorType.SpSummon, CardId.SeiyaMiracleBonds, SpSummonSeiyaMiracleBondsFromExtra);
             AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
 
@@ -1869,6 +1876,48 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.Hand) == 0)
                 return false;
             return ControlAnySaint() && Bot.GetMonsterCount() < 5;
+        }
+
+        /// <summary>
+        /// <c>c922100303.lua</c>: alternate Fusion Summon from Extra — banish 5 Bronze Saint warriors from GY (Lv4 Bronze lineup IDs), including 1 Seiya.
+        /// </summary>
+        private bool SpSummonSeiyaMiracleBondsFromExtra()
+        {
+            if (Card == null || !Card.IsCode(CardId.SeiyaMiracleBonds))
+                return false;
+            if ((Card.Location & CardLocation.Extra) == 0)
+                return false;
+            if (!IsMainPhase() || Duel.Player != 0)
+                return false;
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+            if (!Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.Seiya)))
+                return false;
+            return CountBronzeSaintWarriorsInGraveyard() >= 5;
+        }
+
+        private int CountBronzeSaintWarriorsInGraveyard()
+        {
+            var n = 0;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c == null)
+                    continue;
+                if (!IsBronzeSaintWarriorId(c.Id))
+                    continue;
+                n++;
+            }
+            return n;
+        }
+
+        private static bool IsBronzeSaintWarriorId(int id)
+        {
+            for (var i = 0; i < Lv4Saints.Length; i++)
+            {
+                if (Lv4Saints[i] == id)
+                    return true;
+            }
+            return false;
         }
 
         private bool ResolveJabuActivate()

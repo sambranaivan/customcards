@@ -7,7 +7,7 @@
 -- (setcode 0 — not in a named ProjectIgnis archetype series)
 -- Effect (EN):
 -- When this card is activated: You can add 1 "Esmeralda, Light of Death Queen Island" or 1 "Guilty, Master of Hell" from your Deck to your hand.
--- Once per turn, if a "Fragment of Sagittarius" Equip Spell you control is sent to the GY by card effect: You can draw 1 card, then discard 1 card.
+-- Once per turn, if a "Fragment of Sagittarius" Equip Spell you control is sent to the GY: You can draw 1 card, then discard 1 card.
 -- If you control "Black Saint - Ikki, Leader of Death Queen Island", your opponent cannot target "Esmeralda, Light of Death Queen Island" with card effects.
 -- You can only activate 1 "Guilty's Cruel Trial" per turn.
 --]==]
@@ -23,7 +23,7 @@ function s.initial_effect(c)
 	e0:SetOperation(s.actop)
 	c:RegisterEffect(e0)
 
-	--If Fragment Equip you control sent to GY by effect: draw 1 then discard 1
+	--If Fragment Equip you control sent to GY: draw 1 then discard 1
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,1))
 	e1:SetCategory(CATEGORY_DRAW+CATEGORY_HANDES)
@@ -69,7 +69,7 @@ end
 function s.drcon(e,tp,eg,ep,ev,re,r,rp)
 	return eg:IsExists(function(c)
 		return c:IsPreviousLocation(LOCATION_SZONE) and c:IsPreviousPosition(POS_FACEUP)
-			and c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and (r&REASON_EFFECT)~=0 and c:IsControler(tp)
+			and c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and c:IsControler(tp)
 	end,1,nil)
 end
 function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)

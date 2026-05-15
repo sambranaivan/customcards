@@ -18,8 +18,8 @@ Goals:
   equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Esmeralda (c922100168) also defends with Maiden-like Ikki SS when targeted (1 card effect/turn shared with her Deck search). Dark Andromeda for draw when Fragments move by effects.
-- Boss (922100162): Special Summon when **7+ distinct Fragment names** on field/GY (matches c922100162.lua `ctfrags`).
-- While Boss is in hand/Deck/GY and distinct count is under 7, mill/setup (Jango, Death Queen Island, Stolen Gold Cloth, Oath, Dark Dragon equip) bias missing Fragment names from Deck.
+- Boss (922100162): **Fusion Summon** via `EFFECT_SPSUMMON_PROC` from **Extra Deck** only (`LOCATION_EXTRA`) when **7+ distinct Fragment names** on field/GY (`ctfrags`). WindBot: `ExecutorType.SpSummon`, `CardLocation.Extra`.
+- While Boss remains in the Extra Deck and distinct Fragment count is under 7, mill/setup (Jango, Death Queen Island, Stolen Gold Cloth, Oath, Dark Dragon equip) bias missing Fragment names from Deck.
 - Fragment / Jango GY search: `ChooseBlackSaintForDeckSearch()` — Boss when **6+ distinct** on field/GY; Ikki when 3+ BS and still building Boss; then scores.
 
 Maintenance: bump BuildVersion / BuildTag when behavior changes.
@@ -31,10 +31,10 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 18;
-        private const string BuildTag = "2026-05-15-v18-esmeralda-dqi-only-search";
+        private const int BuildVersion = 25;
+        private const string BuildTag = "2026-05-15-v25-boss-gy-equip-lua-windbot";
 
-        /// <summary>Distinct Fragment names on field/GY required to Special Summon Boss (c922100162.lua).</summary>
+        /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua).</summary>
         private const int BossFragmentDistinctRequired = 7;
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
@@ -110,7 +110,6 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.Heist, ActivateHeist);
             // Esmeralda defenses must win SelectEffectYn / SelectChain before generic spell handlers.
             AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
-            AddExecutor(ExecutorType.Activate, CardId.BossReassembled, ActivateBossFromHandOrGrave);
             AddExecutor(ExecutorType.Activate, CardId.DeathQueenIsland, ActivateDeathQueenIsland);
             AddExecutor(ExecutorType.Activate, CardId.StolenGoldCloth, ActivateStolenGoldCloth);
             AddExecutor(ExecutorType.Activate, CardId.EsmeraldasLastWill, ActivateEsmeraldasLastWill);
@@ -118,16 +117,20 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Activate, CardId.OathOfShadow, ActivateOathOfShadow);
 
             AddExecutor(ExecutorType.SpSummon, CardId.DarkPegasus, SpSummonDarkPegasusFromHand);
+            // Main Phase SS from hand is IGNITION (Activatable), not always SpecialSummonable — keep Activate early.
+            AddExecutor(ExecutorType.Activate, CardId.DarkPegasus, ActivateDarkPegasus);
+
             AddExecutor(ExecutorType.SpSummon, CardId.DarkPhoenix, SpSummonDarkPhoenixFromHand);
             AddExecutor(ExecutorType.SpSummon, CardId.Guilty, SpSummonGuiltyFromHand);
             AddExecutor(ExecutorType.SpSummon, CardId.Ikki, SpSummonIkkiFromHand);
+            AddExecutor(ExecutorType.SpSummon, CardId.BossReassembled, SpSummonBossReassembled);
+            AddExecutor(ExecutorType.Activate, CardId.BossReassembled, ActivateBossOnField);
 
             AddExecutor(ExecutorType.Summon, CardId.Esmeralda, PrioritizeEsmeraldaNormalSummon);
 
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkki);
             AddExecutor(ExecutorType.Activate, CardId.Jango, ActivateJango);
-            AddExecutor(ExecutorType.Activate, CardId.DarkPegasus, ActivateDarkPegasus);
             AddExecutor(ExecutorType.Activate, CardId.DarkDragon, ActivateDarkDragon);
             AddExecutor(ExecutorType.Activate, CardId.DarkCygnus, ActivateDarkCygnus);
             AddExecutor(ExecutorType.Activate, CardId.DarkAndromeda, ActivateDarkAndromeda);
@@ -181,18 +184,12 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        /// <summary>Open Main1/Main2 on our turn with no chain — typical misuse window for reactive Quick-Plays.</summary>
-        private bool IsOpenOwnMainPhaseNoChain()
-        {
-            return Duel.Player == 0 && IsMainPhase() && ChainIsEmpty();
-        }
-
-        /// <summary>Block burning reactive Quick-Plays during an open Main Phase on our own turn.</summary>
+        /// <summary>Target/no selections before activate; veto Esmeralda's Last Will outside Battle Phase.</summary>
         public override bool OnPreActivate(ClientCard card)
         {
             if (card != null
                 && card.IsCode(CardId.EsmeraldasLastWill)
-                && IsOpenOwnMainPhaseNoChain())
+                && !IsBattlePhase())
                 return false;
 
             if (card != null && card.IsCode(CardId.Esmeralda))
@@ -220,12 +217,57 @@ namespace WindBot.Game.AI.Decks
             // Dark Dragon (c922100151) Stringid 0: on-summon equip Fragment from Deck.
             if (card != null
                 && card.IsCode(CardId.DarkDragon)
-                && (card.Location & CardLocation.MonsterZone) != 0
-                && ActivateDescription == Util.GetStringId(CardId.DarkDragon, 0))
+                && (card.Location & CardLocation.MonsterZone) != 0)
             {
-                var fragId = ChooseFragmentIdForDeckMill();
-                if (fragId != 0)
-                    AI.SelectCard(fragId);
+                var dDd = (int)ActivateDescription;
+                var ddSummonEq = (int)Util.GetStringId(CardId.DarkDragon, 0);
+                if (ddSummonEq == dDd || ((dDd == -1 || dDd == 0) && !DarkDragonHasEquipToSendAsCost()))
+                {
+                    var fragId = ChooseFragmentIdForDeckMill();
+                    if (fragId != 0)
+                        AI.SelectCard(fragId);
+                }
+            }
+
+            // Death Queen Island (c922100163) Stringid 1: on-field ignition equip Fragment from GY to BS.
+            if (card != null
+                && card.IsCode(CardId.DeathQueenIsland)
+                && (card.Location & CardLocation.Hand) == 0
+                && ((card.Location & CardLocation.SpellZone) != 0
+                    || (card.Location & CardLocation.FieldZone) != 0))
+            {
+                var dDqi = (int)ActivateDescription;
+                var dqiEq = (int)Util.GetStringId(CardId.DeathQueenIsland, 1);
+                if (dqiEq == dDqi || dDqi == -1 || dDqi == 0)
+                {
+                    var tgt = BestBlackSaintForEquip();
+                    if (tgt != null)
+                        AI.SelectCard(tgt);
+                    var gyFrag = ChooseBestGraveFragmentCardForEquip(null);
+                    if (gyFrag != null)
+                        AI.SelectNextCard(gyFrag);
+                }
+            }
+
+            // Boss (c922100162) Stringid 1: after Special Summon, equip up to 2 Fragments from GY.
+            if (card != null
+                && card.IsCode(CardId.BossReassembled)
+                && (card.Location & CardLocation.MonsterZone) != 0)
+            {
+                var dBoss = (int)ActivateDescription;
+                var bossEq = (int)Util.GetStringId(CardId.BossReassembled, 1);
+                // texts.str* often empty for custom cards — GetStringId is 0 while engine sends a real id.
+                if (bossEq == dBoss || dBoss == -1 || dBoss == 0 || bossEq == 0)
+                {
+                    var g1 = ChooseBestGraveFragmentCardForEquip(null);
+                    if (g1 != null)
+                    {
+                        AI.SelectCard(g1);
+                        var g2 = ChooseBestGraveFragmentCardForEquip(g1);
+                        if (g2 != null)
+                            AI.SelectNextCard(g2);
+                    }
+                }
             }
 
             // Jango (c922100149) Stringid 0: send 1 Fragment from Deck to GY on summon.
@@ -238,27 +280,21 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(fragId);
             }
 
-            // Death Queen Island / Stolen Gold Cloth: Deck→GY Fragment (optional or mandatory mill).
+            // Death Queen Island / Stolen Gold Cloth: Deck→GY Fragment when activating those spells from **hand** (mill/setup).
             if (card != null && PursuingBossCombo())
             {
-                if (card.IsCode(CardId.DeathQueenIsland)
-                    || card.IsCode(CardId.StolenGoldCloth))
+                if (card.IsCode(CardId.StolenGoldCloth))
                 {
                     var fragId = ChooseMissingFragmentIdFromDeck();
                     if (fragId != 0)
                         AI.SelectCard(fragId);
                 }
-            }
-
-            // Boss (c922100162) Stringid 1: after Special Summon, equip up to 2 Fragments from GY.
-            if (card != null
-                && card.IsCode(CardId.BossReassembled)
-                && (card.Location & CardLocation.MonsterZone) != 0
-                && ActivateDescription == Util.GetStringId(CardId.BossReassembled, 1))
-            {
-                var fragId = ChooseBestFragmentIdInGraveForBossEquip();
-                if (fragId != 0)
-                    AI.SelectCard(fragId);
+                if (card.IsCode(CardId.DeathQueenIsland) && (card.Location & CardLocation.Hand) != 0)
+                {
+                    var fragId = ChooseMissingFragmentIdFromDeck();
+                    if (fragId != 0)
+                        AI.SelectCard(fragId);
+                }
             }
 
             return base.OnPreActivate(card);
@@ -747,11 +783,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool BossAccessible()
         {
-            if (Bot.HasInHand(CardId.BossReassembled))
-                return true;
-            if (Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.BossReassembled)))
-                return true;
-            return Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Deck) > 0;
+            return Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Extra) > 0;
         }
 
         /// <summary>Building toward Boss SS: Boss still reachable and fewer than 7 distinct Fragment names on field/GY.</summary>
@@ -901,7 +933,7 @@ namespace WindBot.Game.AI.Decks
             switch (id)
             {
                 case CardId.BossReassembled:
-                    // Desecrated Sagittarius — distinct names on field/GY gate the ignition (c922100162.lua).
+                    // Fusion Boss — distinct Fragments on field/GY gate the Extra Deck proc (c922100162.lua).
                     {
                         var s = 12;
                         if (frSeen >= 3)
@@ -1047,7 +1079,7 @@ namespace WindBot.Game.AI.Decks
                 && distFr < 6)
                 return CardId.Ikki;
 
-            if (BlackSaintInMainDeck(CardId.BossReassembled) && distFr >= 6)
+            if (Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Extra) > 0 && distFr >= 6)
                 return CardId.BossReassembled;
 
             if (PursuingBossCombo() && distFr < 6 && BlackSaintInMainDeck(CardId.Jango))
@@ -1094,12 +1126,58 @@ namespace WindBot.Game.AI.Decks
         {
             if (!IsMainPhase())
                 return false;
+
+            var d = (int)ActivateDescription;
+            var equipIgnDesc = (int)Util.GetStringId(CardId.DeathQueenIsland, 1);
+            var fragmentGySearchDesc = (int)Util.GetStringId(CardId.DeathQueenIsland, 2);
+
+            var fromHand = (Card.Location & CardLocation.Hand) != 0;
+
+            // Already resolved Field Spell — ignition equip Stringid 1 or Fragment-sent Deck search Stringid 2.
+            if (!fromHand)
+            {
+                if (!Bot.HasInSpellZone(CardId.DeathQueenIsland))
+                    return false;
+
+                var equipLegal = DeathQueenIslandEquipFromGraveIgnitionLegal();
+                var searchLegal = DeathQueenIslandFragmentSentDeckSearchLegal();
+
+                if (d == equipIgnDesc)
+                    return equipLegal;
+                if (d == fragmentGySearchDesc)
+                    return searchLegal;
+                if (d == -1 || d == 0)
+                    return equipLegal || searchLegal;
+                return false;
+            }
+
             if (Bot.HasInSpellZone(CardId.DeathQueenIsland))
                 return false;
             if (PursuingBossCombo() && CountMissingDistinctFragmentNames() > 0)
                 return Bot.GetRemainingCount(ChooseMissingFragmentIdFromDeck(), (int)CardLocation.Deck) > 0
                     || CountFragmentsInHand() > 0;
             return true;
+        }
+
+        private bool DeathQueenIslandEquipFromGraveIgnitionLegal()
+        {
+            if (!HasFreeSpellZone())
+                return false;
+            if (!ControlAnyBlackSaintFaceUp())
+                return false;
+            return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
+        }
+
+        private bool DeathQueenIslandFragmentSentDeckSearchLegal()
+        {
+            foreach (var mid in BlackSaintMonsterIds)
+            {
+                if (mid == CardId.Ikki)
+                    continue;
+                if (BlackSaintInMainDeck(mid))
+                    return true;
+            }
+            return false;
         }
 
         private bool ActivateStolenGoldCloth()
@@ -1120,9 +1198,10 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
+        /// <summary>Quick-Play buff — bot activates only during Battle Phase (Main Phase idle avoided).</summary>
         private bool ActivateEsmeraldasLastWill()
         {
-            if (!IsMainPhase())
+            if (!IsBattlePhase())
                 return false;
             return ControlAnyBlackSaintFaceUp();
         }
@@ -1178,8 +1257,15 @@ namespace WindBot.Game.AI.Decks
             return canPayIgnitionCost;
         }
 
-        private bool ActivateBossFromHandOrGrave()
+        /// <summary>
+        /// Boss (c922100162): Fusion Summon proc from Extra Deck — WindBot lists under Special Summon in Main Phase.
+        /// </summary>
+        private bool SpSummonBossReassembled()
         {
+            if (Card == null || !Card.IsCode(CardId.BossReassembled))
+                return false;
+            if ((Card.Location & CardLocation.Extra) == 0)
+                return false;
             return BossSummonReady();
         }
 
@@ -1228,27 +1314,139 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Dark Dragon (c922100151) Stringid 1: Quick — send 1 equip for indestructible (c922100151.lua indcost).
-        /// Do not auto-activate in open Main1 without equips or threat context (avoids WindBot activate loops).
+        /// Dark Dragon (c922100151): Stringid 0 on-summon equip from Deck; Stringid 1 Quick send equip for protection;
+        /// Stringid 2 from GY add Fragment — isolate summon (-1) from Quick so summon does not require existing equip.
         /// </summary>
         private bool ActivateDarkDragon()
         {
             if (Card == null || !Card.IsCode(CardId.DarkDragon))
                 return false;
+
+            var summonEqDesc = (int)Util.GetStringId(CardId.DarkDragon, 0);
+            var quickDesc = (int)Util.GetStringId(CardId.DarkDragon, 1);
+            var gyAddDesc = (int)Util.GetStringId(CardId.DarkDragon, 2);
+            var d = (int)ActivateDescription;
+
+            if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                if (d == gyAddDesc || d == -1 || d == 0)
+                    return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
+                return false;
+            }
+
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            var quickDesc = Util.GetStringId(CardId.DarkDragon, 1);
-            if (ActivateDescription != quickDesc && ActivateDescription != -1)
+            if (d == summonEqDesc || ((d == -1 || d == 0) && !DarkDragonHasEquipToSendAsCost()))
+                return DarkDragonSummonEquipFromDeckLegal();
+
+            if (d == quickDesc || (d == -1 && DarkDragonHasEquipToSendAsCost()))
+            {
+                if (!DarkDragonHasEquipToSendAsCost())
+                    return false;
+                if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
+                    return false;
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool DarkDragonSummonEquipFromDeckLegal()
+        {
+            if (!HasFreeSpellZone())
+                return false;
+            foreach (var fid in FragmentIds)
+            {
+                if (Bot.GetRemainingCount(fid, (int)CardLocation.Deck) > 0)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Boss on field (c922100162): Stringid 1 equip up to 2 from GY after SS; Stringid 2 Quick negate (5+ equips).
+        /// </summary>
+        private bool ActivateBossOnField()
+        {
+            if (Card == null || !Card.IsCode(CardId.BossReassembled))
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (!DarkDragonHasEquipToSendAsCost())
-                return false;
+            var equipDesc = (int)Util.GetStringId(CardId.BossReassembled, 1);
+            var negateDesc = (int)Util.GetStringId(CardId.BossReassembled, 2);
+            var d = (int)ActivateDescription;
 
-            if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
-                return false;
+            var equipLegal = BossEquipFromGraveAfterSpecialSummonLegal();
+            var negateLegal = !ChainIsEmpty() && IsLastChainFromOpponent() && CountFaceUpEquipsOnCard(Card) >= 5;
 
-            return true;
+            // If both DB prompts are missing, GetStringId returns 0 for both — d==0 would match negate first and block equip.
+            if (negateDesc != 0 && d == negateDesc)
+                return negateLegal;
+            if (equipDesc != 0 && d == equipDesc)
+                return equipLegal;
+
+            if (equipDesc == 0 && negateDesc == 0)
+            {
+                if (ChainIsEmpty() && equipLegal)
+                    return true;
+                if (negateLegal)
+                    return true;
+                return false;
+            }
+
+            if (d == -1 || d == 0)
+            {
+                if (ChainIsEmpty() && equipLegal)
+                    return true;
+                if (negateLegal)
+                    return true;
+                return false;
+            }
+
+            return false;
+        }
+
+        private static int CountFaceUpEquipsOnCard(ClientCard m)
+        {
+            if (m == null || m.EquipCards == null)
+                return 0;
+            var n = 0;
+            foreach (var eq in m.EquipCards)
+            {
+                if (eq != null && eq.IsFaceup())
+                    n++;
+            }
+            return n;
+        }
+
+        private bool BossEquipFromGraveAfterSpecialSummonLegal()
+        {
+            if (!HasFreeSpellZone())
+                return false;
+            return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
+        }
+
+        /// <summary>Best Fragment card in GY to equip (by static ATK bonus), optionally excluding one pick.</summary>
+        private ClientCard ChooseBestGraveFragmentCardForEquip(ClientCard exclude)
+        {
+            ClientCard best = null;
+            var bestB = -1;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c == null || !IsFragmentId(c.Id))
+                    continue;
+                if (exclude != null && ReferenceEquals(c, exclude))
+                    continue;
+                var b = FragmentStaticEquipAtkBonus(c.Id);
+                if (b > bestB)
+                {
+                    bestB = b;
+                    best = c;
+                }
+            }
+            return best;
         }
 
         private bool DarkDragonHasEquipToSendAsCost()
@@ -1614,9 +1812,34 @@ namespace WindBot.Game.AI.Decks
         {
             if (!IsMainPhase())
                 return false;
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
+            if (Card == null || !Card.IsCode(CardId.DarkPegasus))
                 return false;
-            return HasFreeSpellZone();
+
+            // c922100150: Stringid 0 = IGNITION from **hand** SS if you control a face-up Black Saint (not SpSummon proc).
+            var ssDesc = (int)Util.GetStringId(CardId.DarkPegasus, 0);
+            var equipDesc = (int)Util.GetStringId(CardId.DarkPegasus, 1);
+            var d = (int)ActivateDescription;
+
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (d != ssDesc && d != -1 && d != 0)
+                    return false;
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return ControlAnyBlackSaintFaceUp();
+            }
+
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (d != equipDesc && d != -1 && d != 0)
+                    return false;
+                if (!HasFreeSpellZone())
+                    return false;
+                return Bot.Hand.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id))
+                    || Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
+            }
+
+            return false;
         }
 
         private bool ActivateDarkCygnus()
