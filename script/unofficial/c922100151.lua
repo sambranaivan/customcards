@@ -42,6 +42,7 @@ function s.initial_effect(c)
 	e2:SetRange(LOCATION_MZONE)
 	e2:SetHintTiming(0,TIMINGS_CHECK_MONSTER_E)
 	e2:SetCountLimit(1,{id,1})
+	e2:SetCondition(s.indcon)
 	e2:SetCost(s.indcost)
 	e2:SetOperation(s.indop)
 	c:RegisterEffect(e2)
@@ -61,33 +62,33 @@ end
 
 s.listed_series={SET_BLACK_SAINT,SET_FRAGMENT_OF_SAGITTARIUS,SET_SAINT}
 
-function s.fragdeckequip(c)
-	return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and c:IsType(TYPE_EQUIP) and c:IsAbleToChangeControler()
+function s.fragdeckequip(c,ec)
+	if not ec or not ec:IsFaceup() then return false end
+	return c:IsSetCard(SET_FRAGMENT_OF_SAGITTARIUS) and c:IsEquipSpell() and not c:IsForbidden()
+		and c:CheckEquipTarget(ec)
 end
 function s.eqtg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0 and Duel.IsExistingMatchingCard(s.fragdeckequip,tp,LOCATION_DECK,0,1,nil) end
+	local c=e:GetHandler()
+	if chk==0 then return Duel.GetLocationCount(tp,LOCATION_SZONE)>0
+		and Duel.IsExistingMatchingCard(s.fragdeckequip,tp,LOCATION_DECK,0,1,nil,c) end
 	Duel.SetOperationInfo(0,CATEGORY_EQUIP,nil,1,tp,LOCATION_DECK)
 end
 function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local c=e:GetHandler()
-	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or not c:IsFaceup() then return end
+	if Duel.GetLocationCount(tp,LOCATION_SZONE)<=0 or not c:IsFaceup() or not c:IsRelateToEffect(e) then return end
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_EQUIP)
-	local g=Duel.SelectMatchingCard(tp,s.fragdeckequip,tp,LOCATION_DECK,0,1,1,nil)
+	local g=Duel.SelectMatchingCard(tp,s.fragdeckequip,tp,LOCATION_DECK,0,1,1,nil,c)
 	local tc=g:GetFirst()
-	if tc and Duel.Equip(tp,tc,c) then
-		local e1=Effect.CreateEffect(c)
-		e1:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
-		e1:SetCode(EVENT_PHASE+PHASE_END)
-		e1:SetReset(RESET_PHASE+PHASE_END)
-		e1:SetLabelObject(tc)
-		e1:SetOperation(function(e,tp)
-			local ec=e:GetLabelObject()
-			if ec and ec:IsOnField() then Duel.SendtoGrave(ec,REASON_EFFECT) end
-		end)
-		Duel.RegisterEffect(e1,tp)
+	if tc and Duel.Equip(tp,tc,c,true) then
+		aux.DelayedOperation(tc,PHASE_END,id,e,tp,function(ag)
+			if ag and ag:IsOnField() then Duel.SendtoGrave(ag,REASON_EFFECT) end
+		end,nil,0)
 	end
 end
 
+function s.indcon(e,tp,eg,ep,ev,re,r,rp)
+	return e:GetHandler():GetEquipGroup():IsExists(s.indcostfilter,1,nil)
+end
 function s.indcostfilter(c)
 	return c:IsType(TYPE_EQUIP) and c:IsAbleToGraveAsCost()
 end

@@ -258,13 +258,13 @@
         "masterRules": [ 7 ]
     },
     {
-        "name": "Saint Seiya - Bronze Only",
+        "name": "SSY Bronze Saints",
         "deck": "SaintSeiyaBronzeOnly",
         "difficulty": 2,
         "masterRules": [ 5 ]
     },
     {
-        "name": "Saint Seiya - Black Saints",
+        "name": "SSY Black Saints",
         "deck": "SaintSeiyaBlackSaints",
         "difficulty": 2,
         "masterRules": [ 5 ]

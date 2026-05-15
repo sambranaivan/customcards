@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 11;
-        private const string BuildTag = "2026-05-13-v11-esmeralda-ikki-deck-gy-hand";
+        private const int BuildVersion = 13;
+        private const string BuildTag = "2026-05-13-v13-esmeralda-normal-summon-atk";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -85,7 +85,7 @@ namespace WindBot.Game.AI.Decks
 
         private static readonly int[] NormalSummonPriorityIds =
         {
-            CardId.Jango, CardId.Esmeralda, CardId.DarkPegasus, CardId.DarkDragon,
+            CardId.Jango, CardId.DarkPegasus, CardId.DarkDragon,
             CardId.DarkCygnus, CardId.DarkAndromeda, CardId.DarkPhoenix
         };
 
@@ -117,7 +117,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.SpSummon, CardId.Guilty, SpSummonGuiltyFromHand);
             AddExecutor(ExecutorType.SpSummon, CardId.Ikki, SpSummonIkkiFromHand);
 
-            AddExecutor(ExecutorType.SummonOrSet, CardId.Esmeralda, SummonOrSetEsmeraldaEmergencyDefense);
+            AddExecutor(ExecutorType.Summon, CardId.Esmeralda, PrioritizeEsmeraldaNormalSummon);
 
             AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
@@ -202,6 +202,17 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectNextCard(ikki);
             }
 
+            // Dark Dragon (c922100151) Stringid 0: on-summon equip Fragment from Deck.
+            if (card != null
+                && card.IsCode(CardId.DarkDragon)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && ActivateDescription == Util.GetStringId(CardId.DarkDragon, 0))
+            {
+                var fragId = ChooseBestFragmentIdStillInDeck();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
+            }
+
             return base.OnPreActivate(card);
         }
 
@@ -232,36 +243,32 @@ namespace WindBot.Game.AI.Decks
             if (enemyBestAtk > card.Defense)
                 return true;
 
-            if (card.IsCode(CardId.Esmeralda) && !Bot.HasInHand(CardId.Jango))
-                return true;
+            // Esmeralda: never Set — Normal Summon face-up ATK for c922100168 protection lines.
+            if (card.IsCode(CardId.Esmeralda))
+                return false;
 
             return false;
         }
 
-        /// <summary>Esmeralda: allow Summon-or-Set path when we need a body under pressure without Jango.</summary>
-        private bool SummonOrSetEsmeraldaEmergencyDefense()
+        /// <summary>
+        /// Esmeralda (c922100168): Normal Summon face-up ATK (negate attack / Ikki when targeted).
+        /// Jango still opens on empty field when available.
+        /// </summary>
+        private bool PrioritizeEsmeraldaNormalSummon()
         {
-            if (!IsMainPhase())
-                return false;
-            if (Duel.Player != 0)
-                return false;
-            if ((Card.Location & CardLocation.Hand) == 0)
+            if (!IsMainPhase() || Duel.Player != 0)
                 return false;
             if (!Card.IsCode(CardId.Esmeralda))
+                return false;
+            if ((Card.Location & CardLocation.Hand) == 0)
                 return false;
             if (Bot.GetMonsterCount() >= 5)
                 return false;
 
-            if (ControlAnyBlackSaintFaceUp())
+            if (Bot.HasInHand(CardId.Jango) && Bot.GetMonsterCount() == 0 && !ControlAnyBlackSaintFaceUp())
                 return false;
 
-            if (Enemy.GetMonsterCount() > 0)
-                return true;
-
-            if (!Bot.HasInHand(CardId.Jango) && Bot.GetHandCount() <= 4)
-                return true;
-
-            return false;
+            return true;
         }
 
         /// <summary>
@@ -272,6 +279,10 @@ namespace WindBot.Game.AI.Decks
         private bool PreferFaceUpDefenceSummon(int atkStat, int defStat, IList<CardPosition> positions, int monsterCardId)
         {
             if (positions == null || !positions.Contains(CardPosition.FaceUpDefence))
+                return false;
+
+            // Esmeralda wants ATK to draw attacks/effects (Maiden-like protection).
+            if (monsterCardId == CardId.Esmeralda)
                 return false;
 
             int projAtk = atkStat;
@@ -311,6 +322,9 @@ namespace WindBot.Game.AI.Decks
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
             int monsterId = Card != null ? Card.Id : cardId;
+
+            if (monsterId == CardId.Esmeralda && positions != null && positions.Contains(CardPosition.FaceUpAttack))
+                return CardPosition.FaceUpAttack;
 
             if (PreferFaceUpDefenceSummon(atkStat, defStat, positions, monsterId))
                 return CardPosition.FaceUpDefence;
@@ -1085,6 +1099,61 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
+        /// Dark Dragon (c922100151) Stringid 1: Quick — send 1 equip for indestructible (c922100151.lua indcost).
+        /// Do not auto-activate in open Main1 without equips or threat context (avoids WindBot activate loops).
+        /// </summary>
+        private bool ActivateDarkDragon()
+        {
+            if (Card == null || !Card.IsCode(CardId.DarkDragon))
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            var quickDesc = Util.GetStringId(CardId.DarkDragon, 1);
+            if (ActivateDescription != quickDesc && ActivateDescription != -1)
+                return false;
+
+            if (!DarkDragonHasEquipToSendAsCost())
+                return false;
+
+            if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
+                return false;
+
+            return true;
+        }
+
+        private bool DarkDragonHasEquipToSendAsCost()
+        {
+            if (Card == null || Card.EquipCards == null)
+                return false;
+            foreach (var eq in Card.EquipCards)
+            {
+                if (eq != null && eq.IsFaceup())
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>Best Fragment name still in Main Deck (for Dark Dragon on-summon equip bias).</summary>
+        private int ChooseBestFragmentIdStillInDeck()
+        {
+            var bestId = 0;
+            var bestBonus = -1;
+            foreach (var fid in FragmentIds)
+            {
+                if (Bot.GetRemainingCount(fid, (int)CardLocation.Deck) <= 0)
+                    continue;
+                var b = FragmentStaticEquipAtkBonus(fid);
+                if (b > bestBonus)
+                {
+                    bestBonus = b;
+                    bestId = fid;
+                }
+            }
+            return bestId;
+        }
+
+        /// <summary>
         /// Esmeralda (c922100168): Stringid 1 = Quick when targeted (EVENT_BECOME_TARGET) SS Ikki;
         /// Stringid 2 = battle target negate + position + optional Ikki. Same once-per-turn pool as on-summon search (see c922100168.lua).
         /// </summary>
@@ -1302,11 +1371,6 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
             return HasFreeSpellZone();
-        }
-
-        private bool ActivateDarkDragon()
-        {
-            return IsMainPhase();
         }
 
         private bool ActivateDarkCygnus()
