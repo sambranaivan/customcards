@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 10;
-        private const string BuildTag = "2026-05-13-v10-esmeralda-922100168-maidens-ikki";
+        private const int BuildVersion = 11;
+        private const string BuildTag = "2026-05-13-v11-esmeralda-ikki-deck-gy-hand";
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
         private const int FragmentQuickThreatAtkFloor = 1900;
@@ -191,7 +191,7 @@ namespace WindBot.Game.AI.Decks
                 && IsOpenOwnMainPhaseNoChain())
                 return false;
 
-            // Esmeralda (c922100168) Stringid 1: Quick when targeted — bias Ikki pick (hand then GY; deck left to default).
+            // Esmeralda (c922100168) Stringid 1: Quick when targeted — bias Ikki: Deck, then GY, then hand.
             if (card != null
                 && card.IsCode(CardId.Esmeralda)
                 && (card.Location & CardLocation.MonsterZone) != 0
@@ -1121,12 +1121,12 @@ namespace WindBot.Game.AI.Decks
             return ActivateDescription == Util.GetStringId(CardId.Esmeralda, 1);
         }
 
-        /// <summary>First Ikki in hand, then GY, for SelectNextCard bias (deck targets often not addressable here).</summary>
+        /// <summary>First Ikki in Main Deck, then GY, then hand, for SelectNextCard bias in OnPreActivate.</summary>
         private ClientCard ChooseEsmeraldaIkkiClientCardForSelectNext()
         {
-            if (Bot.Hand != null)
+            if (Bot.Deck != null && BlackSaintInMainDeck(CardId.Ikki))
             {
-                foreach (var c in Bot.Hand)
+                foreach (var c in Bot.Deck)
                 {
                     if (c != null && c.IsCode(CardId.Ikki))
                         return c;
@@ -1135,6 +1135,14 @@ namespace WindBot.Game.AI.Decks
             if (Bot.Graveyard != null)
             {
                 foreach (var c in Bot.Graveyard)
+                {
+                    if (c != null && c.IsCode(CardId.Ikki))
+                        return c;
+                }
+            }
+            if (Bot.Hand != null)
+            {
+                foreach (var c in Bot.Hand)
                 {
                     if (c != null && c.IsCode(CardId.Ikki))
                         return c;
