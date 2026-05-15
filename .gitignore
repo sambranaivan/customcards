@@ -40,7 +40,11 @@ WindBot/**/*.pdb
 !WindBot/Executors/**/*.pdb
 WindBot/**/obj/
 tools\CardMaker\output\*
+tools/ygosharp/
+tools/ygosharp_src/
+tools/bot_duel/.cache/
 .specstory/*
 replay/_LastReplay.yrp
 replay/_LastReplay.yrpX
 .specstory/history/2026-05-05_22-49-22Z-modificación-de-comportamiento-de-ejecutores.md
+bot_duel
