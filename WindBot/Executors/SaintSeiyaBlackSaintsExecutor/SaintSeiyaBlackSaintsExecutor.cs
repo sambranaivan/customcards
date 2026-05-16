@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 32;
-        private const string BuildTag = "2026-05-16-v32-ikki-quick-destroy-no-self-target";
+        private const int BuildVersion = 34;
+        private const string BuildTag = "2026-05-16-v34-ikki-cdb-str1-str4-descriptions";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -281,8 +281,18 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(fragId);
             }
 
-            // Ikki (c922100148) Stringid 3 Quick: cost Fragment + destroy opponent card (preselect before chain prompts).
+            // Ikki Stringid 2 first: on N/SS add Fragment (desc -1/0 when texts.str* empty — must beat Quick preselect).
             if (card != null
+                && card.IsCode(CardId.Ikki)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && IsIkkiMonsterZoneOnSummonSearchDescription((int)ActivateDescription))
+            {
+                var fragId = ChooseFragmentIdForDeckMill();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
+            }
+            // Ikki Stringid 3 Quick: cost Fragment + destroy opponent card.
+            else if (card != null
                 && card.IsCode(CardId.Ikki)
                 && (card.Location & CardLocation.MonsterZone) != 0
                 && IsIkkiQuickDestroyActivation((int)ActivateDescription))
@@ -293,16 +303,6 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(cost);
                 if (kill != null)
                     AI.SelectNextCard(kill);
-            }
-            // Ikki Stringid 2: on N/SS add 1 Fragment from Deck (e.g. after Esmeralda Quick/battle SS).
-            else if (card != null
-                && card.IsCode(CardId.Ikki)
-                && (card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiMonsterZoneOnSummonSearchDescription((int)ActivateDescription))
-            {
-                var fragId = ChooseFragmentIdForDeckMill();
-                if (fragId != 0)
-                    AI.SelectCard(fragId);
             }
 
             // Death Queen Island / Stolen Gold Cloth: Deck→GY Fragment when activating those spells from **hand** (mill/setup).
@@ -1737,43 +1737,49 @@ namespace WindBot.Game.AI.Decks
             return IsMainPhase();
         }
 
-        /// <summary>Quick destroy (Stringid 3) legal: Fragment cost + face-up opponent target.</summary>
+        /// <summary>Quick destroy (Stringid 3 / texts.str4) legal: Fragment cost + face-up opponent target.</summary>
         private bool IkkiQuickDestroyLegal()
         {
             return ChooseIkkiFragmentEquipForQuickCost() != null
                 && ChooseIkkiDestroyTargetPreferOpponent(null) != null;
         }
 
-        /// <summary>c922100148 Stringid 3 — do not conflate with on-summon search when desc is -1/0.</summary>
+        /// <summary>c922100148 Stringid 0 — hand Special Summon (texts.str1).</summary>
+        private bool IsIkkiHandSpecialSummonDescription(int d)
+        {
+            var hd = (int)Util.GetStringId(CardId.Ikki, 0);
+            if (hd != 0)
+                return d == hd;
+            return d == -1 || d == 0;
+        }
+
+        /// <summary>c922100148 Stringid 1 — GY Special Summon (texts.str2).</summary>
+        private bool IsIkkiGraveSpecialSummonDescription(int d)
+        {
+            var gd = (int)Util.GetStringId(CardId.Ikki, 1);
+            if (gd != 0)
+                return d == gd;
+            return d == -1 || d == 0;
+        }
+
+        /// <summary>c922100148 Stringid 3 — Quick destroy (texts.str4); never matches trigger desc -1.</summary>
         private bool IsIkkiQuickDestroyActivation(int d)
         {
             var qd = (int)Util.GetStringId(CardId.Ikki, 3);
-            if (qd != 0 && d == qd)
-                return IkkiQuickDestroyLegal();
-            if (!IkkiQuickDestroyLegal())
+            if (qd == 0)
                 return false;
-            var sd = (int)Util.GetStringId(CardId.Ikki, 2);
-            if (sd != 0 && d == sd)
-                return false;
-            if (d != -1 && d != 0)
-                return false;
-            if (qd != 0)
-                return false;
-            // str3 empty: -1/0 is Quick only on idle (summon trigger runs in chain).
-            return ChainIsEmpty();
+            return d == qd && IkkiQuickDestroyLegal();
         }
 
-        /// <summary>c922100148 Stringid 2: optional add Fragment from Deck after N/SS (shared desc -1/0 when texts.str* empty).</summary>
+        /// <summary>c922100148 Stringid 2 — on N/SS Deck search (texts.str3); triggers still send desc -1.</summary>
         private bool IsIkkiMonsterZoneOnSummonSearchDescription(int d)
         {
-            if (IsIkkiQuickDestroyActivation(d))
-                return false;
             var qd = (int)Util.GetStringId(CardId.Ikki, 3);
             if (qd != 0 && d == qd)
                 return false;
             var sd = (int)Util.GetStringId(CardId.Ikki, 2);
-            if (sd != 0)
-                return d == sd || d == -1 || d == 0;
+            if (sd != 0 && d == sd)
+                return true;
             return d == -1 || d == 0;
         }
 
@@ -1788,8 +1794,7 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// Ikki (c922100148): Stringid 3 Quick (cost + destroy); Stringid 2 on-summon Deck search; Stringid 1 GY SS; Stringid 0 hand SS.
-        /// Quick must not match on <c>GetStringId==0</c> + engine <c>desc==0</c> or the on-summon trigger after Esmeralda SS never activates.
+        /// Ikki (c922100148): str1 hand SS, str2 GY SS, str3 on-summon search, str4 Quick destroy (see texts in saint-seiya.cdb).
         /// On-summon trigger can fire in Battle Phase — do not gate it with <see cref="IsMainPhase"/> only.
         /// </summary>
         private bool ActivateIkki()
@@ -1797,15 +1802,16 @@ namespace WindBot.Game.AI.Decks
             if (Card == null || !Card.IsCode(CardId.Ikki))
                 return false;
 
-            var d = ActivateDescription;
-            var quickDesc = (int)Util.GetStringId(CardId.Ikki, 3);
-            var summonSearchDesc = (int)Util.GetStringId(CardId.Ikki, 2);
-            var gySsDesc = (int)Util.GetStringId(CardId.Ikki, 1);
-            var handSsDesc = (int)Util.GetStringId(CardId.Ikki, 0);
+            var d = (int)ActivateDescription;
 
-            // Quick (Stringid 3) — MMZ only
+            // On-summon search (Stringid 2 / str3) — before Quick; engine triggers use desc -1
             if ((Card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiQuickDestroyActivation((int)d))
+                && IsIkkiMonsterZoneOnSummonSearchDescription(d))
+                return IkkiDeckHasSearchableFragment();
+
+            // Quick (Stringid 3 / str4) — MMZ only
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && IsIkkiQuickDestroyActivation(d))
             {
                 if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
                     return false;
@@ -1820,25 +1826,20 @@ namespace WindBot.Game.AI.Decks
                 return false;
             }
 
-            // On-summon search (Stringid 2) — MMZ (EVENT_SUMMON_SUCCESS / SPSUMMON_SUCCESS, incl. Esmeralda chain end)
-            if ((Card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiMonsterZoneOnSummonSearchDescription((int)d))
-                return IkkiDeckHasSearchableFragment();
-
-            // GY: send face-up Fragment equip to GY; SS this card (Stringid 1)
+            // GY: send face-up Fragment equip to GY; SS this card (Stringid 1 / str2)
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (gySsDesc != 0 && d != gySsDesc && d != -1 && d != 0)
+                if (!IsIkkiGraveSpecialSummonDescription(d))
                     return false;
                 if (!IsMainPhase())
                     return false;
                 return ChooseIkkiFragmentEquipForQuickCost() != null;
             }
 
-            // Hand: SS if 2+ face-up Black Saints (Stringid 0)
+            // Hand: SS if 2+ face-up Black Saints (Stringid 0 / str1)
             if ((Card.Location & CardLocation.Hand) != 0)
             {
-                if (handSsDesc != 0 && d != handSsDesc && d != -1 && d != 0)
+                if (!IsIkkiHandSpecialSummonDescription(d))
                     return false;
                 if (!IsMainPhase())
                     return false;
