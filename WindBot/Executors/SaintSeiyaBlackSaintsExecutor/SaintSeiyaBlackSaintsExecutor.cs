@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 34;
-        private const string BuildTag = "2026-05-16-v34-ikki-cdb-str1-str4-descriptions";
+        private const int BuildVersion = 36;
+        private const string BuildTag = "2026-05-16-v36-cdb-str-descriptions";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -42,6 +42,19 @@ namespace WindBot.Game.AI.Decks
         /// <summary>Skirt: opponent loses 500 ATK during damage calc only — conservative ATK margin vs their printed ATK.</summary>
         private const int FragmentSkirtBattleMarginAtk = 500;
         private static bool _buildTagLogged;
+
+        private bool MatchesCardEffectDesc(int desc, int cardId, int stringIndex)
+        {
+            var sd = (int)Util.GetStringId(cardId, stringIndex);
+            return sd != 0 && desc == sd;
+        }
+
+        private bool MatchesCardEffectDescOrTrigger(int desc, int cardId, int stringIndex)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, stringIndex))
+                return true;
+            return desc == -1 || desc == 0;
+        }
 
         public class CardId
         {
@@ -222,8 +235,8 @@ namespace WindBot.Game.AI.Decks
                 && (card.Location & CardLocation.MonsterZone) != 0)
             {
                 var dDd = (int)ActivateDescription;
-                var ddSummonEq = (int)Util.GetStringId(CardId.DarkDragon, 0);
-                if (ddSummonEq == dDd || ((dDd == -1 || dDd == 0) && !DarkDragonHasEquipToSendAsCost()))
+                if (MatchesCardEffectDescOrTrigger(dDd, CardId.DarkDragon, 0)
+                    && !DarkDragonHasEquipToSendAsCost())
                 {
                     var fragId = ChooseFragmentIdForDeckMill();
                     if (fragId != 0)
@@ -239,8 +252,7 @@ namespace WindBot.Game.AI.Decks
                     || (card.Location & CardLocation.FieldZone) != 0))
             {
                 var dDqi = (int)ActivateDescription;
-                var dqiEq = (int)Util.GetStringId(CardId.DeathQueenIsland, 1);
-                if (dqiEq == dDqi || dDqi == -1 || dDqi == 0)
+                if (MatchesCardEffectDesc(dDqi, CardId.DeathQueenIsland, 1))
                 {
                     var tgt = BestBlackSaintForEquip();
                     if (tgt != null)
@@ -257,9 +269,7 @@ namespace WindBot.Game.AI.Decks
                 && (card.Location & CardLocation.MonsterZone) != 0)
             {
                 var dBoss = (int)ActivateDescription;
-                var bossEq = (int)Util.GetStringId(CardId.BossReassembled, 1);
-                // texts.str* often empty for custom cards — GetStringId is 0 while engine sends a real id.
-                if (bossEq == dBoss || dBoss == -1 || dBoss == 0 || bossEq == 0)
+                if (MatchesCardEffectDescOrTrigger(dBoss, CardId.BossReassembled, 1))
                 {
                     // One MSG_SELECT_CARD with min=1 max=2: CardSelector(Card) only returns one pick; use IList to send both.
                     var maxPick = System.Math.Min(2, CountFreeSpellZones());
@@ -271,10 +281,10 @@ namespace WindBot.Game.AI.Decks
                 }
             }
 
-            // Jango (c922100149) Stringid 0: send 1 Fragment from Deck to GY on summon.
+            // Jango (c922100149) Stringid 0 / str1: send 1 Fragment from Deck to GY on summon.
             if (card != null
                 && card.IsCode(CardId.Jango)
-                && ActivateDescription == Util.GetStringId(CardId.Jango, 0))
+                && MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.Jango, 0))
             {
                 var fragId = ChooseFragmentIdForDeckMill();
                 if (fragId != 0)
@@ -1158,12 +1168,9 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             var d = (int)ActivateDescription;
-            var equipIgnDesc = (int)Util.GetStringId(CardId.DeathQueenIsland, 1);
-            var fragmentGySearchDesc = (int)Util.GetStringId(CardId.DeathQueenIsland, 2);
-
             var fromHand = (Card.Location & CardLocation.Hand) != 0;
 
-            // Already resolved Field Spell — ignition equip Stringid 1 or Fragment-sent Deck search Stringid 2.
+            // Field — Stringid 1 / str2 equip, or Stringid 2 / str3 Fragment-sent search.
             if (!fromHand)
             {
                 if (!Bot.HasInSpellZone(CardId.DeathQueenIsland))
@@ -1172,12 +1179,10 @@ namespace WindBot.Game.AI.Decks
                 var equipLegal = DeathQueenIslandEquipFromGraveIgnitionLegal();
                 var searchLegal = DeathQueenIslandFragmentSentDeckSearchLegal();
 
-                if (d == equipIgnDesc)
+                if (MatchesCardEffectDesc(d, CardId.DeathQueenIsland, 1))
                     return equipLegal;
-                if (d == fragmentGySearchDesc)
+                if (MatchesCardEffectDescOrTrigger(d, CardId.DeathQueenIsland, 2))
                     return searchLegal;
-                if (d == -1 || d == 0)
-                    return equipLegal || searchLegal;
                 return false;
             }
 
@@ -1352,25 +1357,22 @@ namespace WindBot.Game.AI.Decks
             if (Card == null || !Card.IsCode(CardId.DarkDragon))
                 return false;
 
-            var summonEqDesc = (int)Util.GetStringId(CardId.DarkDragon, 0);
-            var quickDesc = (int)Util.GetStringId(CardId.DarkDragon, 1);
-            var gyAddDesc = (int)Util.GetStringId(CardId.DarkDragon, 2);
             var d = (int)ActivateDescription;
 
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (d == gyAddDesc || d == -1 || d == 0)
-                    return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
-                return false;
+                if (!MatchesCardEffectDescOrTrigger(d, CardId.DarkDragon, 2))
+                    return false;
+                return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
             }
 
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (d == summonEqDesc || ((d == -1 || d == 0) && !DarkDragonHasEquipToSendAsCost()))
+            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkDragon, 0) && !DarkDragonHasEquipToSendAsCost())
                 return DarkDragonSummonEquipFromDeckLegal();
 
-            if (d == quickDesc || (d == -1 && DarkDragonHasEquipToSendAsCost()))
+            if (MatchesCardEffectDesc(d, CardId.DarkDragon, 1))
             {
                 if (!DarkDragonHasEquipToSendAsCost())
                     return false;
@@ -1406,40 +1408,15 @@ namespace WindBot.Game.AI.Decks
             if (Duel.Player != 0 || !IsMainPhase())
                 return false;
 
-            var equipDesc = (int)Util.GetStringId(CardId.BossReassembled, 1);
-            var negateDesc = (int)Util.GetStringId(CardId.BossReassembled, 2);
             var d = (int)ActivateDescription;
 
             var equipLegal = BossEquipFromGraveAfterSpecialSummonLegal();
             var negateLegal = !ChainIsEmpty() && IsLastChainFromOpponent() && CountFaceUpEquipsOnCard(Card) >= 5;
 
-            // If both DB prompts are missing, GetStringId returns 0 for both — d==0 would match negate first and block equip.
-            if (negateDesc != 0 && d == negateDesc)
+            if (MatchesCardEffectDesc(d, CardId.BossReassembled, 2))
                 return negateLegal;
-            if (equipDesc != 0 && d == equipDesc)
+            if (MatchesCardEffectDescOrTrigger(d, CardId.BossReassembled, 1))
                 return equipLegal;
-
-            if (equipDesc == 0 && negateDesc == 0)
-            {
-                if (ChainIsEmpty() && equipLegal)
-                    return true;
-                if (negateLegal)
-                    return true;
-                return false;
-            }
-
-            if (d == -1 || d == 0)
-            {
-                if (ChainIsEmpty() && equipLegal)
-                    return true;
-                if (negateLegal)
-                    return true;
-                return false;
-            }
-
-            // Engine effect description may not match Util.GetStringId (locale / DB drift); open chain + GY equip is the post-SS trigger (c922100162).
-            if (ChainIsEmpty() && equipLegal)
-                return true;
 
             return false;
         }
@@ -1610,28 +1587,24 @@ namespace WindBot.Game.AI.Decks
             if (Card == null || !Card.IsCode(CardId.Esmeralda))
                 return false;
 
-            var quickDesc = (int)Util.GetStringId(CardId.Esmeralda, 1);
-            var battleDesc = (int)Util.GetStringId(CardId.Esmeralda, 2);
             var d = (int)ActivateDescription;
 
-            // Opponent turn: BE_BATTLE_TARGET / BECOME_TARGET (desc often -1 or 0 while Phase is still Main2).
             if (IsOpponentTurn())
             {
                 if ((Card.Location & CardLocation.MonsterZone) == 0)
                     return false;
-                if (d == quickDesc)
+                if (MatchesCardEffectDesc(d, CardId.Esmeralda, 1))
                 {
                     if (Bot.GetMonsterCount() >= 5)
                         return false;
                     return EsmeraldaIkkiAccessible();
                 }
-                if (d == battleDesc || d == -1 || d == 0)
+                if (MatchesCardEffectDescOrTrigger(d, CardId.Esmeralda, 2))
                     return true;
-                return true;
+                return false;
             }
 
-            // Quick (Stringid 1) — only from MMZ.
-            if (d == quickDesc)
+            if (MatchesCardEffectDesc(d, CardId.Esmeralda, 1))
             {
                 if ((Card.Location & CardLocation.MonsterZone) == 0)
                     return false;
@@ -1640,30 +1613,24 @@ namespace WindBot.Game.AI.Decks
                 return EsmeraldaIkkiAccessible();
             }
 
-            if (d == battleDesc)
+            if (MatchesCardEffectDesc(d, CardId.Esmeralda, 2))
                 return false;
 
-            // Our turn: any other prompt = on-summon search (Ignis often sends desc -1, not id*16+0).
             if (IsEsmeraldaSummonSearchDescription(d))
                 return EsmeraldaHasDeckSearchTarget();
 
             return false;
         }
 
-        /// <summary>On-summon deck search (Stringid 0) — EffectYn uses -1/0; idle cmd may send Stringid hash.</summary>
+        /// <summary>On-summon deck search (Stringid 0 / str1); triggers use desc -1.</summary>
         private bool IsEsmeraldaSummonSearchDescription(int desc)
         {
             if (IsOpponentTurn())
                 return false;
-            if (desc == (int)Util.GetStringId(CardId.Esmeralda, 0))
-                return true;
-            if (desc == -1 || desc == 0)
-                return true;
-            // Not Quick or battle lines on our turn → treat as summon search (custom desc values).
-            if (desc != (int)Util.GetStringId(CardId.Esmeralda, 1)
-                && desc != (int)Util.GetStringId(CardId.Esmeralda, 2))
-                return true;
-            return false;
+            if (MatchesCardEffectDesc(desc, CardId.Esmeralda, 1)
+                || MatchesCardEffectDesc(desc, CardId.Esmeralda, 2))
+                return false;
+            return MatchesCardEffectDescOrTrigger(desc, CardId.Esmeralda, 0);
         }
 
         /// <summary>Esmeralda on-summon search adds only Death Queen Island (922100163).</summary>
@@ -1677,13 +1644,8 @@ namespace WindBot.Game.AI.Decks
         /// <summary>Battle negate (Stringid 2) or generic trigger desc during a battle window.</summary>
         private bool IsEsmeraldaBattleActivateDescription(int desc)
         {
-            if (desc == (int)Util.GetStringId(CardId.Esmeralda, 2))
-                return true;
-            if (desc != -1 && desc != 0)
-                return false;
-            if (IsOpponentTurn())
-                return true;
-            return IsBattlePhase();
+            return MatchesCardEffectDesc(desc, CardId.Esmeralda, 2)
+                || (IsOpponentTurn() && MatchesCardEffectDescOrTrigger(desc, CardId.Esmeralda, 2));
         }
 
         private bool EsmeraldaHasDeckSearchTarget()
@@ -1699,7 +1661,7 @@ namespace WindBot.Game.AI.Decks
         /// <summary>True when engine is offering Esmeralda's Quick (Stringid 1) vs her other MMZ activations.</summary>
         private bool IsEsmeraldaQuickIkkiActivateDescription()
         {
-            return ActivateDescription == Util.GetStringId(CardId.Esmeralda, 1);
+            return MatchesCardEffectDesc((int)ActivateDescription, CardId.Esmeralda, 1);
         }
 
         /// <summary>First Ikki in Main Deck, then GY, then hand, for SelectNextCard bias in OnPreActivate.</summary>
@@ -1734,7 +1696,46 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateGuilty()
         {
-            return IsMainPhase();
+            if (Card == null || !Card.IsCode(CardId.Guilty))
+                return false;
+            if (!IsMainPhase() && !ChainIsEmpty())
+                return false;
+
+            var d = (int)ActivateDescription;
+
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (!MatchesCardEffectDesc(d, CardId.Guilty, 0))
+                    return false;
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return ControlAnyBlackSaintFaceUp();
+            }
+
+            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            {
+                if (MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 1))
+                    return ChooseFragmentIdForDeckMill() != 0;
+                if (MatchesCardEffectDesc(d, CardId.Guilty, 2))
+                {
+                    if (ChainIsEmpty() || !IsLastChainFromOpponent())
+                        return false;
+                    return ChooseIkkiFragmentEquipForQuickCost() != null;
+                }
+                return false;
+            }
+
+            if ((Card.Location & CardLocation.Grave) != 0)
+                return false;
+
+            if (MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 3))
+            {
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave)) > 0;
+            }
+
+            return false;
         }
 
         /// <summary>Quick destroy (Stringid 3 / texts.str4) legal: Fragment cost + face-up opponent target.</summary>
@@ -1744,43 +1745,30 @@ namespace WindBot.Game.AI.Decks
                 && ChooseIkkiDestroyTargetPreferOpponent(null) != null;
         }
 
-        /// <summary>c922100148 Stringid 0 — hand Special Summon (texts.str1).</summary>
+        /// <summary>c922100148 Stringid 0 / texts.str1 — hand Special Summon.</summary>
         private bool IsIkkiHandSpecialSummonDescription(int d)
         {
-            var hd = (int)Util.GetStringId(CardId.Ikki, 0);
-            if (hd != 0)
-                return d == hd;
-            return d == -1 || d == 0;
+            return MatchesCardEffectDesc(d, CardId.Ikki, 0);
         }
 
-        /// <summary>c922100148 Stringid 1 — GY Special Summon (texts.str2).</summary>
+        /// <summary>c922100148 Stringid 1 / texts.str2 — GY Special Summon.</summary>
         private bool IsIkkiGraveSpecialSummonDescription(int d)
         {
-            var gd = (int)Util.GetStringId(CardId.Ikki, 1);
-            if (gd != 0)
-                return d == gd;
-            return d == -1 || d == 0;
+            return MatchesCardEffectDesc(d, CardId.Ikki, 1);
         }
 
         /// <summary>c922100148 Stringid 3 — Quick destroy (texts.str4); never matches trigger desc -1.</summary>
         private bool IsIkkiQuickDestroyActivation(int d)
         {
-            var qd = (int)Util.GetStringId(CardId.Ikki, 3);
-            if (qd == 0)
-                return false;
-            return d == qd && IkkiQuickDestroyLegal();
+            return MatchesCardEffectDesc(d, CardId.Ikki, 3) && IkkiQuickDestroyLegal();
         }
 
         /// <summary>c922100148 Stringid 2 — on N/SS Deck search (texts.str3); triggers still send desc -1.</summary>
         private bool IsIkkiMonsterZoneOnSummonSearchDescription(int d)
         {
-            var qd = (int)Util.GetStringId(CardId.Ikki, 3);
-            if (qd != 0 && d == qd)
+            if (MatchesCardEffectDesc(d, CardId.Ikki, 3))
                 return false;
-            var sd = (int)Util.GetStringId(CardId.Ikki, 2);
-            if (sd != 0 && d == sd)
-                return true;
-            return d == -1 || d == 0;
+            return MatchesCardEffectDescOrTrigger(d, CardId.Ikki, 2);
         }
 
         private bool IkkiDeckHasSearchableFragment()
@@ -1963,7 +1951,22 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateJango()
         {
-            return IsMainPhase();
+            if (Card == null || !Card.IsCode(CardId.Jango))
+                return false;
+            if (!IsMainPhase())
+                return false;
+
+            var d = (int)ActivateDescription;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            if (MatchesCardEffectDescOrTrigger(d, CardId.Jango, 0))
+                return ChooseFragmentIdForDeckMill() != 0;
+
+            if (MatchesCardEffectDescOrTrigger(d, CardId.Jango, 1))
+                return ControlAnyBlackSaintFaceUp() && Bot.GetMonsterCount() < 5;
+
+            return false;
         }
 
         private bool ActivateDarkPegasus()
@@ -1973,14 +1976,11 @@ namespace WindBot.Game.AI.Decks
             if (Card == null || !Card.IsCode(CardId.DarkPegasus))
                 return false;
 
-            // c922100150: Stringid 0 = IGNITION from **hand** SS if you control a face-up Black Saint (not SpSummon proc).
-            var ssDesc = (int)Util.GetStringId(CardId.DarkPegasus, 0);
-            var equipDesc = (int)Util.GetStringId(CardId.DarkPegasus, 1);
             var d = (int)ActivateDescription;
 
             if ((Card.Location & CardLocation.Hand) != 0)
             {
-                if (d != ssDesc && d != -1 && d != 0)
+                if (!MatchesCardEffectDesc(d, CardId.DarkPegasus, 0))
                     return false;
                 if (Bot.GetMonsterCount() >= 5)
                     return false;
@@ -1989,7 +1989,7 @@ namespace WindBot.Game.AI.Decks
 
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
-                if (d != equipDesc && d != -1 && d != 0)
+                if (!MatchesCardEffectDesc(d, CardId.DarkPegasus, 1))
                     return false;
                 if (!HasFreeSpellZone())
                     return false;
@@ -2002,21 +2002,77 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateDarkCygnus()
         {
-            return IsMainPhase() || !ChainIsEmpty();
+            if (Card == null || !Card.IsCode(CardId.DarkCygnus))
+                return false;
+
+            var d = (int)ActivateDescription;
+
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && MatchesCardEffectDescOrTrigger(d, CardId.DarkCygnus, 0))
+                return Enemy.GetMonsterCount() > 0;
+
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && MatchesCardEffectDesc(d, CardId.DarkCygnus, 1))
+            {
+                if (!DarkDragonHasEquipToSendAsCost())
+                    return false;
+                if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
+                    return false;
+                return Enemy.GetMonsterCount() > 0;
+            }
+
+            return false;
         }
 
         private bool ActivateDarkAndromeda()
         {
-            if (!IsMainPhase())
+            if (Card == null || !Card.IsCode(CardId.DarkAndromeda))
                 return false;
-            if (PursuingBossCombo() && CountFragmentsInHand() > 0 && HasFreeSpellZone())
+
+            var d = (int)ActivateDescription;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            if (MatchesCardEffectDesc(d, CardId.DarkAndromeda, 0))
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (!HasFreeSpellZone())
+                    return false;
+                return Bot.Hand.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id))
+                    || Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
+            }
+
+            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkAndromeda, 1))
                 return true;
-            return true;
+
+            return false;
         }
 
         private bool ActivateDarkPhoenix()
         {
-            return IsMainPhase();
+            if (Card == null || !Card.IsCode(CardId.DarkPhoenix))
+                return false;
+
+            var d = (int)ActivateDescription;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+
+            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkPhoenix, 0))
+                return ChooseFragmentIdForDeckMill() != 0;
+
+            if (MatchesCardEffectDesc(d, CardId.DarkPhoenix, 1))
+            {
+                if (!IsMainPhase())
+                    return false;
+                if (!DarkDragonHasEquipToSendAsCost())
+                    return false;
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return Bot.GetRemainingCount(CardId.DarkPhoenix, (int)CardLocation.Deck) > 0;
+            }
+
+            return false;
         }
 
         /// <summary>

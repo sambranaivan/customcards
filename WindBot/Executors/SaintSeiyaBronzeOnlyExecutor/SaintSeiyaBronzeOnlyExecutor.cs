@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 53;
-        private const string BuildTag = "2026-05-16-v53-sanctuary-cloth-repair-pairing";
+        private const int BuildVersion = 55;
+        private const string BuildTag = "2026-05-16-v55-cdb-str-descriptions";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -182,6 +182,21 @@ namespace WindBot.Game.AI.Decks
         /// </summary>
         private const int HydraConservativeOpponentAtkMargin = 900;
         private static bool _buildTagLogged;
+
+        /// <summary>Exact match to texts.str(stringIndex+1) via <see cref="Util.GetStringId"/>.</summary>
+        private bool MatchesCardEffectDesc(int desc, int cardId, int stringIndex)
+        {
+            var sd = (int)Util.GetStringId(cardId, stringIndex);
+            return sd != 0 && desc == sd;
+        }
+
+        /// <summary>Trigger / EffectYn: exact str or engine-normalized -1/0.</summary>
+        private bool MatchesCardEffectDescOrTrigger(int desc, int cardId, int stringIndex)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, stringIndex))
+                return true;
+            return desc == -1 || desc == 0;
+        }
 
         public class CardId
         {
@@ -864,7 +879,7 @@ namespace WindBot.Game.AI.Decks
             var opt = GetPayEquipStringOption(monsterId);
             if (opt < 0)
                 return false;
-            return ActivateDescription == Util.GetStringId(monsterId, opt);
+            return MatchesCardEffectDesc((int)ActivateDescription, monsterId, opt);
         }
 
         /// <summary>Kiki equips from Deck or GY — bitmask Deck|Grave.</summary>
@@ -1589,10 +1604,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool IsMuDiscardSearchSanctuaryDescription(int d)
         {
-            var sd = (int)Util.GetStringId(CardId.Mu, 1);
-            if (sd != 0)
-                return d == sd;
-            return d == -1 || d == 0;
+            return MatchesCardEffectDesc(d, CardId.Mu, 1);
         }
 
         /// <summary>c922100079: activate from hand, or Stringid 0 ignition to return Cloth to hand.</summary>
@@ -1605,9 +1617,7 @@ namespace WindBot.Game.AI.Decks
 
             if (IsSanctuaryFieldCard(Card))
             {
-                var d = (int)ActivateDescription;
-                var clothDesc = (int)Util.GetStringId(CardId.AthenasSanctuary, 0);
-                if (clothDesc != 0 && d != clothDesc && d != -1 && d != 0)
+                if (!MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.AthenasSanctuary, 0))
                     return false;
                 return SanctuaryFieldClothReturnWorthActivating();
             }
@@ -1896,17 +1906,17 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveSeiyaEffect()
         {
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
             var seiya = CardId.Seiya;
 
-            // Hand — Stringid 1: SS if you control no monsters.
+            // Hand — Stringid 1 / str2: SS if you control no monsters.
             if ((Card.Location & CardLocation.Hand) != 0)
             {
                 if (!IsMainPhase())
                     return false;
-                if (d == Util.GetStringId(seiya, 1) || d == -1)
-                    return FieldIsEmpty() && Bot.GetMonsterCount() < 5;
-                return false;
+                if (!MatchesCardEffectDesc(d, seiya, 1))
+                    return false;
+                return FieldIsEmpty() && Bot.GetMonsterCount() < 5;
             }
 
             if ((Card.Location & CardLocation.MonsterZone) == 0 || !Card.IsCode(seiya))
@@ -1915,14 +1925,15 @@ namespace WindBot.Game.AI.Decks
             if (!IsMainPhase())
                 return false;
 
-            // Field — Stringid 2: pay 500; equip Cloth from GY (explicit description only).
-            if (d == Util.GetStringId(seiya, 2))
+            // Field — Stringid 2 / str3: pay 500; equip Cloth from GY.
+            if (MatchesCardEffectDesc(d, seiya, 2))
                 return ResolveSeiyaEquipFromGy();
 
-            // Field — on Normal/Special Summon: add Cloth or Saint (Stringid 0 in script).
-            // Custom / Ignis often sends an ActivateDescription that does NOT match Util.GetStringId(id,0)
-            // (that helper is only id*16+n). Any other field activation is treated as this search.
-            return ResolveSeiyaDeckSearch();
+            // Field — Stringid 0 / str1: on N/SS add Cloth or Saint (triggers use desc -1).
+            if (MatchesCardEffectDescOrTrigger(d, seiya, 0))
+                return ResolveSeiyaDeckSearch();
+
+            return false;
         }
 
         private bool IsCygnusNegateIgnitionForCard(ClientCard clothCard)
@@ -1931,8 +1942,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if ((clothCard.Location & CardLocation.SpellZone) == 0)
                 return false;
-            int neg = (int)Util.GetStringId(CardId.ClothCygnus, 1);
-            return ActivateDescription == neg || ActivateDescription == -1;
+            return MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.ClothCygnus, 1);
         }
 
         /// <summary>Opponent MMZ — any face-up monster (Lua allows any face-up card; executor ranks threats).</summary>
@@ -2209,7 +2219,7 @@ namespace WindBot.Game.AI.Decks
         {
             if ((Card.Location & CardLocation.Hand) != 0)
             {
-                if (ActivateDescription != Util.GetStringId(CardId.Shiryu, 0) && ActivateDescription != -1)
+                if (!MatchesCardEffectDesc((int)ActivateDescription, CardId.Shiryu, 0))
                     return false;
                 if (Duel.Player == 0)
                     return false;
@@ -2231,7 +2241,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
-            if (IsActivateDescriptionPayEquip(CardId.Shiryu) || ActivateDescription == -1)
+            if (MatchesCardEffectDesc((int)ActivateDescription, CardId.Shiryu, 1))
                 return ResolvePayEquipSaint(CardId.Shiryu);
             return false;
         }
@@ -2242,7 +2252,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
-            if (IsActivateDescriptionPayEquip(CardId.Hyoga) || ActivateDescription == -1)
+            if (MatchesCardEffectDesc((int)ActivateDescription, CardId.Hyoga, 1))
                 return ResolvePayEquipSaint(CardId.Hyoga);
             return false;
         }
@@ -2253,7 +2263,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
-            if (ActivateDescription == Util.GetStringId(CardId.Shun, 0) || ActivateDescription == -1)
+            if (MatchesCardEffectDesc((int)ActivateDescription, CardId.Shun, 0))
                 return ResolvePayEquipSaint(CardId.Shun);
             return false;
         }
@@ -2283,8 +2293,10 @@ namespace WindBot.Game.AI.Decks
                 return Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0;
             }
 
-            // Stringid 0: on summon — add Cloths from GY.
-            if (Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
+            // Stringid 0 / str1: on summon — add Cloths from GY.
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.Mu, 0)
+                && Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
             {
                 AI.SelectCard(Cloths);
                 return true;
@@ -2313,11 +2325,11 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             var d = (int)ActivateDescription;
-            var procDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 0);
-            if (procDesc != 0 && d == procDesc)
+            if (MatchesCardEffectDesc(d, CardId.SeiyaMiracleBonds, 0))
+                return false;
+            if (!MatchesCardEffectDescOrTrigger(d, CardId.SeiyaMiracleBonds, 1))
                 return false;
 
-            // MMZ only has the post-Fusion equip trigger — same fallback pattern as <see cref="ResolveSeiyaEffect"/> field search.
             return MiracleBondsGyEquipLegal();
         }
 
@@ -2368,25 +2380,29 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveJabuActivate()
         {
-            // Hand — Stringid 0: ignition SS if you control a Saint (only ignition from hand on this card).
+            var d = (int)ActivateDescription;
+
+            // Hand — Stringid 0 / str1: ignition SS if you control a Saint.
             if ((Card.Location & CardLocation.Hand) != 0)
             {
                 if (!IsMainPhase())
                     return false;
+                if (!MatchesCardEffectDesc(d, CardId.Jabu, 0))
+                    return false;
                 return ControlAnySaint() && Bot.GetMonsterCount() < 5;
             }
 
-            // Material-from-GY line — leave to engine/default unless extended later.
             if ((Card.Location & CardLocation.Grave) != 0)
                 return false;
 
-            // Monster zone — Stringid 1: optional after SP Summon — add 1 Cloth from GY, then discard (handled by engine).
+            // Monster zone — Stringid 1 / str2: after SP Summon add Cloth from GY, then discard.
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
             if (!IsMainPhase())
                 return false;
-            // Stringid 2: sent as material — leave unhandled here.
-            if (ActivateDescription == Util.GetStringId(CardId.Jabu, 2))
+            if (MatchesCardEffectDesc(d, CardId.Jabu, 2))
+                return false;
+            if (!MatchesCardEffectDescOrTrigger(d, CardId.Jabu, 1))
                 return false;
 
             var clothInGy = Bot.Graveyard.FirstOrDefault(c => c != null && Cloths.Contains(c.Id));
@@ -2402,20 +2418,20 @@ namespace WindBot.Game.AI.Decks
             if (!IsMainPhase())
                 return false;
 
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
 
-            // Field: pay 500 LP; equip 1 "Cloth" from GY (Stringid 1).
+            // Field: pay 500 LP; equip 1 "Cloth" from GY (Stringid 1 / str2).
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
-                if (d != -1 && d != Util.GetStringId(CardId.Ikki, 1))
+                if (!MatchesCardEffectDesc(d, CardId.Ikki, 1))
                     return false;
                 return ResolvePayEquipSaint(CardId.Ikki);
             }
 
-            // GY: discard 1 "Saint" → Special Summon (Stringid 0).
+            // GY: discard 1 "Saint" → Special Summon (Stringid 0 / str1).
             if ((Card.Location & CardLocation.Grave) == 0)
                 return false;
-            if (d != -1 && d != Util.GetStringId(CardId.Ikki, 0))
+            if (!MatchesCardEffectDesc(d, CardId.Ikki, 0))
                 return false;
 
             if (DistinctSaintNamesOnField() >= 3)
@@ -2465,7 +2481,7 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveBanActivate()
         {
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
 
             // Hand: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself (hand-only in current script).
             if ((Card.Location & CardLocation.Hand) != 0)
@@ -2485,7 +2501,9 @@ namespace WindBot.Game.AI.Decks
 
             // Custom builds may report ActivateDescription inconsistently for delayed triggers.
             // Block the "material" trigger (Stringid 2) to avoid mis-targeting.
-            if (d == Util.GetStringId(CardId.Ban, 2))
+            if (MatchesCardEffectDesc(d, CardId.Ban, 2))
+                return false;
+            if (!MatchesCardEffectDescOrTrigger(d, CardId.Ban, 1))
                 return false;
 
             var pick = ChooseSaintToAddFromGraveyard();
@@ -2583,14 +2601,14 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveIchiActivate()
         {
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
 
-            // Field ignition: discard 1 Cloth -> burn 800 (Stringid 0).
+            // Field ignition: discard 1 Cloth -> burn 800 (Stringid 0 / str1).
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
                 if (!IsMainPhase())
                     return false;
-                if (d != -1 && d != Util.GetStringId(CardId.Ichi, 0))
+                if (!MatchesCardEffectDesc(d, CardId.Ichi, 0))
                     return false;
 
                 var discardCloth = ChooseClothFromHandToDiscard();
@@ -2612,7 +2630,9 @@ namespace WindBot.Game.AI.Decks
             {
                 // Custom builds sometimes report ActivateDescription inconsistently for delayed triggers.
                 // Hard block the "material" trigger (Stringid 2) to avoid selecting from the wrong location.
-                if (d == Util.GetStringId(CardId.Ichi, 2))
+                if (MatchesCardEffectDesc(d, CardId.Ichi, 2))
+                    return false;
+                if (!MatchesCardEffectDescOrTrigger(d, CardId.Ichi, 1))
                     return false;
                 var send = ChooseClothFromDeckToSendToGraveyard();
                 if (!send.HasValue)
@@ -2626,18 +2646,19 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveGekiActivate()
         {
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
 
-            // On-summon search (Stringid 0): deck has no known Level 5+ Saints in this build, skip to avoid wasting actions.
-            if ((Card.Location & CardLocation.MonsterZone) != 0 && d == Util.GetStringId(CardId.Geki, 0))
+            // On-summon search (Stringid 0 / str1): no Level 5+ Saints in this build — skip.
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && MatchesCardEffectDescOrTrigger(d, CardId.Geki, 0))
                 return false;
 
-            // GY ignition (Stringid 1): add 1 Cloth from GY, then banish self.
+            // GY ignition (Stringid 1 / str2): add 1 Cloth from GY, then banish self.
             if ((Card.Location & CardLocation.Grave) != 0)
             {
                 if (!IsMainPhase())
                     return false;
-                if (d != -1 && d != Util.GetStringId(CardId.Geki, 1))
+                if (!MatchesCardEffectDesc(d, CardId.Geki, 1))
                     return false;
                 var pick = ChooseClothFromGraveyardToHand();
                 if (!pick.HasValue)
@@ -2651,14 +2672,14 @@ namespace WindBot.Game.AI.Decks
 
         private bool ResolveNachiActivate()
         {
-            var d = ActivateDescription;
+            var d = (int)ActivateDescription;
 
-            // Ignition on field (Stringid 1): target 1 Cloth in GY; shuffle; draw 1.
+            // Ignition on field (Stringid 1 / str2): shuffle 1 Cloth from GY; draw 1.
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
                 if (!IsMainPhase())
                     return false;
-                if (d != -1 && d != Util.GetStringId(CardId.Nachi, 1))
+                if (!MatchesCardEffectDesc(d, CardId.Nachi, 1))
                     return false;
                 var pick = ChooseClothFromGraveyardToShuffle();
                 if (!pick.HasValue)
