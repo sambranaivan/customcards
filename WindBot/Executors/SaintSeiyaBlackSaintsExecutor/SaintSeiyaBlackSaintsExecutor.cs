@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 36;
-        private const string BuildTag = "2026-05-16-v36-cdb-str-descriptions";
+        private const int BuildVersion = 37;
+        private const string BuildTag = "2026-05-16-v37-on-summon-effectyn";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -54,6 +54,40 @@ namespace WindBot.Game.AI.Decks
             if (MatchesCardEffectDesc(desc, cardId, stringIndex))
                 return true;
             return desc == -1 || desc == 0;
+        }
+
+        /// <summary>EffectYn optional trigger on our monster in the MMZ (summon / field triggers).</summary>
+        private bool IsOurMonsterOptionalTriggerWindow()
+        {
+            if (Card == null || IsOpponentTurn())
+                return false;
+            return (Card.Location & CardLocation.MonsterZone) != 0;
+        }
+
+        /// <summary>
+        /// On-summon optional effect (Stringid N). EffectYn often sends desc -1/0; Ignis may send id*16+N or another positive id.
+        /// </summary>
+        private bool IsOnSummonOptionalTriggerDesc(int desc, int cardId, int summonStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, summonStringIndex))
+                return true;
+            if (desc == -1 || desc == 0)
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            if (!IsOurMonsterOptionalTriggerWindow())
+                return false;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == summonStringIndex)
+                    continue;
+                if (desc == cardId * 16 + i)
+                    return false;
+            }
+            return true;
         }
 
         public class CardId
@@ -235,8 +269,7 @@ namespace WindBot.Game.AI.Decks
                 && (card.Location & CardLocation.MonsterZone) != 0)
             {
                 var dDd = (int)ActivateDescription;
-                if (MatchesCardEffectDescOrTrigger(dDd, CardId.DarkDragon, 0)
-                    && !DarkDragonHasEquipToSendAsCost())
+                if (IsOnSummonOptionalTriggerDesc(dDd, CardId.DarkDragon, 0, 1, 2))
                 {
                     var fragId = ChooseFragmentIdForDeckMill();
                     if (fragId != 0)
@@ -1369,7 +1402,7 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkDragon, 0) && !DarkDragonHasEquipToSendAsCost())
+            if (IsOnSummonOptionalTriggerDesc(d, CardId.DarkDragon, 0, 1, 2))
                 return DarkDragonSummonEquipFromDeckLegal();
 
             if (MatchesCardEffectDesc(d, CardId.DarkDragon, 1))
@@ -1763,12 +1796,14 @@ namespace WindBot.Game.AI.Decks
             return MatchesCardEffectDesc(d, CardId.Ikki, 3) && IkkiQuickDestroyLegal();
         }
 
-        /// <summary>c922100148 Stringid 2 — on N/SS Deck search (texts.str3); triggers still send desc -1.</summary>
+        /// <summary>c922100148 Stringid 2 — on N/SS Deck search (texts.str3); EffectYn desc -1/0 or id*16+2.</summary>
         private bool IsIkkiMonsterZoneOnSummonSearchDescription(int d)
         {
             if (MatchesCardEffectDesc(d, CardId.Ikki, 3))
                 return false;
-            return MatchesCardEffectDescOrTrigger(d, CardId.Ikki, 2);
+            if (MatchesCardEffectDesc(d, CardId.Ikki, 0) || MatchesCardEffectDesc(d, CardId.Ikki, 1))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(d, CardId.Ikki, 2, 0, 1, 3);
         }
 
         private bool IkkiDeckHasSearchableFragment()
@@ -1792,8 +1827,9 @@ namespace WindBot.Game.AI.Decks
 
             var d = (int)ActivateDescription;
 
-            // On-summon search (Stringid 2 / str3) — before Quick; engine triggers use desc -1
-            if ((Card.Location & CardLocation.MonsterZone) != 0
+            // On-summon search (Stringid 2 / str3) — before Quick; EffectYn may arrive before MMZ is synced.
+            if ((Card.Location & CardLocation.Hand) == 0
+                && (Card.Location & CardLocation.Grave) == 0
                 && IsIkkiMonsterZoneOnSummonSearchDescription(d))
                 return IkkiDeckHasSearchableFragment();
 
@@ -1949,22 +1985,36 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        private bool JangoFragmentRecoveryLegal()
+        {
+            if (Bot.GetMonsterCount() >= 5)
+                return false;
+            foreach (var mid in BlackSaintMonsterIds)
+            {
+                if (mid == CardId.Jango)
+                    continue;
+                if (Bot.GetRemainingCount(mid, (int)(CardLocation.Hand | CardLocation.Grave)) > 0)
+                    return true;
+            }
+            return false;
+        }
+
         private bool ActivateJango()
         {
             if (Card == null || !Card.IsCode(CardId.Jango))
-                return false;
-            if (!IsMainPhase())
                 return false;
 
             var d = (int)ActivateDescription;
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (MatchesCardEffectDescOrTrigger(d, CardId.Jango, 0))
-                return ChooseFragmentIdForDeckMill() != 0;
+            // Stringid 1 / str2: Fragment equip sent to GY — exact desc only (never confuse with summon -1).
+            if (MatchesCardEffectDesc(d, CardId.Jango, 1))
+                return JangoFragmentRecoveryLegal();
 
-            if (MatchesCardEffectDescOrTrigger(d, CardId.Jango, 1))
-                return ControlAnyBlackSaintFaceUp() && Bot.GetMonsterCount() < 5;
+            // Stringid 0 / str1: on N/SS send Fragment from Deck (not gated to Main Phase — can chain in BP).
+            if (IsOnSummonOptionalTriggerDesc(d, CardId.Jango, 0, 1))
+                return ChooseFragmentIdForDeckMill() != 0;
 
             return false;
         }

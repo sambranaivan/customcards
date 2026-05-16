@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 55;
-        private const string BuildTag = "2026-05-16-v55-cdb-str-descriptions";
+        private const int BuildVersion = 56;
+        private const string BuildTag = "2026-05-16-v56-jabu-ss-cloth-trigger";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -196,6 +196,42 @@ namespace WindBot.Game.AI.Decks
             if (MatchesCardEffectDesc(desc, cardId, stringIndex))
                 return true;
             return desc == -1 || desc == 0;
+        }
+
+        /// <summary>Optional trigger on our card (not hand/GY ignition) — EffectYn on summon may predate MMZ sync.</summary>
+        private bool IsOurCardOptionalTriggerWindow()
+        {
+            if (Card == null || Duel.Player != 0)
+                return false;
+            if ((Card.Location & CardLocation.Hand) != 0)
+                return false;
+            if ((Card.Location & CardLocation.Grave) != 0)
+                return false;
+            return true;
+        }
+
+        /// <summary>On-summon optional effect (Stringid N); EffectYn often sends desc -1/0 or id*16+N.</summary>
+        private bool IsOnSummonOptionalTriggerDesc(int desc, int cardId, int summonStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, summonStringIndex))
+                return true;
+            if (desc == -1 || desc == 0)
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            if (!IsOurCardOptionalTriggerWindow())
+                return false;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == summonStringIndex)
+                    continue;
+                if (desc == cardId * 16 + i)
+                    return false;
+            }
+            return true;
         }
 
         public class CardId
@@ -532,6 +568,18 @@ namespace WindBot.Game.AI.Decks
                 && IsMuDiscardSearchSanctuaryDescription((int)ActivateDescription)
                 && Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0)
                 AI.SelectCard(CardId.AthenasSanctuary);
+
+            // Jabu (c922100005) Stringid 1: on SS add Cloth from GY, then discard (EffectYn desc -1).
+            if (card != null
+                && card.IsCode(CardId.Jabu)
+                && IsJabuOnSpecialSummonClothPrompt((int)ActivateDescription)
+                && JabuSpecialSummonClothRecoveryLegal())
+            {
+                var cloth = ChooseBestClothFromGraveyard();
+                if (cloth != null)
+                    AI.SelectCard(cloth);
+                PreselectDiscardSaintPriority();
+            }
 
             if (card != null
                 && (card.IsCode(CardId.AthenasShield) || card.IsCode(CardId.BondOfBrotherhood))
@@ -2378,6 +2426,56 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>c922100005 Stringid 1 — after Special Summon (EffectYn; not Main-Phase-only).</summary>
+        private bool IsJabuOnSpecialSummonClothPrompt(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.Jabu, 0) || MatchesCardEffectDesc(desc, CardId.Jabu, 2))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.Jabu, 1, 0, 2);
+        }
+
+        private bool JabuSpecialSummonClothRecoveryLegal()
+        {
+            if (!HasClothInGraveyard())
+                return false;
+            return Bot.Hand != null && Bot.Hand.Count > 0;
+        }
+
+        private ClientCard ChooseBestClothFromGraveyard()
+        {
+            var order = BuildPayEquipClothOrder(CardId.Jabu);
+            foreach (var clothId in order)
+            {
+                var c = Bot.Graveyard.FirstOrDefault(x => x != null && x.IsCode(clothId));
+                if (c != null)
+                    return c;
+            }
+            return Bot.Graveyard.FirstOrDefault(c => c != null && Cloths.Contains(c.Id));
+        }
+
+        private bool JabuMaterialClothEffectLegal()
+        {
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z != null && z.IsFaceup() && Cloths.Contains(z.Id))
+                        return true;
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || m.EquipCards == null)
+                    continue;
+                foreach (var eq in m.EquipCards)
+                {
+                    if (eq != null && eq.IsFaceup() && Cloths.Contains(eq.Id))
+                        return true;
+                }
+            }
+            return false;
+        }
+
         private bool ResolveJabuActivate()
         {
             var d = (int)ActivateDescription;
@@ -2392,25 +2490,28 @@ namespace WindBot.Game.AI.Decks
                 return ControlAnySaint() && Bot.GetMonsterCount() < 5;
             }
 
+            // GY — Stringid 2 / str3: sent as Saint material → equip/attach face-up Cloth you control.
             if ((Card.Location & CardLocation.Grave) != 0)
-                return false;
+            {
+                if (!MatchesCardEffectDescOrTrigger(d, CardId.Jabu, 2))
+                    return false;
+                return JabuMaterialClothEffectLegal();
+            }
 
-            // Monster zone — Stringid 1 / str2: after SP Summon add Cloth from GY, then discard.
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
-                return false;
-            if (!IsMainPhase())
-                return false;
-            if (MatchesCardEffectDesc(d, CardId.Jabu, 2))
-                return false;
-            if (!MatchesCardEffectDescOrTrigger(d, CardId.Jabu, 1))
-                return false;
+            // On SS — Stringid 1 / str2: add Cloth from GY, then discard (routes via OnSelectEffectYn).
+            if (IsJabuOnSpecialSummonClothPrompt(d))
+            {
+                if (!JabuSpecialSummonClothRecoveryLegal())
+                    return false;
+                var cloth = ChooseBestClothFromGraveyard();
+                if (cloth == null)
+                    return false;
+                AI.SelectCard(cloth);
+                PreselectDiscardSaintPriority();
+                return true;
+            }
 
-            var clothInGy = Bot.Graveyard.FirstOrDefault(c => c != null && Cloths.Contains(c.Id));
-            if (clothInGy == null)
-                return false;
-            AI.SelectCard(clothInGy);
-            PreselectDiscardSaintPriority(); // after add-from-GY, effect discards 1
-            return true;
+            return false;
         }
 
         private bool ResolveIkkiEffect()
