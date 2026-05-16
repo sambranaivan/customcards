@@ -195,7 +195,7 @@ You can only use each effect of "Mu - The Cloth Repairer" once per turn.
 - **Lua**: `script/unofficial/c922100011.lua`
 - **Card type**: Effect Monster
 - **Attribute**: LIGHT
-- **Monster type**: Beast
+- **Monster type**: Psychic
 - **Level**: 2
 - **ATK / DEF**: 500 / 500
 

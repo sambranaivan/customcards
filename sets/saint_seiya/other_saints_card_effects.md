@@ -170,7 +170,7 @@ You can only use each effect of "Mu - The Cloth Repairer" once per turn.
 ### Kiki - Messenger of the Cloth Sculptor
 - **Card Type**: Effect Monster
 - **Attribute**: LIGHT
-- **Type**: Psychic
+- **Type**: Warrior
 - **Level**: 2
 - **ATK/DEF**: 500 / 500
 

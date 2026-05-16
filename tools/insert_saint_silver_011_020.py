@@ -20,7 +20,7 @@ def main() -> None:
             500,
             2,  # Level
             16,  # LIGHT
-            16384,  # Psychic (EDOPro race)
+            0x100000,  # Psychic
             (
                 '(Quick Effect): You can discard this card, then target 1 "Saint" monster you control; equip 1 "Cloth" '
                 'Equip Spell from your Deck or GY to that target.\r\n'
