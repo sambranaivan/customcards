@@ -87,7 +87,7 @@ function s.negop(e,tp,eg,ep,ev,re,r,rp)
 	local e2=e1:Clone()
 	e2:SetCode(EFFECT_DISABLE_EFFECT)
 	tc:RegisterEffect(e2)
-	if ec and ec:IsCode(922100002) and tc:IsType(TYPE_MONSTER) then
+	if aux.BronzeClothSaintMatch(ec,922100002) and tc:IsType(TYPE_MONSTER) then
 		local e3=Effect.CreateEffect(c)
 		e3:SetType(EFFECT_TYPE_SINGLE)
 		e3:SetCode(EFFECT_CANNOT_CHANGE_POSITION)

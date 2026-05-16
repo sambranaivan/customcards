@@ -72,7 +72,7 @@ end
 
 function s.jabucon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100005)
+	return aux.BronzeClothSaintMatch(ec,922100005)
 end
 function s.sainttarget(e,c)
 	return c:IsSetCard(SET_BRONZE_SAINT) and c:IsMonster()

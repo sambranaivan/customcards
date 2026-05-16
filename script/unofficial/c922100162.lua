@@ -11,8 +11,7 @@
 -- - Black Saint
 -- Effect (EN):
 -- (This card is always treated as a "Black Saint" card.)
--- Cannot be Normal Summoned/Set.
--- Must be Special Summoned from your Extra Deck (this is treated as a Fusion Summon) while you have 7 or more "Fragment of Sagittarius" cards with different names on your field and/or GY. (You do not use "Fusion" as an activation procedure.)
+-- Must be Special Summoned from your Extra Deck (this is treated as a Fusion Summon) while you have 7 "Fragment of Sagittarius" cards with different names on your field and/or GY. (You do not use "Fusion" as an activation procedure.)
 -- If this card is Special Summoned: You can equip up to 2 "Fragment of Sagittarius" Equip Spells from your GY to this card.
 -- Gains these effects based on the number of Equip Cards equipped to it.
 -- ● 1+: Cannot be destroyed by battle.
@@ -37,7 +36,7 @@ function s.initial_effect(c)
 	e0b:SetCode(EFFECT_CANNOT_MSET)
 	c:RegisterEffect(e0b)
 
-	--Fusion Summon from Extra Deck: 7+ different Fragments on field/GY (OPT); no Fusion Spell
+	--Fusion Summon from Extra Deck: 7 different Fragments on field/GY (OPT); no Fusion Spell
 	local e1=Effect.CreateEffect(c)
 	e1:SetDescription(aux.Stringid(id,0))
 	e1:SetType(EFFECT_TYPE_FIELD)
@@ -124,7 +123,7 @@ end
 function s.spcon(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
-	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)>=7
+	return Duel.GetLocationCount(tp,LOCATION_MZONE)>0 and s.ctfrags(tp)==7
 end
 
 function s.spop(e,tp,eg,ep,ev,re,r,rp,c)

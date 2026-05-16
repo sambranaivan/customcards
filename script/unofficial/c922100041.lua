@@ -97,11 +97,11 @@ end
 
 function s.exacond(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100000)
+	return aux.BronzeClothSaintMatch(ec,922100000)
 end
 function s.damcon(e,tp,eg,ep,ev,re,r,rp)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100000) and eg:IsContains(ec) and ec:IsRelateToBattle()
+	return aux.BronzeClothSaintMatch(ec,922100000) and eg:IsContains(ec) and ec:IsRelateToBattle()
 end
 function s.damtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return true end

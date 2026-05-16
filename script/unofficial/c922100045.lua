@@ -93,7 +93,7 @@ function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
 	local c=e:GetHandler()
 	local ec=c:GetEquipTarget()
 	if chk==0 then
-		return ec and ec:IsCode(922100004) and (r&REASON_BATTLE+REASON_EFFECT)~=0
+		return aux.BronzeClothSaintMatch(ec,922100004) and (r&REASON_BATTLE+REASON_EFFECT)~=0
 	end
 	return Duel.SelectEffectYesNo(tp,c,96)
 end

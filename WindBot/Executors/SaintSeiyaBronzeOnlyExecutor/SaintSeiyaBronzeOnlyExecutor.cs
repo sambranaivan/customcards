@@ -57,7 +57,7 @@ The deck is **Main-heavy** with a small **Extra Deck** (fusion bosses). Its win 
 - `922100011` **Kiki - Messenger of the Cloth Sculptor**
 
 ### Extra Deck
-- `922100303` **Bronze Saint - Seiya of the Miracle Bonds** (Fusion — alternate summon via banishing 5 `"Bronze Saint"` from GY including 1 Seiya; see `c922100303.lua`)
+- `922100303` **Bronze Saint - Seiya of the Miracle Bonds** (Extra — SS by banishing 1 Seiya + 4 `"Bronze Saint"` from field/GY; no Polymerization; see `c922100303.lua`)
 
 ### Bronze Cloth (Equip Spells)
 All share a generic GY trigger:
@@ -79,7 +79,7 @@ Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF
 - `922100050` Bronze Cloth - Wolf
 
 ### Spells / Traps
-- `922100079` Athena's Sanctuary (Field Spell - base)
+- `922100079` **Athena's Sanctuary** (Field Spell)
  - `922100081` Inherited Cosmos (Normal Spell)
 - `922100086` Athena's Shield (Quick-Play)
 - `922100088` Athena's Call (Normal Spell)
@@ -111,7 +111,7 @@ Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF
 - `922100103` **The Pope’s Verdict** turns on if you control a **Saint equipped with a Cloth**.
 
 ### Stabilizers / protection
-- `922100079` **Athena's Sanctuary**: global +300/+300; once/turn destruction replacement by sending an equipped Cloth to GY.
+- `922100079` **Athena's Sanctuary**: global +300/+300; first battle destruction of a Bronze Saint prevented; once/turn return 1 Cloth in S/T Zone to hand.
 - `922100086` **Awakening**: 1-turn indestructible + GY destruction replacement.
 - `922100092` **Bond**: protects from opponent’s effects (incl. banish); draws if chained to opponent monster effect.
 
@@ -167,11 +167,14 @@ namespace WindBot.Game.AI.Decks
     {
         // Guide coverage notes (embedded MD is the full spec):
         // - Not modeled: full go-second macro loop, Battle-Phase Hyoga trigger, S/A "threat tier" without chain metadata,
-        //   Mu → Athena's Sanctuary - Reforged (922100080), Saint-as-material Cloth attach/equip, some Lv4 one-offs (Ichi burn, etc.).
+        //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 47;
-        private const string BuildTag = "2026-05-15-v47-miracle-bonds-gy-cloth-activate";
+        private const int BuildVersion = 53;
+        private const string BuildTag = "2026-05-16-v53-sanctuary-cloth-repair-pairing";
+
+        /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
+        private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
 
         /// <summary>
         /// Bronze Cloth - Hydra (922100047): after damage, battle opponent loses 1000 ATK/DEF until end of turn.
@@ -196,7 +199,7 @@ namespace WindBot.Game.AI.Decks
             public const int Mu = 922100010;
             public const int Kiki = 922100011;
 
-            /// <summary>Fusion — alternate proc banishes 5 Bronze Saints from GY including Seiya (<c>c922100303.lua</c>).</summary>
+            /// <summary>Extra — SS proc banishes 1 Seiya + 4 Bronze Saints from MMZ/GY (<c>c922100303.lua</c>, treated as Fusion Summon).</summary>
             public const int SeiyaMiracleBonds = 922100303;
 
             // Cloth equips (GY trigger: add L4-or-lower Bronze Saint from Deck only — matches script filter)
@@ -254,6 +257,9 @@ namespace WindBot.Game.AI.Decks
 
             SilenceDefaultDialogs(ai);
 
+            // c922100303: Fusion Summon trigger equips 1-by-1 from GY (multiple MSG_SELECT) — idle order must beat Verdict/Sanctuary/Cloth lines.
+            AddExecutor(ExecutorType.Activate, CardId.SeiyaMiracleBonds, ActivateSeiyaMiracleBonds);
+
             // Counter traps / interaction (reactive)
             AddExecutor(ExecutorType.Activate, CardId.CrystalWall, ActivateCrystalWall);
             AddExecutor(ExecutorType.Activate, CardId.PopesVerdict, ActivatePopesVerdict);
@@ -282,7 +288,6 @@ namespace WindBot.Game.AI.Decks
             // Extenders — Jabu: Activate only (ignition SS from hand; trigger after SS — not Normal Summon)
             AddExecutor(ExecutorType.SpSummon, CardId.Jabu, SpSummonJabuFromHandIfBridged);
             AddExecutor(ExecutorType.SpSummon, CardId.SeiyaMiracleBonds, SpSummonSeiyaMiracleBondsFromExtra);
-            AddExecutor(ExecutorType.Activate, CardId.SeiyaMiracleBonds, ActivateSeiyaMiracleBonds);
             AddExecutor(ExecutorType.SummonOrSet, CardId.Jabu, SummonOrSetJabuEmergencyOrDefense);
             AddExecutor(ExecutorType.Activate, CardId.Jabu, ResolveJabuActivate);
 
@@ -488,21 +493,30 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectNextCard(cygTgt);
             }
 
-            // Miracle Bonds (922100303): after Fusion Summon, equip Bronze Cloth from GY (loop — bias ordered picks).
+            // Miracle Bonds (922100303): post-Fusion GY equip — preselect before EffectYn/chain (desc often -1, not GetStringId hash).
             if (card != null
                 && card.IsCode(CardId.SeiyaMiracleBonds)
-                && (card.Location & CardLocation.MonsterZone) != 0)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && MiracleBondsGyEquipLegal())
+                PreselectMiracleBondsGyClothChain();
+
+            // Athena's Sanctuary (922100079) Stringid 0: return 1 Cloth from S/T Zone to hand.
+            if (card != null
+                && card.IsCode(CardId.AthenasSanctuary)
+                && IsSanctuaryFieldCard(card))
             {
-                var d = (int)ActivateDescription;
-                var eqD = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 1);
-                if (eqD == d || d == -1 || d == 0 || eqD == 0)
-                {
-                    var order = BuildPayEquipClothOrder(CardId.Seiya);
-                    var gyIds = order.Where(id => Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(id))).ToArray();
-                    if (gyIds.Length > 0)
-                        AI.SelectCard(gyIds);
-                }
+                var tgt = ChooseSanctuaryClothReturnTarget();
+                if (tgt != null)
+                    AI.SelectNextCard(tgt);
             }
+
+            // Mu Stringid 1: discard to add Athena's Sanctuary from Deck.
+            if (card != null
+                && card.IsCode(CardId.Mu)
+                && (card.Location & CardLocation.Hand) != 0
+                && IsMuDiscardSearchSanctuaryDescription((int)ActivateDescription)
+                && Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0)
+                AI.SelectCard(CardId.AthenasSanctuary);
 
             if (card != null
                 && (card.IsCode(CardId.AthenasShield) || card.IsCode(CardId.BondOfBrotherhood))
@@ -1160,6 +1174,76 @@ namespace WindBot.Game.AI.Decks
             }
         }
 
+        /// <summary>Bronze Cloth → owning Bronze Saint (inverse of <see cref="ClothMatchingSaint"/>).</summary>
+        private static int? SaintMatchingCloth(int clothId)
+        {
+            switch (clothId)
+            {
+                case CardId.ClothPegasus: return CardId.Seiya;
+                case CardId.ClothDragon: return CardId.Shiryu;
+                case CardId.ClothCygnus: return CardId.Hyoga;
+                case CardId.ClothAndromeda: return CardId.Shun;
+                case CardId.ClothPhoenix: return CardId.Ikki;
+                case CardId.ClothUnicorn: return CardId.Jabu;
+                case CardId.ClothHydra: return CardId.Ichi;
+                case CardId.ClothBear: return CardId.Geki;
+                case CardId.ClothLionet: return CardId.Ban;
+                case CardId.ClothWolf: return CardId.Nachi;
+                default: return null;
+            }
+        }
+
+        private ClientCard GetFaceupBronzeSaintOnField(int saintId)
+        {
+            foreach (var c in Bot.MonsterZone)
+            {
+                if (c != null && c.IsFaceup() && c.IsCode(saintId) && IsBronzeSaintWarriorId(c.Id))
+                    return c;
+            }
+            return null;
+        }
+
+        private bool IsClothOnMatchingBronzeSaint(ClientCard cloth)
+        {
+            if (cloth == null)
+                return false;
+            var saintId = SaintMatchingCloth(cloth.Id);
+            if (!saintId.HasValue)
+                return false;
+            var host = cloth.EquipTarget;
+            return host != null && host.IsFaceup() && host.IsCode(saintId.Value);
+        }
+
+        private bool MatchingSaintAlreadyHasClothEquipped(int saintId, int clothId, ClientCard exceptCloth)
+        {
+            foreach (var z in Bot.SpellZone)
+            {
+                if (z == null || z == exceptCloth || !z.IsFaceup() || !Cloths.Contains(z.Id))
+                    continue;
+                var host = z.EquipTarget;
+                if (host != null && host.IsFaceup() && host.IsCode(saintId) && z.IsCode(clothId))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>Return Cloth only when its paired Bronze Saint is on field and this equip is on the wrong host.</summary>
+        private bool SanctuaryClothEligibleForRePair(ClientCard cloth)
+        {
+            if (cloth == null || !cloth.IsFaceup() || !Cloths.Contains(cloth.Id))
+                return false;
+            var saintId = SaintMatchingCloth(cloth.Id);
+            if (!saintId.HasValue)
+                return false;
+            if (GetFaceupBronzeSaintOnField(saintId.Value) == null)
+                return false;
+            if (IsClothOnMatchingBronzeSaint(cloth))
+                return false;
+            if (MatchingSaintAlreadyHasClothEquipped(saintId.Value, cloth.Id, cloth))
+                return false;
+            return true;
+        }
+
         private int[] BuildKikiClothPriorityForTarget(ClientCard saintTarget)
         {
             var preferred = saintTarget != null ? ClothMatchingSaint(saintTarget.Id) : null;
@@ -1195,6 +1279,221 @@ namespace WindBot.Game.AI.Decks
             return Duel.Phase == DuelPhase.Main1 || Duel.Phase == DuelPhase.Main2;
         }
 
+        private static bool IsBattlePhase(DuelPhase phase)
+        {
+            switch (phase)
+            {
+                case DuelPhase.BattleStart:
+                case DuelPhase.BattleStep:
+                case DuelPhase.Damage:
+                case DuelPhase.DamageCal:
+                case DuelPhase.Battle:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
+        /// <summary>Post-Fusion equip trigger (c922100303) can SEG in Main or Battle on our turn.</summary>
+        private bool IsOurPhaseForMiracleBondsGyEquip()
+        {
+            return Duel.Player == 0 && (IsMainPhase() || IsBattlePhase(Duel.Phase));
+        }
+
+        private bool MiracleBondsGyEquipLegal()
+        {
+            return HasFreeMainSpellZoneForEquip() && HasClothInGraveyard();
+        }
+
+        private int CountBronzeClothCardsInGraveyard()
+        {
+            var n = 0;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && Cloths.Contains(c.Id))
+                    n++;
+            }
+            return n;
+        }
+
+        /// <summary>GY banish Fusion not worth it with a single Cloth to equip afterward.</summary>
+        private bool MiracleBondsFusionSummonWorthwhile()
+        {
+            return CountBronzeClothCardsInGraveyard() >= MinBronzeClothCardsInGyForMiracleBondsFusion
+                && MiracleBondsGyEquipLegal();
+        }
+
+        private bool IsMiracleBondsBanishMaterial(ClientCard c)
+        {
+            return c != null && IsBronzeSaintWarriorId(c.Id);
+        }
+
+        private bool HasMiracleBondsSeiyaMaterialAccessible()
+        {
+            if (Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.Seiya)))
+                return true;
+            return Bot.MonsterZone.IsExistingMatchingCard(m =>
+                m != null && m.IsFaceup() && m.IsCode(CardId.Seiya));
+        }
+
+        /// <summary>Distinct Bronze Saint bodies legal for <c>s.matfilter</c> (MMZ face-up + GY).</summary>
+        private int CountMiracleBondsBanishMaterialCards()
+        {
+            var seen = new HashSet<ClientCard>();
+            foreach (var c in Bot.Graveyard)
+            {
+                if (IsMiracleBondsBanishMaterial(c))
+                    seen.Add(c);
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && IsMiracleBondsBanishMaterial(m))
+                    seen.Add(m);
+            }
+            return seen.Count;
+        }
+
+        private static int MiracleBondsBanishMaterialPriority(ClientCard c)
+        {
+            if (c == null)
+                return int.MaxValue;
+            var slot = SaintDiscardPriority.Length;
+            for (var i = 0; i < SaintDiscardPriority.Length; i++)
+            {
+                if (SaintDiscardPriority[i] == c.Id)
+                {
+                    slot = i;
+                    break;
+                }
+            }
+            var fromGy = (c.Location & CardLocation.Grave) != 0;
+            return (fromGy ? 0 : 1000) + slot;
+        }
+
+        /// <summary>1 Seiya + 4 other Bronze Saints for <c>s.spop</c> (prefer GY, then expendable field bodies).</summary>
+        private List<ClientCard> BuildMiracleBondsBanishGroup()
+        {
+            var result = new List<ClientCard>();
+            var used = new HashSet<ClientCard>();
+
+            ClientCard seiya = null;
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && c.IsCode(CardId.Seiya) && used.Add(c))
+                {
+                    seiya = c;
+                    break;
+                }
+            }
+            if (seiya == null)
+            {
+                foreach (var m in Bot.MonsterZone)
+                {
+                    if (m != null && m.IsFaceup() && m.IsCode(CardId.Seiya) && used.Add(m))
+                    {
+                        seiya = m;
+                        break;
+                    }
+                }
+            }
+            if (seiya == null)
+                return result;
+
+            result.Add(seiya);
+
+            var pool = new List<ClientCard>();
+            foreach (var c in Bot.Graveyard)
+            {
+                if (c != null && IsMiracleBondsBanishMaterial(c) && !used.Contains(c))
+                    pool.Add(c);
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && IsMiracleBondsBanishMaterial(m) && !used.Contains(m))
+                    pool.Add(m);
+            }
+            pool.Sort((a, b) => MiracleBondsBanishMaterialPriority(a).CompareTo(MiracleBondsBanishMaterialPriority(b)));
+            foreach (var c in pool)
+            {
+                if (result.Count >= 5)
+                    break;
+                used.Add(c);
+                result.Add(c);
+            }
+            return result;
+        }
+
+        private bool MiracleBondsSpSummonMaterialsLegal()
+        {
+            return BuildMiracleBondsBanishGroup().Count >= 5;
+        }
+
+        /// <summary>Two MSG_SELECT_CARD: 1 Seiya then 4 others (LIFO selector stack).</summary>
+        private void PreselectMiracleBondsBanishMaterials()
+        {
+            var group = BuildMiracleBondsBanishGroup();
+            if (group.Count < 5)
+                return;
+            var rest = new List<ClientCard>();
+            for (var i = 1; i < group.Count; i++)
+                rest.Add(group[i]);
+            AI.SelectCard(group[0]);
+            AI.SelectNextCard(rest);
+        }
+
+        /// <summary>Passive ATK from Cloths <c>c922100303</c> will equip from GY on summon (zones + GY order).</summary>
+        private int MiracleBondsGyClothAtkBonusIfSummoned()
+        {
+            var total = 0;
+            foreach (var c in ChooseMiracleBondsGyClothClientChain(CountVacantMainSpellZonesForEquip()))
+            {
+                if (c != null)
+                    total += BronzeClothPassiveAtkBuff(c.Id);
+            }
+            return total;
+        }
+
+        /// <summary>Queue one <see cref="CardSelector"/> per Lua <c>eqop</c> Select(1,1) (LIFO stack).</summary>
+        private void PreselectMiracleBondsGyClothChain()
+        {
+            var maxEq = System.Math.Min(CountVacantMainSpellZonesForEquip(), 12);
+            var picks = ChooseMiracleBondsGyClothClientChain(maxEq);
+            if (picks.Count == 1)
+                AI.SelectCard(picks[0]);
+            else if (picks.Count > 1)
+            {
+                AI.SelectCard(picks[0]);
+                for (var i = 1; i < picks.Count; i++)
+                    AI.SelectNextCard(picks[i]);
+            }
+        }
+
+        /// <summary>
+        /// Distinct GY <see cref="Cloths"/> ClientCards in <see cref="BuildPayEquipClothOrder"/> priority, capped by free S/T zones (c922100303 while-loop).
+        /// </summary>
+        private List<ClientCard> ChooseMiracleBondsGyClothClientChain(int maxEquips)
+        {
+            var result = new List<ClientCard>();
+            if (maxEquips <= 0 || Bot.Graveyard == null)
+                return result;
+            var used = new HashSet<ClientCard>();
+            var order = BuildPayEquipClothOrder(CardId.Seiya);
+            foreach (var clothId in order)
+            {
+                if (result.Count >= maxEquips)
+                    break;
+                foreach (var c in Bot.Graveyard)
+                {
+                    if (c == null || used.Contains(c) || !c.IsCode(clothId) || !Cloths.Contains(c.Id))
+                        continue;
+                    used.Add(c);
+                    result.Add(c);
+                    break;
+                }
+            }
+            return result;
+        }
+
         private int ChooseSaintToMaximizeDistinct()
         {
             var onField = new HashSet<int>(Bot.MonsterZone.Where(c => c != null && c.IsFaceup()).Select(c => c.Id));
@@ -1227,13 +1526,100 @@ namespace WindBot.Game.AI.Decks
             return ChooseSaintToMaximizeDistinct();
         }
 
+        private static bool IsSanctuaryFieldCard(ClientCard card)
+        {
+            if (card == null || !card.IsCode(CardId.AthenasSanctuary))
+                return false;
+            return (card.Location & CardLocation.FieldZone) != 0
+                || (card.Location & CardLocation.SpellZone) != 0;
+        }
+
+        private bool IsAthenasSanctuaryOnField()
+        {
+            if (Bot.SpellZone == null)
+                return false;
+            foreach (var z in Bot.SpellZone)
+            {
+                if (z != null && z.IsCode(CardId.AthenasSanctuary))
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>c922100079 ignition: return Cloth only to re-equip on its paired Bronze Saint on field.</summary>
+        private ClientCard ChooseSanctuaryClothReturnTarget()
+        {
+            ClientCard best = null;
+            var bestScore = int.MinValue;
+            foreach (var z in Bot.SpellZone)
+            {
+                if (z == null || z.IsCode(CardId.AthenasSanctuary) || !z.IsFaceup() || !Cloths.Contains(z.Id))
+                    continue;
+                var score = SanctuaryClothRePairScore(z);
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    best = z;
+                }
+            }
+            return best;
+        }
+
+        private int SanctuaryClothRePairScore(ClientCard cloth)
+        {
+            if (!SanctuaryClothEligibleForRePair(cloth))
+                return int.MinValue;
+            var saintId = SaintMatchingCloth(cloth.Id).Value;
+            var saint = GetFaceupBronzeSaintOnField(saintId);
+            var host = cloth.EquipTarget;
+            int score = 4000 + BronzeClothPassiveAtkBuff(cloth.Id);
+            if (host != null && host.IsFaceup() && IsBronzeSaintWarriorId(host.Id) && host.Id != saintId)
+                score += 2000;
+            else if (host != null && host.IsFaceup() && !IsBronzeSaintWarriorId(host.Id))
+                score += 1000;
+            if (saint != null && saint.Attack < Util.GetBestAttack(Enemy))
+                score += 500;
+            return score;
+        }
+
+        private bool SanctuaryFieldClothReturnWorthActivating()
+        {
+            return ChooseSanctuaryClothReturnTarget() != null;
+        }
+
+        private bool IsMuDiscardSearchSanctuaryDescription(int d)
+        {
+            var sd = (int)Util.GetStringId(CardId.Mu, 1);
+            if (sd != 0)
+                return d == sd;
+            return d == -1 || d == 0;
+        }
+
+        /// <summary>c922100079: activate from hand, or Stringid 0 ignition to return Cloth to hand.</summary>
         private bool ActivateSanctuary()
         {
-            if (!IsMainPhase())
+            if (!IsMainPhase() || Duel.Player != 0)
                 return false;
-            if (Bot.HasInSpellZone(CardId.AthenasSanctuary))
+            if (Card == null || !Card.IsCode(CardId.AthenasSanctuary))
                 return false;
-            return true;
+
+            if (IsSanctuaryFieldCard(Card))
+            {
+                var d = (int)ActivateDescription;
+                var clothDesc = (int)Util.GetStringId(CardId.AthenasSanctuary, 0);
+                if (clothDesc != 0 && d != clothDesc && d != -1 && d != 0)
+                    return false;
+                return SanctuaryFieldClothReturnWorthActivating();
+            }
+
+            if ((Card.Location & CardLocation.Hand) != 0)
+            {
+                if (IsAthenasSanctuaryOnField())
+                    return false;
+                return true;
+            }
+
+            return false;
         }
 
         private bool ResolveSeiyaEquipLegality()
@@ -1460,8 +1846,27 @@ namespace WindBot.Game.AI.Decks
 
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
+
+            // Miracle Bonds (922100303): post-summon GY equip stack — do not use Lv4 Saint pay-equip heuristics for position.
+            if (cardId == CardId.SeiyaMiracleBonds && positions != null)
+            {
+                int combatAtk = atkStat + MiracleBondsGyClothAtkBonusIfSummoned();
+                int enemyBest = Util.GetBestAttack(Enemy);
+
+                if (positions.Contains(CardPosition.FaceUpAttack) && combatAtk > enemyBest)
+                    return CardPosition.FaceUpAttack;
+
+                if (positions.Contains(CardPosition.FaceUpDefence)
+                    && enemyBest > combatAtk
+                    && enemyBest <= defStat)
+                    return CardPosition.FaceUpDefence;
+
+                if (positions.Contains(CardPosition.FaceUpAttack))
+                    return CardPosition.FaceUpAttack;
+            }
+
             int clothBonus = ProbableBronzeClothAtkBonusAfterSummon(cardId);
-            int combatAtk = atkStat + clothBonus;
+            int combatAtkSaint = atkStat + clothBonus;
 
             // Shun + Andromeda Cloth (922100044): DEF unlocks the "protect other monsters / freeze SS'd monsters" line;
             // ATK enables declaring attacks including direct attack while equipped.
@@ -1477,13 +1882,13 @@ namespace WindBot.Game.AI.Decks
                     if (Bot.GetMonsterCount() == 0 && positions.Contains(CardPosition.FaceUpAttack))
                     {
                         int enemyBest = AdjustedEnemyBestAttackForSizing(CardId.Shun);
-                        if (enemyBest <= combatAtk || Enemy.LifePoints <= 2500)
+                        if (enemyBest <= combatAtkSaint || Enemy.LifePoints <= 2500)
                             return CardPosition.FaceUpAttack;
                     }
                 }
             }
 
-            if (PreferFaceUpDefenceSummon(cardId, combatAtk, defStat, positions))
+            if (PreferFaceUpDefenceSummon(cardId, combatAtkSaint, defStat, positions))
                 return CardPosition.FaceUpDefence;
 
             return base.OnSelectPosition(cardId, positions);
@@ -1871,9 +2276,12 @@ namespace WindBot.Game.AI.Decks
             if (!IsMainPhase())
                 return false;
 
-            // Stringid 1: discard Mu; search Athena's Sanctuary - Reforged (handled by engine if legal).
-            if (ActivateDescription == Util.GetStringId(CardId.Mu, 1))
-                return false;
+            // Stringid 1: discard Mu; add "Athena's Sanctuary" (922100079) from Deck.
+            if ((Card.Location & CardLocation.Hand) != 0
+                && IsMuDiscardSearchSanctuaryDescription((int)ActivateDescription))
+            {
+                return Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0;
+            }
 
             // Stringid 0: on summon — add Cloths from GY.
             if (Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
@@ -1886,35 +2294,31 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// <c>c922100303.lua</c> Stringid 1: optional — equip as many <see cref="Cloths"/> from GY as zones allow after Fusion Summon.
+        /// <c>c922100303.lua</c> Stringid 1 (MMZ): optional equip all legal <see cref="Cloths"/> from GY after Fusion Summon.
+        /// Routed via <c>OnSelectEffectYn</c> / chain (desc often -1) — do not require exact <see cref="Util.GetStringId"/> match (custom DB).
         /// </summary>
         private bool ActivateSeiyaMiracleBonds()
         {
             if (Card == null || !Card.IsCode(CardId.SeiyaMiracleBonds))
                 return false;
+
+            // Stringid 0: alternate Fusion from Extra (banish 5) — only <see cref="SpSummonSeiyaMiracleBondsFromExtra"/>.
+            if ((Card.Location & CardLocation.Extra) != 0)
+                return false;
+
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
-            if (!IsMainPhase() || Duel.Player != 0)
+
+            if (!IsOurPhaseForMiracleBondsGyEquip())
                 return false;
 
-            var equipDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 1);
-            var procDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 0);
             var d = (int)ActivateDescription;
-
-            var equipLegal = HasFreeMainSpellZoneForEquip() && HasClothInGraveyard();
-
-            if (equipDesc != 0 && d == equipDesc)
-                return equipLegal;
+            var procDesc = (int)Util.GetStringId(CardId.SeiyaMiracleBonds, 0);
             if (procDesc != 0 && d == procDesc)
                 return false;
 
-            if (equipDesc == 0 && procDesc == 0)
-                return equipLegal;
-
-            if (d == -1 || d == 0)
-                return equipLegal;
-
-            return false;
+            // MMZ only has the post-Fusion equip trigger — same fallback pattern as <see cref="ResolveSeiyaEffect"/> field search.
+            return MiracleBondsGyEquipLegal();
         }
 
         /// <summary>Some WindBot builds route hand ignition SS through SpSummon.</summary>
@@ -1928,7 +2332,7 @@ namespace WindBot.Game.AI.Decks
         }
 
         /// <summary>
-        /// <c>c922100303.lua</c>: alternate Fusion Summon from Extra — banish 5 Bronze Saint warriors from GY (Lv4 Bronze lineup IDs), including 1 Seiya.
+        /// <c>c922100303.lua</c> Stringid 0: SS from Extra by banishing 1 Seiya + 4 Bronze Saints from MMZ/GY (Fusion Summon type).
         /// </summary>
         private bool SpSummonSeiyaMiracleBondsFromExtra()
         {
@@ -1940,23 +2344,16 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (Bot.GetMonsterCount() >= 5)
                 return false;
-            if (!Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.Seiya)))
+            if (!HasMiracleBondsSeiyaMaterialAccessible())
                 return false;
-            return CountBronzeSaintWarriorsInGraveyard() >= 5;
-        }
-
-        private int CountBronzeSaintWarriorsInGraveyard()
-        {
-            var n = 0;
-            foreach (var c in Bot.Graveyard)
-            {
-                if (c == null)
-                    continue;
-                if (!IsBronzeSaintWarriorId(c.Id))
-                    continue;
-                n++;
-            }
-            return n;
+            if (CountMiracleBondsBanishMaterialCards() < 5)
+                return false;
+            if (!MiracleBondsSpSummonMaterialsLegal())
+                return false;
+            if (!MiracleBondsFusionSummonWorthwhile())
+                return false;
+            PreselectMiracleBondsBanishMaterials();
+            return true;
         }
 
         private static bool IsBronzeSaintWarriorId(int id)

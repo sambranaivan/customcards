@@ -12,7 +12,7 @@
 --
 -- Effect (EN):
 -- If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; add them to your hand.
--- You can discard this card; add 1 "Athena's Sanctuary - Reforged" from your Deck to your hand.
+-- You can discard this card; add 1 "Athena's Sanctuary" from your Deck to your hand.
 -- You can only use each effect of "Mu - The Cloth Repairer" once per turn.
 --]==]
 --Mu - The Cloth Repairer
@@ -33,7 +33,7 @@ function s.initial_effect(c)
 	e1b:SetCode(EVENT_SPSUMMON_SUCCESS)
 	c:RegisterEffect(e1b)
 
-	--Discard this card; add "Athena's Sanctuary - Reforged"
+	--Discard this card; add "Athena's Sanctuary"
 	local e2=Effect.CreateEffect(c)
 	e2:SetDescription(aux.Stringid(id,1))
 	e2:SetCategory(CATEGORY_TOHAND+CATEGORY_SEARCH)
@@ -47,7 +47,7 @@ function s.initial_effect(c)
 end
 
 s.listed_series={SET_CLOTH}
-s.listed_names={922100080}
+s.listed_names={922100079}
 
 function s.clotheqgyfilter(c)
 	return c:IsSetCard(SET_CLOTH) and c:IsType(TYPE_EQUIP) and c:IsAbleToHand()
@@ -71,7 +71,7 @@ function s.cost(e,tp,eg,ep,ev,re,r,rp,chk)
 	Duel.SendtoGrave(e:GetHandler(),REASON_COST+REASON_DISCARD)
 end
 function s.fdfilter(c)
-	return c:IsCode(922100080) and c:IsAbleToHand()
+	return c:IsCode(922100079) and c:IsAbleToHand()
 end
 function s.fdtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsExistingMatchingCard(s.fdfilter,tp,LOCATION_DECK,0,1,nil) end

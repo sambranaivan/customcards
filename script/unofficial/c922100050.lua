@@ -104,7 +104,7 @@ end
 
 function s.nachicon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100009)
+	return aux.BronzeClothSaintMatch(ec,922100009)
 end
 function s.drtg(e,tp,eg,ep,ev,re,r,rp,chk)
 	if chk==0 then return Duel.IsPlayerCanDraw(tp,1) and Duel.IsExistingMatchingCard(Card.IsDiscardable,tp,LOCATION_HAND,0,1,nil) end

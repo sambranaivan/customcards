@@ -11,19 +11,27 @@
 -- - Saint
 -- - Bronze Saint
 -- Effect (EN):
--- (This card is always treated as a "Bronze Saint" card.)
 -- 1 "Bronze Saint - Seiya of Pegasus" + 4 "Bronze Saint" monsters
--- Cannot be Normal Summoned/Set.
--- Must be Fusion Summoned. This card can also be Fusion Summoned by banishing 5 "Bronze Saint" monsters from your GY, including 1 "Bronze Saint - Seiya of Pegasus". You can only Fusion Summon "Bronze Saint - Seiya of the Miracle Bonds" once per turn by this procedure.
+-- Must first be Special Summoned (from your Extra Deck) by banishing the above cards you control and/or from your GY. (You do not use "Polymerization".)
+-- You can only Special Summon "Bronze Saint - Seiya of the Miracle Bonds" once per turn this way.
 -- If this card is Fusion Summoned: You can equip as many "Bronze Cloth" Equip Spells from your GY to this card as possible.
+-- While this card is equipped with a "Bronze Cloth" Equip Spell, it gains that Equip Spell's effects that apply when equipped to its corresponding "Bronze Saint" monster.
 --]==]
 --Bronze Saint - Seiya of the Miracle Bonds
 local s,id=GetID()
 function s.initial_effect(c)
 	c:EnableReviveLimit()
-	-- fusion materials
-	Fusion.AddProcMix(c,true,true,922100000,s.matbronze,s.matbronze,s.matbronze,s.matbronze)
-	-- alternate Fusion Summon: banish 5 Bronze Saint from GY including 1 Seiya of Pegasus
+	--Cannot be Normal Summoned/Set
+	local e0a=Effect.CreateEffect(c)
+	e0a:SetType(EFFECT_TYPE_SINGLE)
+	e0a:SetProperty(EFFECT_FLAG_CANNOT_DISABLE+EFFECT_FLAG_UNCOPYABLE)
+	e0a:SetCode(EFFECT_CANNOT_SUMMON)
+	e0a:SetValue(1)
+	c:RegisterEffect(e0a)
+	local e0b=e0a:Clone()
+	e0b:SetCode(EFFECT_CANNOT_MSET)
+	c:RegisterEffect(e0b)
+	--Must first be Special Summoned from Extra by banishing the above cards (treated as Fusion Summon)
 	local e0=Effect.CreateEffect(c)
 	e0:SetDescription(aux.Stringid(id,0))
 	e0:SetType(EFFECT_TYPE_FIELD)
@@ -52,35 +60,33 @@ end
 s.listed_names={922100000}
 s.listed_series={SET_SAINT,SET_BRONZE_SAINT,SET_BRONZE_CLOTH,SET_CLOTH}
 
-function s.matbronze(c,fc,sumtype,tp)
-	return c:IsSetCard(SET_BRONZE_SAINT,fc,sumtype,tp) and c:IsMonster()
-end
-
-function s.bronze_gy(c)
+function s.matfilter(c)
 	return c:IsMonster() and c:IsSetCard(SET_BRONZE_SAINT) and c:IsAbleToRemoveAsCost()
 end
 
 function s.spcon(e,c)
 	if c==nil then return true end
 	local tp=c:GetControler()
+	local loc=LOCATION_MZONE|LOCATION_GRAVE
 	if Duel.GetLocationCount(tp,LOCATION_MZONE)<=0 then return false end
-	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.bronze_gy),tp,LOCATION_GRAVE,0,nil)
+	local g=Duel.GetMatchingGroup(aux.NecroValleyFilter(s.matfilter),tp,loc,0,nil)
 	if #g<5 then return false end
-	return g:IsExists(function(tc) return tc:IsCode(922100000) end,1,nil)
+	return g:IsExists(Card.IsCode,1,nil,922100000)
 end
 
 function s.spop(e,tp,eg,ep,ev,re,r,rp,c)
+	local loc=LOCATION_MZONE|LOCATION_GRAVE
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 	local g1=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(function(tc)
-		return s.bronze_gy(tc) and tc:IsCode(922100000)
-	end),tp,LOCATION_GRAVE,0,1,1,nil)
+		return s.matfilter(tc) and tc:IsCode(922100000)
+	end),tp,loc,0,1,1,nil)
 	local tc=g1:GetFirst()
 	if not tc then return end
 	local g=Group.FromCards(tc)
 	Duel.Hint(HINT_SELECTMSG,tp,HINTMSG_REMOVE)
 	local g2=Duel.SelectMatchingCard(tp,aux.NecroValleyFilter(function(c2)
-		return s.bronze_gy(c2) and not g:IsContains(c2)
-	end),tp,LOCATION_GRAVE,0,4,4,nil)
+		return s.matfilter(c2) and not g:IsContains(c2)
+	end),tp,loc,0,4,4,nil)
 	if #g2~=4 then return end
 	g:Merge(g2)
 	Duel.Remove(g,POS_FACEUP,REASON_COST)

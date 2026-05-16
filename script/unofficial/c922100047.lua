@@ -97,7 +97,7 @@ end
 
 function s.gylockcon(e,tp,eg,ep,ev,re,r,rp)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100006) and Duel.GetAttacker()==ec and Duel.GetAttackTarget()==nil
+	return aux.BronzeClothSaintMatch(ec,922100006) and Duel.GetAttacker()==ec and Duel.GetAttackTarget()==nil
 end
 function s.gylockop(e,tp,eg,ep,ev,re,r,rp)
 	local e1=Effect.CreateEffect(e:GetHandler())

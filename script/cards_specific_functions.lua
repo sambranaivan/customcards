@@ -1244,3 +1244,9 @@ function Infernoid.RegisterSummonProcedure(c,monstersToBanish)
 	e2:SetOperation(InfernoidInt.summonOperation)
 	c:RegisterEffect(e2)
 end
+
+-- Bronze Saint - Seiya of the Miracle Bonds: cloth saint-specific effects apply when equipped to this card.
+CARD_BRONZE_SAINT_SEIYA_MIRACLE_BONDS=922100303
+function Auxiliary.BronzeClothSaintMatch(ec,saint_code)
+	return ec and (ec:IsCode(saint_code) or ec:IsCode(CARD_BRONZE_SAINT_SEIYA_MIRACLE_BONDS))
+end

@@ -84,7 +84,7 @@ function s.defcon(e)
 end
 function s.dircon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100003) and ec:IsFaceup()
+	return aux.BronzeClothSaintMatch(ec,922100003) and ec:IsFaceup()
 end
 function s.atlimit(e,c)
 	return c~=e:GetHandler():GetEquipTarget()

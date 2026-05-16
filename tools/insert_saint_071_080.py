@@ -21,7 +21,7 @@ def main() -> None:
         (922100078, "Gold Cloth - Aquarius"),
     ]
     field_cards = [
-        (922100079, "Athena's Sanctuary (Field Spell - base)"),
+        (922100079, "Athena's Sanctuary"),
         (922100080, "Athena's Sanctuary - Reforged"),
     ]
 

@@ -18,9 +18,9 @@ Goals:
   equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Esmeralda (c922100168) also defends with Maiden-like Ikki SS when targeted (1 card effect/turn shared with her Deck search). Dark Andromeda for draw when Fragments move by effects.
-- Boss (922100162): Fusion Summon from Extra (`SpSummon` + `CardLocation.Extra`) when **7+ distinct Fragment names** on field/GY; **Activate** for post-SS GY equip is registered **first** so DQI/Stolen Gold/etc. do not win `ActivatableCards` first (`GameAI.OnSelectIdleCmd` executor order).
+- Boss (922100162): Fusion Summon from Extra (`SpSummon` + `CardLocation.Extra`) when **exactly 7 distinct Fragment names** on field/GY (c922100162.lua); **Activate** for post-SS GY equip is registered **first** so DQI/Stolen Gold/etc. do not win `ActivatableCards` first (`GameAI.OnSelectIdleCmd` executor order).
 - While Boss remains in the Extra Deck and distinct Fragment count is under 7, mill/setup (Jango, Death Queen Island, Stolen Gold Cloth, Oath, Dark Dragon equip) bias missing Fragment names from Deck.
-- Fragment / Jango GY search: `ChooseBlackSaintForDeckSearch()` — Boss when **6+ distinct** on field/GY; Ikki when 3+ BS and still building Boss; then scores.
+- Fragment / Jango GY search: `ChooseBlackSaintForDeckSearch()` — Boss when **exactly 7 distinct** on field/GY; Ikki when 3+ BS and still building Boss; then scores.
 
 Maintenance: bump BuildVersion / BuildTag when behavior changes.
 ================================================================================
@@ -31,10 +31,10 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 30;
-        private const string BuildTag = "2026-05-15-v30-ikki-quick-never-own-destroy";
+        private const int BuildVersion = 31;
+        private const string BuildTag = "2026-05-16-v31-boss-exactly-7-distinct-fragments";
 
-        /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua).</summary>
+        /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
 
         /// <summary>Enemy face-up ATK at or above this → Main Phase Quick is allowed (with other gates).</summary>
@@ -788,9 +788,14 @@ namespace WindBot.Game.AI.Decks
         private int CountMissingDistinctFragmentNames()
         {
             var have = CountDistinctFragmentNamesOnFieldAndGrave();
-            if (have >= BossFragmentDistinctRequired)
+            if (have == BossFragmentDistinctRequired)
                 return 0;
             return BossFragmentDistinctRequired - have;
+        }
+
+        private bool BossDistinctFragmentGateReady()
+        {
+            return CountDistinctFragmentNamesOnFieldAndGrave() == BossFragmentDistinctRequired;
         }
 
         private bool BossAccessible()
@@ -819,7 +824,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (BossAlreadyOnField())
                 return false;
-            return CountDistinctFragmentNamesOnFieldAndGrave() >= BossFragmentDistinctRequired;
+            return BossDistinctFragmentGateReady();
         }
 
         private ClientCard BestBlackSaintForEquip()
@@ -958,7 +963,7 @@ namespace WindBot.Game.AI.Decks
                             s += 28;
                         if (distFr >= 6)
                             s += 95;
-                        if (distFr >= BossFragmentDistinctRequired)
+                        if (distFr == BossFragmentDistinctRequired)
                             s += 220;
                         return s;
                     }
@@ -1079,7 +1084,7 @@ namespace WindBot.Game.AI.Decks
 
         /// <summary>
         /// Pick which Black Saint name to add from Deck (Fragment GY effects, Jango, etc.).
-        /// Hard rules: (1) 3+ face-up Black Saints and still building Boss → Ikki; (2) 6+ distinct Fragments on field/GY → Boss;
+        /// Hard rules: (1) 3+ face-up Black Saints and still building Boss → Ikki; (2) exactly 7 distinct Fragments on field/GY → Boss;
         /// (3) pursuing Boss with &lt;6 distinct → Jango if in Deck; then highest <see cref="BlackSaintDeckSearchScore"/>.
         /// </summary>
         private int ChooseBlackSaintForDeckSearch()
@@ -1091,7 +1096,7 @@ namespace WindBot.Game.AI.Decks
                 && distFr < 6)
                 return CardId.Ikki;
 
-            if (Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Extra) > 0 && distFr >= 6)
+            if (Bot.GetRemainingCount(CardId.BossReassembled, (int)CardLocation.Extra) > 0 && distFr == BossFragmentDistinctRequired)
                 return CardId.BossReassembled;
 
             if (PursuingBossCombo() && distFr < 6 && BlackSaintInMainDeck(CardId.Jango))

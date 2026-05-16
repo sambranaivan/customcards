@@ -92,7 +92,7 @@ function s.indval(e,re,tp)
 end
 function s.shirycon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100001)
+	return aux.BronzeClothSaintMatch(ec,922100001)
 end
 
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)

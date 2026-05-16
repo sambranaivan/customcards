@@ -191,7 +191,7 @@ def main() -> None:
             (
                 'If this card is Normal or Special Summoned: You can target up to 2 "Cloth" Equip Spells in your GY; '
                 'add them to your hand.\r\n'
-                'During your Main Phase: You can discard this card; add 1 "Athena\'s Sanctuary - Reforged" from your '
+                'During your Main Phase: You can discard this card; add 1 "Athena\'s Sanctuary" from your '
                 'Deck to your hand.\r\n'
                 'You can only use each effect of "Mu - The Cloth Repairer" once per turn.'
             ),

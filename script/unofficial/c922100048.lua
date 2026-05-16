@@ -89,7 +89,7 @@ end
 
 function s.gekicon(e,tp,eg,ep,ev,re,r,rp)
 	local ec=e:GetHandler():GetEquipTarget()
-	if not (ec and ec:IsCode(922100007)) then return false end
+	if not aux.BronzeClothSaintMatch(ec,922100007) then return false end
 	local bc=ec:GetBattleTarget()
 	return bc and bc:IsControler(1-tp) and bc:IsFaceup() and bc:IsRelateToBattle() and bc:GetAttack()>ec:GetAttack()
 end

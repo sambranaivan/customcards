@@ -64,7 +64,7 @@ end
 
 function s.bancon(e)
 	local ec=e:GetHandler():GetEquipTarget()
-	return ec and ec:IsCode(922100008)
+	return aux.BronzeClothSaintMatch(ec,922100008)
 end
 function s.saintgyfilter(c)
 	return c:IsSetCard(SET_BRONZE_SAINT) and c:IsMonster() and c:IsAbleToHand()
