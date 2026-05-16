@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 31;
-        private const string BuildTag = "2026-05-16-v31-boss-exactly-7-distinct-fragments";
+        private const int BuildVersion = 32;
+        private const string BuildTag = "2026-05-16-v32-ikki-quick-destroy-no-self-target";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -281,8 +281,21 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(fragId);
             }
 
-            // Ikki (c922100148) Stringid 2: on N/SS add 1 Fragment from Deck (e.g. after Esmeralda Quick/battle SS).
+            // Ikki (c922100148) Stringid 3 Quick: cost Fragment + destroy opponent card (preselect before chain prompts).
             if (card != null
+                && card.IsCode(CardId.Ikki)
+                && (card.Location & CardLocation.MonsterZone) != 0
+                && IsIkkiQuickDestroyActivation((int)ActivateDescription))
+            {
+                var cost = ChooseIkkiFragmentEquipForQuickCost();
+                var kill = ChooseIkkiDestroyTargetPreferOpponent(card);
+                if (cost != null)
+                    AI.SelectCard(cost);
+                if (kill != null)
+                    AI.SelectNextCard(kill);
+            }
+            // Ikki Stringid 2: on N/SS add 1 Fragment from Deck (e.g. after Esmeralda Quick/battle SS).
+            else if (card != null
                 && card.IsCode(CardId.Ikki)
                 && (card.Location & CardLocation.MonsterZone) != 0
                 && IsIkkiMonsterZoneOnSummonSearchDescription((int)ActivateDescription))
@@ -1724,9 +1737,37 @@ namespace WindBot.Game.AI.Decks
             return IsMainPhase();
         }
 
+        /// <summary>Quick destroy (Stringid 3) legal: Fragment cost + face-up opponent target.</summary>
+        private bool IkkiQuickDestroyLegal()
+        {
+            return ChooseIkkiFragmentEquipForQuickCost() != null
+                && ChooseIkkiDestroyTargetPreferOpponent(null) != null;
+        }
+
+        /// <summary>c922100148 Stringid 3 — do not conflate with on-summon search when desc is -1/0.</summary>
+        private bool IsIkkiQuickDestroyActivation(int d)
+        {
+            var qd = (int)Util.GetStringId(CardId.Ikki, 3);
+            if (qd != 0 && d == qd)
+                return IkkiQuickDestroyLegal();
+            if (!IkkiQuickDestroyLegal())
+                return false;
+            var sd = (int)Util.GetStringId(CardId.Ikki, 2);
+            if (sd != 0 && d == sd)
+                return false;
+            if (d != -1 && d != 0)
+                return false;
+            if (qd != 0)
+                return false;
+            // str3 empty: -1/0 is Quick only on idle (summon trigger runs in chain).
+            return ChainIsEmpty();
+        }
+
         /// <summary>c922100148 Stringid 2: optional add Fragment from Deck after N/SS (shared desc -1/0 when texts.str* empty).</summary>
         private bool IsIkkiMonsterZoneOnSummonSearchDescription(int d)
         {
+            if (IsIkkiQuickDestroyActivation(d))
+                return false;
             var qd = (int)Util.GetStringId(CardId.Ikki, 3);
             if (qd != 0 && d == qd)
                 return false;
@@ -1764,8 +1805,7 @@ namespace WindBot.Game.AI.Decks
 
             // Quick (Stringid 3) — MMZ only
             if ((Card.Location & CardLocation.MonsterZone) != 0
-                && quickDesc != 0
-                && d == quickDesc)
+                && IsIkkiQuickDestroyActivation((int)d))
             {
                 if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
                     return false;
@@ -1781,13 +1821,9 @@ namespace WindBot.Game.AI.Decks
             }
 
             // On-summon search (Stringid 2) — MMZ (EVENT_SUMMON_SUCCESS / SPSUMMON_SUCCESS, incl. Esmeralda chain end)
-            if ((Card.Location & CardLocation.MonsterZone) != 0)
-            {
-                var summonMatch = (summonSearchDesc != 0 && (d == summonSearchDesc || d == -1 || d == 0))
-                    || (summonSearchDesc == 0 && (d == -1 || d == 0));
-                if (summonMatch)
-                    return IkkiDeckHasSearchableFragment();
-            }
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && IsIkkiMonsterZoneOnSummonSearchDescription((int)d))
+                return IkkiDeckHasSearchableFragment();
 
             // GY: send face-up Fragment equip to GY; SS this card (Stringid 1)
             if ((Card.Location & CardLocation.Grave) != 0)
@@ -1809,7 +1845,7 @@ namespace WindBot.Game.AI.Decks
                 return CountBlackSaintMonstersFaceUp() >= 2;
             }
 
-            return IsMainPhase() || IsBattlePhase() || !ChainIsEmpty();
+            return false;
         }
 
         /// <summary>Never send Boss (c922100162) equips to GY as Ikki Quick cost when another Fragment exists.</summary>
@@ -1874,7 +1910,7 @@ namespace WindBot.Game.AI.Decks
 
             foreach (var m in Enemy.MonsterZone)
             {
-                if (m == null || !m.IsFaceup() || m == handler)
+                if (m == null || !m.IsFaceup() || IsOurFieldCard(m, handler))
                     continue;
                 var sc = 100000 + m.Attack;
                 if (sc > bestScore)
@@ -1887,7 +1923,7 @@ namespace WindBot.Game.AI.Decks
             {
                 foreach (var z in Enemy.SpellZone)
                 {
-                    if (z == null || !z.IsFaceup() || z == handler)
+                    if (z == null || !z.IsFaceup() || IsOurFieldCard(z, handler))
                         continue;
                     var sc = 50000 + z.Attack;
                     if (sc > bestScore)
@@ -1898,6 +1934,30 @@ namespace WindBot.Game.AI.Decks
                 }
             }
             return best;
+        }
+
+        private bool IsOurFieldCard(ClientCard c, ClientCard handler)
+        {
+            if (c == null)
+                return true;
+            if (handler != null && c == handler)
+                return true;
+            if (c.Controller != 0)
+                return true;
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m == c)
+                    return true;
+            }
+            if (Bot.SpellZone != null)
+            {
+                foreach (var z in Bot.SpellZone)
+                {
+                    if (z != null && z == c)
+                        return true;
+                }
+            }
+            return false;
         }
 
         private bool ActivateJango()
