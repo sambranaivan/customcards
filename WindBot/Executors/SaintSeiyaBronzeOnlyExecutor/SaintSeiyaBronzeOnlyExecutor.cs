@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 58;
-        private const string BuildTag = "2026-05-16-v58-seiya-summon-search-effectyn";
+        private const int BuildVersion = 60;
+        private const string BuildTag = "2026-05-16-v60-migrate-ortrigger-helpers";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -187,19 +187,65 @@ namespace WindBot.Game.AI.Decks
         private bool MatchesCardEffectDesc(int desc, int cardId, int stringIndex)
         {
             var sd = (int)Util.GetStringId(cardId, stringIndex);
-            return sd != 0 && desc == sd;
-        }
-
-        /// <summary>Trigger / EffectYn: exact str or engine-normalized -1/0.</summary>
-        private bool MatchesCardEffectDescOrTrigger(int desc, int cardId, int stringIndex)
-        {
-            if (MatchesCardEffectDesc(desc, cardId, stringIndex))
+            if (sd != 0 && desc == sd)
                 return true;
-            return desc == -1 || desc == 0;
+            // Custom cards: WindBot may lack str metadata; Ignis still sends id*16+N or filled-str codes.
+            return desc == cardId * 16 + stringIndex;
         }
 
-        /// <summary>Optional trigger on our card (not hand/GY ignition) — EffectYn on summon may predate MMZ sync.</summary>
-        private bool IsOurCardOptionalTriggerWindow()
+        /// <summary>Optional trigger while this card is in the GY (sent to GY, material, etc.).</summary>
+        private bool IsGraveOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
+            }
+            if (Card == null || Duel.Player != 0)
+                return false;
+            return (Card.Location & CardLocation.Grave) != 0;
+        }
+
+        /// <summary>Field / Continuous Spell ignition or trigger on Field Zone or Spell Zone.</summary>
+        private bool IsFieldSpellOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
+            }
+            if (Card == null || Duel.Player != 0)
+                return false;
+            return (Card.Location & CardLocation.SpellZone) != 0
+                || (Card.Location & CardLocation.FieldZone) != 0;
+        }
+
+        /// <summary>Stringid index for "sent to GY → add Bronze Saint" on Cloth equips (Phoenix uses 3).</summary>
+        private static int BronzeClothGySearchStringIndex(int clothId)
+        {
+            return clothId == CardId.ClothPhoenix ? 3 : 2;
+        }
+
+        /// <summary>Optional trigger on our card (not hand/GY) — EffectYn on summon may predate MMZ sync.</summary>
+        private bool IsSummonOptionalTriggerWindow()
         {
             if (Card == null || Duel.Player != 0)
                 return false;
@@ -210,7 +256,7 @@ namespace WindBot.Game.AI.Decks
             return true;
         }
 
-        /// <summary>On-summon optional effect (Stringid N); EffectYn often sends desc -1/0 or id*16+N.</summary>
+        /// <summary>On-summon optional effect (Stringid N); EffectYn sends -1/0, id*16+N, or filled texts.str codes.</summary>
         private bool IsOnSummonOptionalTriggerDesc(int desc, int cardId, int summonStringIndex, params int[] excludeOtherEffectIndices)
         {
             if (MatchesCardEffectDesc(desc, cardId, summonStringIndex))
@@ -220,18 +266,14 @@ namespace WindBot.Game.AI.Decks
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
-            if (desc != -1 && desc != 0)
+            for (var i = 0; i < 8; i++)
             {
-                for (var i = 0; i < 8; i++)
-                {
-                    if (i == summonStringIndex)
-                        continue;
-                    if (desc == cardId * 16 + i)
-                        return false;
-                }
-                return false;
+                if (i == summonStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
             }
-            return IsOurCardOptionalTriggerWindow();
+            return IsSummonOptionalTriggerWindow();
         }
 
         public class CardId
@@ -1672,7 +1714,7 @@ namespace WindBot.Game.AI.Decks
 
             if (IsSanctuaryFieldCard(Card))
             {
-                if (!MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.AthenasSanctuary, 0))
+                if (!IsFieldSpellOptionalTriggerDesc((int)ActivateDescription, CardId.AthenasSanctuary, 0))
                     return false;
                 return SanctuaryFieldClothReturnWorthActivating();
             }
@@ -2030,7 +2072,7 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if ((clothCard.Location & CardLocation.SpellZone) == 0)
                 return false;
-            return MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.ClothCygnus, 1);
+            return MatchesCardEffectDesc((int)ActivateDescription, CardId.ClothCygnus, 1);
         }
 
         /// <summary>Opponent MMZ — any face-up monster (Lua allows any face-up card; executor ranks threats).</summary>
@@ -2158,7 +2200,17 @@ namespace WindBot.Game.AI.Decks
 
             // GY → "sent to the GY" trigger: search a L4-or-lower Bronze Saint from Deck only.
             if ((Card.Location & CardLocation.Grave) != 0)
+            {
+                var gyIdx = BronzeClothGySearchStringIndex(Card.Id);
+                if (Card.Id == CardId.ClothPhoenix)
+                {
+                    if (!IsGraveOptionalTriggerDesc((int)ActivateDescription, Card.Id, gyIdx, 0, 1, 2))
+                        return false;
+                }
+                else if (!IsGraveOptionalTriggerDesc((int)ActivateDescription, Card.Id, gyIdx, 0, 1))
+                    return false;
                 return ResolveClothGySentSearch();
+            }
 
             // S/T zone: Cygnus negate needs a legal target; others (Wolf, etc.) — engine handles.
             if ((Card.Location & CardLocation.SpellZone) != 0)
@@ -2539,7 +2591,7 @@ namespace WindBot.Game.AI.Decks
             // GY — Stringid 2 / str3: sent as Saint material → equip/attach face-up Cloth you control.
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (!MatchesCardEffectDescOrTrigger(d, CardId.Jabu, 2))
+                if (!IsGraveOptionalTriggerDesc(d, CardId.Jabu, 2, 0, 1))
                     return false;
                 return JabuMaterialClothEffectLegal();
             }
@@ -2774,7 +2826,7 @@ namespace WindBot.Game.AI.Decks
                 // Hard block the "material" trigger (Stringid 2) to avoid selecting from the wrong location.
                 if (MatchesCardEffectDesc(d, CardId.Ichi, 2))
                     return false;
-                if (!MatchesCardEffectDescOrTrigger(d, CardId.Ichi, 1))
+                if (!IsGraveOptionalTriggerDesc(d, CardId.Ichi, 1, 0, 2))
                     return false;
                 var send = ChooseClothFromDeckToSendToGraveyard();
                 if (!send.HasValue)
@@ -2791,8 +2843,7 @@ namespace WindBot.Game.AI.Decks
             var d = (int)ActivateDescription;
 
             // On-summon search (Stringid 0 / str1): no Level 5+ Saints in this build — skip.
-            if ((Card.Location & CardLocation.MonsterZone) != 0
-                && MatchesCardEffectDescOrTrigger(d, CardId.Geki, 0))
+            if (IsOnSummonOptionalTriggerDesc(d, CardId.Geki, 0, 1))
                 return false;
 
             // GY ignition (Stringid 1 / str2): add 1 Cloth from GY, then banish self.
@@ -2821,7 +2872,7 @@ namespace WindBot.Game.AI.Decks
             {
                 if (MatchesCardEffectDesc(d, CardId.Nachi, 2))
                     return false;
-                if (!MatchesCardEffectDescOrTrigger(d, CardId.Nachi, 0))
+                if (!IsGraveOptionalTriggerDesc(d, CardId.Nachi, 0, 1, 2))
                     return false;
                 return Bot.GetHandCount() > 0;
             }

@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 39;
-        private const string BuildTag = "2026-05-16-v39-boss-post-ss-equip-effectyn";
+        private const int BuildVersion = 41;
+        private const string BuildTag = "2026-05-16-v41-migrate-ortrigger-helpers";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -46,17 +46,34 @@ namespace WindBot.Game.AI.Decks
         private bool MatchesCardEffectDesc(int desc, int cardId, int stringIndex)
         {
             var sd = (int)Util.GetStringId(cardId, stringIndex);
-            return sd != 0 && desc == sd;
-        }
-
-        private bool MatchesCardEffectDescOrTrigger(int desc, int cardId, int stringIndex)
-        {
-            if (MatchesCardEffectDesc(desc, cardId, stringIndex))
+            if (sd != 0 && desc == sd)
                 return true;
-            return desc == -1 || desc == 0;
+            return desc == cardId * 16 + stringIndex;
         }
 
-        /// <summary>EffectYn optional trigger on our monster in the MMZ (summon / field triggers).</summary>
+        /// <summary>Optional trigger while this card is in the GY.</summary>
+        private bool IsGraveOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
+            }
+            if (Card == null || IsOpponentTurn())
+                return false;
+            return (Card.Location & CardLocation.Grave) != 0;
+        }
+
+        /// <summary>EffectYn optional trigger on our monster in the MMZ (field triggers that need MMZ).</summary>
         private bool IsOurMonsterOptionalTriggerWindow()
         {
             if (Card == null || IsOpponentTurn())
@@ -64,8 +81,20 @@ namespace WindBot.Game.AI.Decks
             return (Card.Location & CardLocation.MonsterZone) != 0;
         }
 
+        /// <summary>On-summon EffectYn — not hand/GY; MMZ may lag (see Ikki / Jango).</summary>
+        private bool IsSummonOptionalTriggerWindow()
+        {
+            if (Card == null || IsOpponentTurn())
+                return false;
+            if ((Card.Location & CardLocation.Hand) != 0)
+                return false;
+            if ((Card.Location & CardLocation.Grave) != 0)
+                return false;
+            return true;
+        }
+
         /// <summary>
-        /// On-summon optional effect (Stringid N). EffectYn often sends desc -1/0; Ignis may send id*16+N or another positive id.
+        /// On-summon optional effect (Stringid N). EffectYn sends -1/0, id*16+N, or filled texts.str codes.
         /// </summary>
         private bool IsOnSummonOptionalTriggerDesc(int desc, int cardId, int summonStringIndex, params int[] excludeOtherEffectIndices)
         {
@@ -76,18 +105,14 @@ namespace WindBot.Game.AI.Decks
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
-            if (desc != -1 && desc != 0)
+            for (var i = 0; i < 8; i++)
             {
-                for (var i = 0; i < 8; i++)
-                {
-                    if (i == summonStringIndex)
-                        continue;
-                    if (desc == cardId * 16 + i)
-                        return false;
-                }
-                return false;
+                if (i == summonStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
             }
-            return IsOurMonsterOptionalTriggerWindow();
+            return IsSummonOptionalTriggerWindow();
         }
 
         /// <summary>Monster-zone optional trigger (e.g. Fragment sent to GY → draw).</summary>
@@ -100,16 +125,12 @@ namespace WindBot.Game.AI.Decks
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
-            if (desc != -1 && desc != 0)
+            for (var i = 0; i < 8; i++)
             {
-                for (var i = 0; i < 8; i++)
-                {
-                    if (i == triggerStringIndex)
-                        continue;
-                    if (desc == cardId * 16 + i)
-                        return false;
-                }
-                return false;
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
             }
             if (Card == null || IsOpponentTurn())
                 return false;
@@ -126,16 +147,12 @@ namespace WindBot.Game.AI.Decks
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
-            if (desc != -1 && desc != 0)
+            for (var i = 0; i < 8; i++)
             {
-                for (var i = 0; i < 8; i++)
-                {
-                    if (i == triggerStringIndex)
-                        continue;
-                    if (desc == cardId * 16 + i)
-                        return false;
-                }
-                return false;
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
             }
             if (Card == null || IsOpponentTurn())
                 return false;
@@ -1486,7 +1503,7 @@ namespace WindBot.Game.AI.Decks
 
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (!MatchesCardEffectDescOrTrigger(d, CardId.DarkDragon, 2))
+                if (!IsGraveOptionalTriggerDesc(d, CardId.DarkDragon, 2, 0, 1))
                     return false;
                 return Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
             }
@@ -1737,7 +1754,7 @@ namespace WindBot.Game.AI.Decks
                         return false;
                     return EsmeraldaIkkiAccessible();
                 }
-                if (MatchesCardEffectDescOrTrigger(d, CardId.Esmeralda, 2))
+                if (IsMonsterZoneOptionalTriggerDesc(d, CardId.Esmeralda, 2, 0, 1))
                     return true;
                 return false;
             }
@@ -1760,15 +1777,12 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
-        /// <summary>On-summon deck search (Stringid 0 / str1); triggers use desc -1.</summary>
+        /// <summary>On-summon deck search (Stringid 0 / str1).</summary>
         private bool IsEsmeraldaSummonSearchDescription(int desc)
         {
             if (IsOpponentTurn())
                 return false;
-            if (MatchesCardEffectDesc(desc, CardId.Esmeralda, 1)
-                || MatchesCardEffectDesc(desc, CardId.Esmeralda, 2))
-                return false;
-            return MatchesCardEffectDescOrTrigger(desc, CardId.Esmeralda, 0);
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.Esmeralda, 0, 1, 2);
         }
 
         /// <summary>Esmeralda on-summon search adds only Death Queen Island (922100163).</summary>
@@ -1782,8 +1796,10 @@ namespace WindBot.Game.AI.Decks
         /// <summary>Battle negate (Stringid 2) or generic trigger desc during a battle window.</summary>
         private bool IsEsmeraldaBattleActivateDescription(int desc)
         {
-            return MatchesCardEffectDesc(desc, CardId.Esmeralda, 2)
-                || (IsOpponentTurn() && MatchesCardEffectDescOrTrigger(desc, CardId.Esmeralda, 2));
+            if (MatchesCardEffectDesc(desc, CardId.Esmeralda, 2))
+                return true;
+            return IsOpponentTurn()
+                && IsMonsterZoneOptionalTriggerDesc(desc, CardId.Esmeralda, 2, 0, 1);
         }
 
         private bool EsmeraldaHasDeckSearchTarget()
@@ -1864,7 +1880,7 @@ namespace WindBot.Game.AI.Decks
             // GY — Stringid 3 / str4: destroyed → Special Summon Ikki.
             if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (!MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 3))
+                if (!IsGraveOptionalTriggerDesc(d, CardId.Guilty, 3, 0, 1, 2))
                     return false;
                 if (Bot.GetMonsterCount() >= 5)
                     return false;
@@ -2122,16 +2138,17 @@ namespace WindBot.Game.AI.Decks
                 return false;
 
             var d = (int)ActivateDescription;
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
-                return false;
+
+            // Stringid 0 / str1: on N/SS send Fragment from Deck (EffectYn; MMZ may lag — check before MMZ gate).
+            if ((Card.Location & CardLocation.Hand) == 0
+                && (Card.Location & CardLocation.Grave) == 0
+                && IsOnSummonOptionalTriggerDesc(d, CardId.Jango, 0, 1))
+                return ChooseFragmentIdForDeckMill() != 0;
 
             // Stringid 1 / str2: Fragment equip sent to GY — exact desc only (never confuse with summon -1).
-            if (MatchesCardEffectDesc(d, CardId.Jango, 1))
+            if ((Card.Location & CardLocation.MonsterZone) != 0
+                && MatchesCardEffectDesc(d, CardId.Jango, 1))
                 return JangoFragmentRecoveryLegal();
-
-            // Stringid 0 / str1: on N/SS send Fragment from Deck (not gated to Main Phase — can chain in BP).
-            if (IsOnSummonOptionalTriggerDesc(d, CardId.Jango, 0, 1))
-                return ChooseFragmentIdForDeckMill() != 0;
 
             return false;
         }
@@ -2388,6 +2405,12 @@ namespace WindBot.Game.AI.Decks
             }
         }
 
+        /// <summary>Stringid for Fragment "sent to GY → add Black Saint" (Right Arm uses 2).</summary>
+        private static int FragmentGySearchStringIndex(int fragmentId)
+        {
+            return fragmentId == CardId.FragmentRightArm ? 2 : 1;
+        }
+
         private bool ActivateAnyFragment()
         {
             if ((Card.Location & CardLocation.Hand) != 0)
@@ -2405,6 +2428,14 @@ namespace WindBot.Game.AI.Decks
 
             if ((Card.Location & CardLocation.Grave) != 0)
             {
+                var gyIdx = FragmentGySearchStringIndex(Card.Id);
+                if (Card.Id == CardId.FragmentRightArm)
+                {
+                    if (!IsGraveOptionalTriggerDesc((int)ActivateDescription, Card.Id, gyIdx, 0, 1))
+                        return false;
+                }
+                else if (!IsGraveOptionalTriggerDesc((int)ActivateDescription, Card.Id, gyIdx, 0))
+                    return false;
                 AI.SelectCard(ChooseBlackSaintForDeckSearch());
                 return true;
             }
