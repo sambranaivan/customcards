@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 37;
-        private const string BuildTag = "2026-05-16-v37-on-summon-effectyn";
+        private const int BuildVersion = 38;
+        private const string BuildTag = "2026-05-16-v38-guilty-cruel-trial-triggers";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -83,6 +83,33 @@ namespace WindBot.Game.AI.Decks
             for (var i = 0; i < 8; i++)
             {
                 if (i == summonStringIndex)
+                    continue;
+                if (desc == cardId * 16 + i)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>Continuous Spell field trigger (e.g. Fragment sent to GY → draw/discard).</summary>
+        private bool IsFieldSpellOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
+                return true;
+            if (desc == -1 || desc == 0)
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            if (Card == null || IsOpponentTurn())
+                return false;
+            if ((Card.Location & CardLocation.SpellZone) == 0
+                && (Card.Location & CardLocation.FieldZone) == 0)
+                return false;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == triggerStringIndex)
                     continue;
                 if (desc == cardId * 16 + i)
                     return false;
@@ -318,6 +345,16 @@ namespace WindBot.Game.AI.Decks
             if (card != null
                 && card.IsCode(CardId.Jango)
                 && MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.Jango, 0))
+            {
+                var fragId = ChooseFragmentIdForDeckMill();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
+            }
+
+            // Guilty (c922100169) Stringid 1 / str2: on N/SS send Fragment from Deck to GY.
+            if (card != null
+                && card.IsCode(CardId.Guilty)
+                && IsGuiltyOnSummonMillPrompt((int)ActivateDescription))
             {
                 var fragId = ChooseFragmentIdForDeckMill();
                 if (fragId != 0)
@@ -1274,13 +1311,42 @@ namespace WindBot.Game.AI.Decks
             return ControlAnyBlackSaintFaceUp();
         }
 
+        private bool GuiltysCruelTrialHandActivateLegal()
+        {
+            return BlackSaintInMainDeck(CardId.Esmeralda) || BlackSaintInMainDeck(CardId.Guilty);
+        }
+
+        private bool GuiltysCruelTrialDrawDiscardLegal()
+        {
+            return Bot.Hand != null && Bot.Hand.Count > 0;
+        }
+
+        /// <summary>c922100171: hand activate vs Stringid 1 field trigger (Fragment to GY).</summary>
         private bool ActivateGuiltysCruelTrial()
         {
+            if (Card == null || !Card.IsCode(CardId.GuiltysCruelTrial))
+                return false;
+
+            var d = (int)ActivateDescription;
+            var onField = (Card.Location & CardLocation.SpellZone) != 0
+                || (Card.Location & CardLocation.FieldZone) != 0;
+
+            // Field — Stringid 1 / str2: draw 1, then discard 1 (EffectYn when Fragment equip hits GY).
+            if (onField)
+            {
+                if (IsFieldSpellOptionalTriggerDesc(d, CardId.GuiltysCruelTrial, 1, 0))
+                    return GuiltysCruelTrialDrawDiscardLegal();
+                return false;
+            }
+
+            // Hand — place Continuous Spell (+ optional search in Lua actop).
+            if ((Card.Location & CardLocation.Hand) == 0)
+                return false;
             if (!IsMainPhase())
                 return false;
             if (Bot.HasInSpellZone(CardId.GuiltysCruelTrial))
                 return false;
-            return true;
+            return GuiltysCruelTrialHandActivateLegal();
         }
 
         /// <summary>
@@ -1727,17 +1793,28 @@ namespace WindBot.Game.AI.Decks
             return null;
         }
 
+        /// <summary>c922100169 Stringid 1 / str2 — on N/SS mill Fragment (EffectYn, not Main-Phase-only).</summary>
+        private bool IsGuiltyOnSummonMillPrompt(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.Guilty, 0)
+                || MatchesCardEffectDesc(desc, CardId.Guilty, 2)
+                || MatchesCardEffectDesc(desc, CardId.Guilty, 3))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.Guilty, 1, 0, 2, 3);
+        }
+
         private bool ActivateGuilty()
         {
             if (Card == null || !Card.IsCode(CardId.Guilty))
                 return false;
-            if (!IsMainPhase() && !ChainIsEmpty())
-                return false;
 
             var d = (int)ActivateDescription;
 
+            // Hand — Stringid 0 / str1: ignition Special Summon.
             if ((Card.Location & CardLocation.Hand) != 0)
             {
+                if (!IsMainPhase())
+                    return false;
                 if (!MatchesCardEffectDesc(d, CardId.Guilty, 0))
                     return false;
                 if (Bot.GetMonsterCount() >= 5)
@@ -1745,27 +1822,28 @@ namespace WindBot.Game.AI.Decks
                 return ControlAnyBlackSaintFaceUp();
             }
 
-            if ((Card.Location & CardLocation.MonsterZone) != 0)
+            // GY — Stringid 3 / str4: destroyed → Special Summon Ikki.
+            if ((Card.Location & CardLocation.Grave) != 0)
             {
-                if (MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 1))
+                if (!MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 3))
+                    return false;
+                if (Bot.GetMonsterCount() >= 5)
+                    return false;
+                return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave)) > 0;
+            }
+
+            // Field — on-summon mill or Quick negate (not gated to Main Phase for mill trigger).
+            if ((Card.Location & CardLocation.Hand) == 0 && (Card.Location & CardLocation.Grave) == 0)
+            {
+                if (IsGuiltyOnSummonMillPrompt(d))
                     return ChooseFragmentIdForDeckMill() != 0;
+
                 if (MatchesCardEffectDesc(d, CardId.Guilty, 2))
                 {
                     if (ChainIsEmpty() || !IsLastChainFromOpponent())
                         return false;
                     return ChooseIkkiFragmentEquipForQuickCost() != null;
                 }
-                return false;
-            }
-
-            if ((Card.Location & CardLocation.Grave) != 0)
-                return false;
-
-            if (MatchesCardEffectDescOrTrigger(d, CardId.Guilty, 3))
-            {
-                if (Bot.GetMonsterCount() >= 5)
-                    return false;
-                return Bot.GetRemainingCount(CardId.Ikki, (int)(CardLocation.Hand | CardLocation.Grave)) > 0;
             }
 
             return false;
