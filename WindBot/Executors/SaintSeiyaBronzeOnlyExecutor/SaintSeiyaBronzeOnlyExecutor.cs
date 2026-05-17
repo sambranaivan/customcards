@@ -101,7 +101,7 @@ Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF
 ### Extenders (increase bodies / unique names)
 - `922100005` **Jabu**: hand extender (SS if you control a Saint). On SS: add 1 Cloth from GY, then discard 1.
 - `922100004` **Ikki**: GY extender (revive by discarding 1 Saint).
-- `922100010` **Mu**: resource extender (on summon, add up to 2 Cloth Equips from GY).
+- `922100010` **Mu** (×2 in deck): on summon add up to 2 Cloth Equips from GY; MMZ ignition discards self to search **Athena's Sanctuary**.
 - `922100011` **Kiki**:
   - Quick effect from hand: discard → equip 1 Cloth Equip from **Deck or GY** to a Saint you control.
   - Next turn Standby: banish from GY → add up to 2 different-name Cloths from GY.
@@ -111,7 +111,7 @@ Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF
 - `922100103` **The Pope’s Verdict** turns on if you control a **Saint equipped with a Cloth**.
 
 ### Stabilizers / protection
-- `922100079` **Athena's Sanctuary**: global +300/+300; first battle destruction of a Bronze Saint prevented; once/turn return 1 Cloth in S/T Zone to hand.
+- `922100079` **Athena's Sanctuary** (×2 in deck): +300 ATK/DEF to Saints; first battle destruction of a Bronze Saint prevented; once/turn return 1 Cloth in S/T Zone to hand (re-equip via Kiki/ignition).
 - `922100086` **Awakening**: 1-turn indestructible + GY destruction replacement.
 - `922100092` **Bond**: protects from opponent’s effects (incl. banish); draws if chained to opponent monster effect.
 
@@ -167,11 +167,11 @@ namespace WindBot.Game.AI.Decks
     {
         // Guide coverage notes (embedded MD is the full spec):
         // - Not modeled: full go-second macro loop, Battle-Phase Hyoga trigger, S/A "threat tier" without chain metadata,
-        //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
+        //   Deck runs 2× Mu (922100010) + 2× Athena's Sanctuary (922100079): Mu MMZ ignition searches Sanctuary; backup copy in hand when Field is live.
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 60;
-        private const string BuildTag = "2026-05-16-v60-migrate-ortrigger-helpers";
+        private const int BuildVersion = 62;
+        private const string BuildTag = "2026-05-16-v62-boss-always-atk-position";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -1704,6 +1704,16 @@ namespace WindBot.Game.AI.Decks
             return MatchesCardEffectDesc(d, CardId.Mu, 1);
         }
 
+        /// <summary>Mu ignition: search Sanctuary from Deck (first copy to Field, second as hand backup).</summary>
+        private bool MuSanctuarySearchFromDeckWorthActivating()
+        {
+            if (Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) <= 0)
+                return false;
+            if (!IsAthenasSanctuaryOnField())
+                return true;
+            return !Bot.Hand.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.AthenasSanctuary));
+        }
+
         /// <summary>c922100079: activate from hand, or Stringid 0 ignition to return Cloth to hand.</summary>
         private bool ActivateSanctuary()
         {
@@ -1878,7 +1888,11 @@ namespace WindBot.Game.AI.Decks
             if (SaintsWithNSTrigger.Contains(id))
             {
                 if (id == CardId.Mu && Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
-                    return 90; // Mu is excellent when there's a Cloth target in GY
+                {
+                    if (!IsAthenasSanctuaryOnField() && Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0)
+                        return 92;
+                    return 90;
+                }
                 if (id == CardId.Geki)
                     return 85; // Geki pumps ATK on summon
                 return 80;
@@ -1986,23 +2000,11 @@ namespace WindBot.Game.AI.Decks
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
 
-            // Miracle Bonds (922100303): post-summon GY equip stack — do not use Lv4 Saint pay-equip heuristics for position.
-            if (cardId == CardId.SeiyaMiracleBonds && positions != null)
-            {
-                int combatAtk = atkStat + MiracleBondsGyClothAtkBonusIfSummoned();
-                int enemyBest = Util.GetBestAttack(Enemy);
-
-                if (positions.Contains(CardPosition.FaceUpAttack) && combatAtk > enemyBest)
-                    return CardPosition.FaceUpAttack;
-
-                if (positions.Contains(CardPosition.FaceUpDefence)
-                    && enemyBest > combatAtk
-                    && enemyBest <= defStat)
-                    return CardPosition.FaceUpDefence;
-
-                if (positions.Contains(CardPosition.FaceUpAttack))
-                    return CardPosition.FaceUpAttack;
-            }
+            // Seiya Miracle Bonds (922100303): always Special Summon in face-up ATK.
+            if (cardId == CardId.SeiyaMiracleBonds
+                && positions != null
+                && positions.Contains(CardPosition.FaceUpAttack))
+                return CardPosition.FaceUpAttack;
 
             int clothBonus = ProbableBronzeClothAtkBonusAfterSummon(cardId);
             int combatAtkSaint = atkStat + clothBonus;
@@ -2418,20 +2420,23 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (!Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
                 return false;
-            return Bot.GetHandCount() > 0;
+            // With 2× Mu in deck: allow NS even when hand is thin if another Mu remains in hand.
+            if (Bot.GetRemainingCount(CardId.Mu, (int)CardLocation.Hand) >= 2)
+                return true;
+            return Bot.GetHandCount() > 1;
         }
 
         private bool ResolveMuEffect()
         {
             var d = (int)ActivateDescription;
 
-            // Stringid 1: discard Mu; add "Athena's Sanctuary" (922100079) from Deck.
-            if ((Card.Location & CardLocation.Hand) != 0
+            // Stringid 1: discard Mu from MMZ; add "Athena's Sanctuary" (922100079) from Deck (c922100010.lua).
+            if ((Card.Location & CardLocation.MonsterZone) != 0
                 && IsMuDiscardSearchSanctuaryDescription(d))
             {
                 if (!IsMainPhase())
                     return false;
-                return Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0;
+                return MuSanctuarySearchFromDeckWorthActivating();
             }
 
             // Stringid 0 / str1: on N/SS — add Cloths from GY (EffectYn; not Main-Phase-only).

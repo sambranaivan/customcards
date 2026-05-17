@@ -32,8 +32,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 43;
-        private const string BuildTag = "2026-05-16-v43-boss-fragment-stack-priority";
+        private const int BuildVersion = 44;
+        private const string BuildTag = "2026-05-16-v44-boss-always-atk-position";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -576,6 +576,12 @@ namespace WindBot.Game.AI.Decks
             int atkStat = Card != null ? Card.Attack : (named != null ? named.Attack : 0);
             int defStat = Card != null ? Card.Defense : (named != null ? named.Defense : 0);
             int monsterId = Card != null ? Card.Id : cardId;
+
+            // Reassembled Gold Cloth (922100162): always Fusion Summon in face-up ATK.
+            if ((monsterId == CardId.BossReassembled || cardId == CardId.BossReassembled)
+                && positions != null
+                && positions.Contains(CardPosition.FaceUpAttack))
+                return CardPosition.FaceUpAttack;
 
             if (monsterId == CardId.Esmeralda && positions != null && positions.Contains(CardPosition.FaceUpAttack))
                 return CardPosition.FaceUpAttack;
