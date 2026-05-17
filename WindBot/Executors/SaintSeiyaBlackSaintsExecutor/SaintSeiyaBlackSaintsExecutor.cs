@@ -18,8 +18,9 @@ Goals:
   equip Fragments to Black Saints, set or activate The Heist / Oath of the Shadow (Continuous Spell), end with Ikki + Fragment lines when possible.
 - Spend The Heist on meaningful opponent activations while a Black Saint wears a Fragment.
 - Use Oath / Guilty / Esmeralda for recursion; Esmeralda (c922100168) also defends with Maiden-like Ikki SS when targeted (1 card effect/turn shared with her Deck search). Dark Andromeda for draw when Fragments move by effects.
-- Boss (922100162): Fusion Summon from Extra (`SpSummon` + `CardLocation.Extra`) when **exactly 7 distinct Fragment names** on field/GY (c922100162.lua); **Activate** for post-SS GY equip is registered **first** so DQI/Stolen Gold/etc. do not win `ActivatableCards` first (`GameAI.OnSelectIdleCmd` executor order).
-- While Boss remains in the Extra Deck and distinct Fragment count is under 7, mill/setup (Jango, Death Queen Island, Stolen Gold Cloth, Oath, Dark Dragon equip) bias missing Fragment names from Deck.
+- Boss (922100162): Fusion Summon from Extra when **exactly 7 distinct Fragment names** on field/GY; stack equips on Boss via hand, Death Queen Island GY equip, and post-SS trigger.
+- While building Boss or with Boss on field: **do not** activate Fragment equip Quicks; **do not** send Fragments as cost (Ikki Quick, Dark Dragon/Cygnus/Phoenix, etc.) except Boss's 5+ equip Quick negate.
+- Death Queen Island ignition (Stringid 1) targets Boss first when legal; hand Fragment equips go to Boss only (not Ikki/other bodies).
 - Fragment / Jango GY search: `ChooseBlackSaintForDeckSearch()` — Boss when **exactly 7 distinct** on field/GY; Ikki when 3+ BS and still building Boss; then scores.
 
 Maintenance: bump BuildVersion / BuildTag when behavior changes.
@@ -31,8 +32,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 41;
-        private const string BuildTag = "2026-05-16-v41-migrate-ortrigger-helpers";
+        private const int BuildVersion = 43;
+        private const string BuildTag = "2026-05-16-v43-boss-fragment-stack-priority";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -115,7 +116,7 @@ namespace WindBot.Game.AI.Decks
             return IsSummonOptionalTriggerWindow();
         }
 
-        /// <summary>Monster-zone optional trigger (e.g. Fragment sent to GY → draw).</summary>
+        /// <summary>Monster-zone optional trigger on our turn (e.g. Fragment sent to GY → draw).</summary>
         private bool IsMonsterZoneOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
         {
             if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
@@ -133,6 +134,28 @@ namespace WindBot.Game.AI.Decks
                     return false;
             }
             if (Card == null || IsOpponentTurn())
+                return false;
+            return (Card.Location & CardLocation.MonsterZone) != 0;
+        }
+
+        /// <summary>MMZ trigger that may fire on the opponent's turn (battle target, Quick BECOME_TARGET).</summary>
+        private bool IsMonsterZoneReactiveOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
+                return true;
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == triggerStringIndex)
+                    continue;
+                if (MatchesCardEffectDesc(desc, cardId, i))
+                    return false;
+            }
+            if (Card == null)
                 return false;
             return (Card.Location & CardLocation.MonsterZone) != 0;
         }
@@ -323,9 +346,8 @@ namespace WindBot.Game.AI.Decks
                 }
                 // Ikki bias: opponent-turn defend + Quick (Stringid 1).
                 else if ((card.Location & CardLocation.MonsterZone) != 0
-                    && (IsOpponentTurn()
-                        || IsEsmeraldaQuickIkkiActivateDescription()
-                        || IsEsmeraldaBattleActivateDescription(d)))
+                    && (IsEsmeraldaQuickTargetTriggerDesc(d)
+                        || IsEsmeraldaBattleTargetTriggerDesc(d)))
                 {
                     var ikki = ChooseEsmeraldaIkkiClientCardForSelectNext();
                     if (ikki != null)
@@ -357,7 +379,7 @@ namespace WindBot.Game.AI.Decks
                 var dDqi = (int)ActivateDescription;
                 if (MatchesCardEffectDesc(dDqi, CardId.DeathQueenIsland, 1))
                 {
-                    var tgt = BestBlackSaintForEquip();
+                    var tgt = BestBlackSaintForFragmentEquip();
                     if (tgt != null)
                         AI.SelectCard(tgt);
                     var gyFrag = ChooseBestGraveFragmentCardForEquip(null);
@@ -949,6 +971,39 @@ namespace WindBot.Game.AI.Decks
                 m => m != null && m.IsFaceup() && m.IsCode(CardId.BossReassembled));
         }
 
+        private ClientCard GetBossOnField()
+        {
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m != null && m.IsFaceup() && m.IsCode(CardId.BossReassembled))
+                    return m;
+            }
+            return null;
+        }
+
+        /// <summary>Hoard Fragments for Boss equips (pre-SS setup or post-SS stacking).</summary>
+        private bool ShouldPreserveFragmentsOnBoss()
+        {
+            return PursuingBossCombo() || BossAlreadyOnField();
+        }
+
+        private bool CanEquipMoreFragmentsToBoss()
+        {
+            var boss = GetBossOnField();
+            if (boss == null)
+                return false;
+            if (!HasFreeSpellZone())
+                return false;
+            return CountFaceUpEquipsOnCard(boss) < 5;
+        }
+
+        private bool ShouldPrioritizeDeathQueenIslandBossEquip()
+        {
+            return BossAlreadyOnField()
+                && CanEquipMoreFragmentsToBoss()
+                && DeathQueenIslandEquipFromGraveIgnitionLegal();
+        }
+
         private bool BossSummonReady()
         {
             if (!IsMainPhase())
@@ -960,8 +1015,15 @@ namespace WindBot.Game.AI.Decks
             return BossDistinctFragmentGateReady();
         }
 
-        private ClientCard BestBlackSaintForEquip()
+        /// <summary>Fragment equip target: Boss first, else legacy bodies only when not hoarding for Boss.</summary>
+        private ClientCard BestBlackSaintForFragmentEquip()
         {
+            var boss = GetBossOnField();
+            if (boss != null && CanEquipMoreFragmentsToBoss())
+                return boss;
+            if (ShouldPreserveFragmentsOnBoss())
+                return null;
+
             ClientCard best = null;
             foreach (var m in Bot.MonsterZone)
             {
@@ -975,6 +1037,11 @@ namespace WindBot.Game.AI.Decks
                     best = m;
             }
             return best;
+        }
+
+        private ClientCard BestBlackSaintForEquip()
+        {
+            return BestBlackSaintForFragmentEquip();
         }
 
         /// <summary>Fragment cards (any name) in our GY only.</summary>
@@ -1292,6 +1359,8 @@ namespace WindBot.Game.AI.Decks
                 {
                     if (!IsMainPhase())
                         return false;
+                    if (ShouldPrioritizeDeathQueenIslandBossEquip())
+                        return true;
                     return equipLegal;
                 }
                 return false;
@@ -1516,6 +1585,8 @@ namespace WindBot.Game.AI.Decks
 
             if (MatchesCardEffectDesc(d, CardId.DarkDragon, 1))
             {
+                if (ShouldPreserveFragmentsOnBoss())
+                    return false;
                 if (!DarkDragonHasEquipToSendAsCost())
                     return false;
                 if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
@@ -1748,18 +1819,20 @@ namespace WindBot.Game.AI.Decks
             {
                 if ((Card.Location & CardLocation.MonsterZone) == 0)
                     return false;
-                if (MatchesCardEffectDesc(d, CardId.Esmeralda, 1))
+                // Stringid 1 / str2: Quick when targeted by a card effect → SS Ikki.
+                if (IsEsmeraldaQuickTargetTriggerDesc(d))
                 {
                     if (Bot.GetMonsterCount() >= 5)
                         return false;
                     return EsmeraldaIkkiAccessible();
                 }
-                if (IsMonsterZoneOptionalTriggerDesc(d, CardId.Esmeralda, 2, 0, 1))
+                // Stringid 2 / str3: when targeted for an attack → negate, DEF, optional Ikki.
+                if (IsEsmeraldaBattleTargetTriggerDesc(d))
                     return true;
                 return false;
             }
 
-            if (MatchesCardEffectDesc(d, CardId.Esmeralda, 1))
+            if (IsEsmeraldaQuickTargetTriggerDesc(d))
             {
                 if ((Card.Location & CardLocation.MonsterZone) == 0)
                     return false;
@@ -1768,7 +1841,7 @@ namespace WindBot.Game.AI.Decks
                 return EsmeraldaIkkiAccessible();
             }
 
-            if (MatchesCardEffectDesc(d, CardId.Esmeralda, 2))
+            if (IsEsmeraldaBattleTargetTriggerDesc(d))
                 return false;
 
             if (IsEsmeraldaSummonSearchDescription(d))
@@ -1793,13 +1866,22 @@ namespace WindBot.Game.AI.Decks
             return 0;
         }
 
-        /// <summary>Battle negate (Stringid 2) or generic trigger desc during a battle window.</summary>
+        /// <summary>Stringid 2 / str3 — EVENT_BE_BATTLE_TARGET (EffectYn on opponent's Battle Phase).</summary>
+        private bool IsEsmeraldaBattleTargetTriggerDesc(int desc)
+        {
+            return IsMonsterZoneReactiveOptionalTriggerDesc(desc, CardId.Esmeralda, 2, 0, 1);
+        }
+
+        /// <summary>Stringid 1 / str2 — Quick EVENT_BECOME_TARGET → SS Ikki.</summary>
+        private bool IsEsmeraldaQuickTargetTriggerDesc(int desc)
+        {
+            return IsMonsterZoneReactiveOptionalTriggerDesc(desc, CardId.Esmeralda, 1, 0, 2);
+        }
+
+        /// <summary>Battle negate prompt (used by OnPreActivate to bias Ikki).</summary>
         private bool IsEsmeraldaBattleActivateDescription(int desc)
         {
-            if (MatchesCardEffectDesc(desc, CardId.Esmeralda, 2))
-                return true;
-            return IsOpponentTurn()
-                && IsMonsterZoneOptionalTriggerDesc(desc, CardId.Esmeralda, 2, 0, 1);
+            return IsEsmeraldaBattleTargetTriggerDesc(desc);
         }
 
         private bool EsmeraldaHasDeckSearchTarget()
@@ -1815,7 +1897,7 @@ namespace WindBot.Game.AI.Decks
         /// <summary>True when engine is offering Esmeralda's Quick (Stringid 1) vs her other MMZ activations.</summary>
         private bool IsEsmeraldaQuickIkkiActivateDescription()
         {
-            return MatchesCardEffectDesc((int)ActivateDescription, CardId.Esmeralda, 1);
+            return IsEsmeraldaQuickTargetTriggerDesc((int)ActivateDescription);
         }
 
         /// <summary>First Ikki in Main Deck, then GY, then hand, for SelectNextCard bias in OnPreActivate.</summary>
@@ -2018,6 +2100,9 @@ namespace WindBot.Game.AI.Decks
         /// </summary>
         private ClientCard ChooseIkkiFragmentEquipForQuickCost()
         {
+            if (ShouldPreserveFragmentsOnBoss())
+                return null;
+
             var candidates = new List<ClientCard>();
             if (Bot.SpellZone != null)
             {
@@ -2173,6 +2258,8 @@ namespace WindBot.Game.AI.Decks
 
             if ((Card.Location & CardLocation.MonsterZone) != 0)
             {
+                if (ShouldPreserveFragmentsOnBoss())
+                    return false;
                 if (!MatchesCardEffectDesc(d, CardId.DarkPegasus, 1))
                     return false;
                 if (!HasFreeSpellZone())
@@ -2197,6 +2284,8 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.MonsterZone) != 0
                 && MatchesCardEffectDesc(d, CardId.DarkCygnus, 1))
             {
+                if (ShouldPreserveFragmentsOnBoss())
+                    return false;
                 if (!DarkDragonHasEquipToSendAsCost())
                     return false;
                 if (ChainIsEmpty() && !FragmentQuickContextWorthSpending())
@@ -2218,6 +2307,8 @@ namespace WindBot.Game.AI.Decks
 
             if (MatchesCardEffectDesc(d, CardId.DarkAndromeda, 0))
             {
+                if (ShouldPreserveFragmentsOnBoss())
+                    return false;
                 if (!IsMainPhase())
                     return false;
                 if (!HasFreeSpellZone())
@@ -2246,6 +2337,8 @@ namespace WindBot.Game.AI.Decks
 
             if (MatchesCardEffectDesc(d, CardId.DarkPhoenix, 1))
             {
+                if (ShouldPreserveFragmentsOnBoss())
+                    return false;
                 if (!IsMainPhase())
                     return false;
                 if (!DarkDragonHasEquipToSendAsCost())
@@ -2358,6 +2451,9 @@ namespace WindBot.Game.AI.Decks
         /// <summary>Face-up equip in SZONE: only the matching Quick (Lua), not the passive GY trigger.</summary>
         private bool ActivateFragmentFaceUpEquipQuick()
         {
+            if (ShouldPreserveFragmentsOnBoss())
+                return false;
+
             var host = FindMonsterHostingThisEquipSpell();
             if (host == null)
                 return false;
@@ -2419,7 +2515,7 @@ namespace WindBot.Game.AI.Decks
                     return false;
                 if (!HasFreeSpellZone())
                     return false;
-                var target = BestBlackSaintForEquip();
+                var target = BestBlackSaintForFragmentEquip();
                 if (target == null)
                     return false;
                 AI.SelectCard(target);
