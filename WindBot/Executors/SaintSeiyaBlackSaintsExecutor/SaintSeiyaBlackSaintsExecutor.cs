@@ -32,8 +32,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 46;
-        private const string BuildTag = "2026-05-16-v46-boss-equip-only-fragment-preserve";
+        private const int BuildVersion = 47;
+        private const string BuildTag = "2026-05-16-v47-ikki-destroy-fix-oath-guilty-cap";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -271,6 +271,7 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Summon, CardId.Esmeralda, PrioritizeEsmeraldaNormalSummon);
 
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
+            // Ikki Quick destroy before Fragment handlers so idle/chain activate is not starved.
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkki);
             AddExecutor(ExecutorType.Activate, CardId.Jango, ActivateJango);
             AddExecutor(ExecutorType.Activate, CardId.DarkDragon, ActivateDarkDragon);
@@ -438,7 +439,7 @@ namespace WindBot.Game.AI.Decks
             else if (card != null
                 && card.IsCode(CardId.Ikki)
                 && (card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiQuickDestroyDescription((int)ActivateDescription)
+                && IsIkkiQuickDestroyPrompt((int)ActivateDescription)
                 && IkkiQuickDestroyLegal())
             {
                 var cost = ChooseIkkiFragmentEquipForQuickCost();
@@ -1456,9 +1457,23 @@ namespace WindBot.Game.AI.Decks
                 return false;
             if (!IsMainPhase())
                 return false;
-            if (Bot.HasInSpellZone(CardId.GuiltysCruelTrial))
+            if (CountOurSpellZoneCopies(CardId.GuiltysCruelTrial) >= 1)
                 return false;
             return GuiltysCruelTrialHandActivateLegal();
+        }
+
+        /// <summary>Copies of a card in our Spell Zones (face-up or set).</summary>
+        private int CountOurSpellZoneCopies(int cardId)
+        {
+            if (Bot.SpellZone == null)
+                return 0;
+            var n = 0;
+            foreach (var z in Bot.SpellZone)
+            {
+                if (z != null && z.IsCode(cardId))
+                    n++;
+            }
+            return n;
         }
 
         /// <summary>
@@ -1488,7 +1503,7 @@ namespace WindBot.Game.AI.Decks
             // Continuous Spell from hand — only when a follow-up ignition line exists (GY target + Fragment cost).
             if ((Card.Location & CardLocation.Hand) != 0)
             {
-                if (Bot.HasInSpellZone(CardId.OathOfShadow))
+                if (CountOurSpellZoneCopies(CardId.OathOfShadow) >= 1)
                     return false;
                 return hasGyBs && canPayIgnitionCost;
             }
@@ -1991,10 +2006,25 @@ namespace WindBot.Game.AI.Decks
                 && ChooseIkkiDestroyTargetPreferOpponent(null) != null;
         }
 
-        /// <summary>c922100148 Stringid 3 — Quick destroy (texts.str4).</summary>
-        private bool IsIkkiQuickDestroyDescription(int d)
+        /// <summary>c922100148 Stringid 3 — Quick destroy (texts.str4); exact desc or MMZ fallback when legal.</summary>
+        private bool IsIkkiQuickDestroyPrompt(int d)
         {
-            return MatchesCardEffectDesc(d, CardId.Ikki, 3);
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            if (MatchesCardEffectDesc(d, CardId.Ikki, 3))
+                return true;
+            if (MatchesCardEffectDesc(d, CardId.Ikki, 0)
+                || MatchesCardEffectDesc(d, CardId.Ikki, 1)
+                || MatchesCardEffectDesc(d, CardId.Ikki, 2))
+                return false;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == 3)
+                    continue;
+                if (MatchesCardEffectDesc(d, CardId.Ikki, i))
+                    return false;
+            }
+            return IkkiQuickDestroyLegal();
         }
 
         /// <summary>c922100148 Stringid 0 / texts.str1 — hand Special Summon.</summary>
@@ -2063,7 +2093,7 @@ namespace WindBot.Game.AI.Decks
 
             // Quick (Stringid 3 / str4) — MMZ only; Ikki leader line is not gated by Boss fragment hoarding.
             if ((Card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiQuickDestroyDescription(d))
+                && IsIkkiQuickDestroyPrompt(d))
             {
                 var cost = ChooseIkkiFragmentEquipForQuickCost();
                 var kill = ChooseIkkiDestroyTargetPreferOpponent(Card);
@@ -2186,6 +2216,7 @@ namespace WindBot.Game.AI.Decks
             return best;
         }
 
+        /// <summary>True if <paramref name="c"/> is on our field (Controller 0 = bot per WindBot API).</summary>
         private bool IsOurFieldCard(ClientCard c, ClientCard handler)
         {
             if (c == null)
@@ -2193,7 +2224,7 @@ namespace WindBot.Game.AI.Decks
             if (handler != null && c == handler)
                 return true;
             if (c.Controller != 0)
-                return true;
+                return false;
             foreach (var m in Bot.MonsterZone)
             {
                 if (m != null && m == c)
@@ -2204,6 +2235,16 @@ namespace WindBot.Game.AI.Decks
                 foreach (var z in Bot.SpellZone)
                 {
                     if (z != null && z == c)
+                        return true;
+                }
+            }
+            foreach (var m in Bot.MonsterZone)
+            {
+                if (m == null || m.EquipCards == null)
+                    continue;
+                foreach (var eq in m.EquipCards)
+                {
+                    if (eq == c)
                         return true;
                 }
             }
@@ -2597,7 +2638,8 @@ namespace WindBot.Game.AI.Decks
 
             if (Card.IsCode(CardId.OathOfShadow))
             {
-                // Continuous Spell — set to bluff / end phase; same heuristics as before (card was mis-typed as Trap in DB once).
+                if (CountOurSpellZoneCopies(CardId.OathOfShadow) >= 1)
+                    return false;
                 if (CountBlackSaintCardsInOurGraveyard() >= 1)
                     return true;
                 if (ControlAnyBlackSaintFaceUp())
@@ -2606,7 +2648,11 @@ namespace WindBot.Game.AI.Decks
             }
 
             if (Card.IsCode(CardId.GuiltysCruelTrial))
+            {
+                if (CountOurSpellZoneCopies(CardId.GuiltysCruelTrial) >= 1)
+                    return false;
                 return Duel.Player == 0 && Duel.Phase == DuelPhase.Main2;
+            }
 
             return DefaultSpellSet();
         }
