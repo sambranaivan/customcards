@@ -32,8 +32,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 47;
-        private const string BuildTag = "2026-05-16-v47-ikki-destroy-fix-oath-guilty-cap";
+        private const int BuildVersion = 48;
+        private const string BuildTag = "2026-05-16-v48-ikki-quick-destroy-priority";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -252,6 +252,8 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.SpSummon, CardId.BossReassembled, SpSummonBossReassembled);
 
             AddExecutor(ExecutorType.Activate, CardId.Heist, ActivateHeist);
+            // Ikki Quick (Stringid 3) — register before other Activate handlers so idle/chain picks destroy, not on-summon search.
+            AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkkiQuickDestroy);
             // Esmeralda defenses must win SelectEffectYn / SelectChain before generic spell handlers.
             AddExecutor(ExecutorType.Activate, CardId.Esmeralda, ActivateEsmeralda);
             AddExecutor(ExecutorType.Activate, CardId.DeathQueenIsland, ActivateDeathQueenIsland);
@@ -271,7 +273,6 @@ namespace WindBot.Game.AI.Decks
             AddExecutor(ExecutorType.Summon, CardId.Esmeralda, PrioritizeEsmeraldaNormalSummon);
 
             AddExecutor(ExecutorType.Activate, CardId.Guilty, ActivateGuilty);
-            // Ikki Quick destroy before Fragment handlers so idle/chain activate is not starved.
             AddExecutor(ExecutorType.Activate, CardId.Ikki, ActivateIkki);
             AddExecutor(ExecutorType.Activate, CardId.Jango, ActivateJango);
             AddExecutor(ExecutorType.Activate, CardId.DarkDragon, ActivateDarkDragon);
@@ -424,19 +425,8 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(fragId);
             }
 
-            // Ikki Stringid 2: on N/SS add Fragment (EffectYn before MMZ sync; any turn — e.g. Esmeralda SS).
+            // Ikki Stringid 3 Quick — preselect cost/target before on-summon search (OnPreActivate order matters).
             if (card != null
-                && card.IsCode(CardId.Ikki)
-                && (card.Location & CardLocation.Hand) == 0
-                && (card.Location & CardLocation.Grave) == 0
-                && IsIkkiOnSummonSearchEffectYn((int)ActivateDescription))
-            {
-                var fragId = ChooseFragmentIdForDeckMill();
-                if (fragId != 0)
-                    AI.SelectCard(fragId);
-            }
-            // Ikki Stringid 3 Quick: cost Fragment + destroy opponent card.
-            else if (card != null
                 && card.IsCode(CardId.Ikki)
                 && (card.Location & CardLocation.MonsterZone) != 0
                 && IsIkkiQuickDestroyPrompt((int)ActivateDescription)
@@ -448,6 +438,16 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectCard(cost);
                 if (kill != null)
                     AI.SelectNextCard(kill);
+            }
+            // Ikki Stringid 2: on N/SS add Fragment (EffectYn before MMZ sync; any turn — e.g. Esmeralda SS).
+            else if (card != null
+                && card.IsCode(CardId.Ikki)
+                && (card.Location & CardLocation.Grave) == 0
+                && IsIkkiOnSummonSearchEffectYn((int)ActivateDescription))
+            {
+                var fragId = ChooseFragmentIdForDeckMill();
+                if (fragId != 0)
+                    AI.SelectCard(fragId);
             }
 
             // Death Queen Island / Stolen Gold Cloth: Deck→GY Fragment when activating those spells from **hand** (mill/setup).
@@ -2006,13 +2006,11 @@ namespace WindBot.Game.AI.Decks
                 && ChooseIkkiDestroyTargetPreferOpponent(null) != null;
         }
 
-        /// <summary>c922100148 Stringid 3 — Quick destroy (texts.str4); exact desc or MMZ fallback when legal.</summary>
+        /// <summary>c922100148 Stringid 3 / texts.str4 — Quick destroy prompt (idle, battle, chain, EffectYn).</summary>
         private bool IsIkkiQuickDestroyPrompt(int d)
         {
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
+            if (Card == null)
                 return false;
-            if (MatchesCardEffectDesc(d, CardId.Ikki, 3))
-                return true;
             if (MatchesCardEffectDesc(d, CardId.Ikki, 0)
                 || MatchesCardEffectDesc(d, CardId.Ikki, 1)
                 || MatchesCardEffectDesc(d, CardId.Ikki, 2))
@@ -2024,7 +2022,33 @@ namespace WindBot.Game.AI.Decks
                 if (MatchesCardEffectDesc(d, CardId.Ikki, i))
                     return false;
             }
-            return IkkiQuickDestroyLegal();
+            if (MatchesCardEffectDesc(d, CardId.Ikki, 3))
+                return true;
+            // EffectYn on-summon uses desc -1/0 — never treat as Quick (ActivateIkkiQuickDestroy runs first on idle only with explicit desc).
+            if (d <= 0)
+                return false;
+            return (Card.Location & CardLocation.MonsterZone) != 0 && IkkiQuickDestroyLegal();
+        }
+
+        /// <summary>c922100148 Stringid 3 — MMZ Quick: send Fragment equip to GY, destroy 1 face-up card.</summary>
+        private bool ActivateIkkiQuickDestroy()
+        {
+            if (Card == null || !Card.IsCode(CardId.Ikki))
+                return false;
+            if ((Card.Location & CardLocation.MonsterZone) == 0)
+                return false;
+            var d = (int)ActivateDescription;
+            if (!IsIkkiQuickDestroyPrompt(d))
+                return false;
+            if (!IkkiQuickDestroyLegal())
+                return false;
+            var cost = ChooseIkkiFragmentEquipForQuickCost();
+            var kill = ChooseIkkiDestroyTargetPreferOpponent(Card);
+            if (cost == null || kill == null)
+                return false;
+            AI.SelectCard(cost);
+            AI.SelectNextCard(kill);
+            return true;
         }
 
         /// <summary>c922100148 Stringid 0 / texts.str1 — hand Special Summon.</summary>
@@ -2085,24 +2109,13 @@ namespace WindBot.Game.AI.Decks
 
             var d = (int)ActivateDescription;
 
-            // On-summon search (Stringid 2 / str3) — before Quick; EffectYn may arrive before MMZ is synced (Esmeralda SS on opponent turn).
-            if ((Card.Location & CardLocation.Hand) == 0
-                && (Card.Location & CardLocation.Grave) == 0
+            if (IsIkkiQuickDestroyPrompt(d))
+                return false;
+
+            // On-summon search (Stringid 2 / str3) — EffectYn may arrive before MMZ is synced (Esmeralda SS on opponent turn).
+            if ((Card.Location & CardLocation.Grave) == 0
                 && IsIkkiOnSummonSearchEffectYn(d))
                 return IkkiDeckHasSearchableFragment();
-
-            // Quick (Stringid 3 / str4) — MMZ only; Ikki leader line is not gated by Boss fragment hoarding.
-            if ((Card.Location & CardLocation.MonsterZone) != 0
-                && IsIkkiQuickDestroyPrompt(d))
-            {
-                var cost = ChooseIkkiFragmentEquipForQuickCost();
-                var kill = ChooseIkkiDestroyTargetPreferOpponent(Card);
-                if (cost == null || kill == null)
-                    return false;
-                AI.SelectCard(cost);
-                AI.SelectNextCard(kill);
-                return true;
-            }
 
             // GY: send face-up Fragment equip to GY; SS this card (Stringid 1 / str2)
             if ((Card.Location & CardLocation.Grave) != 0)
@@ -2140,12 +2153,14 @@ namespace WindBot.Game.AI.Decks
         private ClientCard ChooseIkkiFragmentEquipForQuickCost()
         {
             var candidates = new List<ClientCard>();
+            // c922100148.lua cost: face-up Fragment Equip in SZONE (equips also appear on host.EquipCards).
             if (Bot.SpellZone != null)
             {
                 foreach (var z in Bot.SpellZone)
                 {
-                    if (z != null && z.IsFaceup() && IsFragmentId(z.Id))
-                        candidates.Add(z);
+                    if (z == null || z.IsFacedown() || !IsFragmentId(z.Id))
+                        continue;
+                    candidates.Add(z);
                 }
             }
             foreach (var m in Bot.MonsterZone)
@@ -2154,7 +2169,9 @@ namespace WindBot.Game.AI.Decks
                     continue;
                 foreach (var eq in m.EquipCards)
                 {
-                    if (eq != null && eq.IsFaceup() && IsFragmentId(eq.Id))
+                    if (eq == null || eq.IsFacedown() || !IsFragmentId(eq.Id))
+                        continue;
+                    if (!candidates.Contains(eq))
                         candidates.Add(eq);
                 }
             }
@@ -2188,9 +2205,9 @@ namespace WindBot.Game.AI.Decks
             ClientCard best = null;
             var bestScore = int.MinValue;
 
-            foreach (var m in Enemy.MonsterZone)
+            foreach (var m in Enemy.GetMonsters())
             {
-                if (m == null || !m.IsFaceup() || IsOurFieldCard(m, handler))
+                if (m == null || m.IsFacedown() || IsOurFieldCard(m, handler))
                     continue;
                 var sc = 100000 + m.Attack;
                 if (sc > bestScore)
@@ -2203,9 +2220,9 @@ namespace WindBot.Game.AI.Decks
             {
                 foreach (var z in Enemy.SpellZone)
                 {
-                    if (z == null || !z.IsFaceup() || IsOurFieldCard(z, handler))
+                    if (z == null || z.IsFacedown() || IsOurFieldCard(z, handler))
                         continue;
-                    var sc = 50000 + z.Attack;
+                    var sc = 50000;
                     if (sc > bestScore)
                     {
                         bestScore = sc;
