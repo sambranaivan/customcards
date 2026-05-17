@@ -31,8 +31,8 @@ namespace WindBot.Game.AI.Decks
     [Deck("SaintSeiyaBlackSaints", "AI_SaintSeiyaBlackSaints", "Normal")]
     public class SaintSeiyaBlackSaintsExecutor : DefaultExecutor
     {
-        private const int BuildVersion = 38;
-        private const string BuildTag = "2026-05-16-v38-guilty-cruel-trial-triggers";
+        private const int BuildVersion = 39;
+        private const string BuildTag = "2026-05-16-v39-boss-post-ss-equip-effectyn";
 
         /// <summary>Distinct Fragment names on field/GY required to Fusion Summon Boss from Extra (c922100162.lua; must be exactly this count).</summary>
         private const int BossFragmentDistinctRequired = 7;
@@ -323,14 +323,12 @@ namespace WindBot.Game.AI.Decks
                 }
             }
 
-            // Boss (c922100162) Stringid 1: after Special Summon, equip up to 2 Fragments from GY.
+            // Boss (c922100162) Stringid 1: after Special Summon, equip up to 2 Fragments from GY (EffectYn).
             if (card != null
                 && card.IsCode(CardId.BossReassembled)
-                && (card.Location & CardLocation.MonsterZone) != 0)
+                && IsBossPostSummonEquipPrompt((int)ActivateDescription)
+                && BossEquipFromGraveAfterSpecialSummonLegal())
             {
-                var dBoss = (int)ActivateDescription;
-                if (MatchesCardEffectDescOrTrigger(dBoss, CardId.BossReassembled, 1))
-                {
                     // One MSG_SELECT_CARD with min=1 max=2: CardSelector(Card) only returns one pick; use IList to send both.
                     var maxPick = System.Math.Min(2, CountFreeSpellZones());
                     var picks = ChooseOrderedGraveFragmentsForBossEquip(maxPick);
@@ -1495,6 +1493,15 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>c922100162 Stringid 1 — post-Fusion SS equip from GY (EffectYn; not Main-Phase-only).</summary>
+        private bool IsBossPostSummonEquipPrompt(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.BossReassembled, 0)
+                || MatchesCardEffectDesc(desc, CardId.BossReassembled, 2))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.BossReassembled, 1, 0, 2);
+        }
+
         /// <summary>
         /// Boss on field (c922100162): Stringid 1 equip up to 2 from GY after SS; Stringid 2 Quick negate (5+ equips).
         /// </summary>
@@ -1502,20 +1509,24 @@ namespace WindBot.Game.AI.Decks
         {
             if (Card == null || !Card.IsCode(CardId.BossReassembled))
                 return false;
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
+            if (IsOpponentTurn())
                 return false;
-            if (Duel.Player != 0 || !IsMainPhase())
+            if ((Card.Location & CardLocation.Hand) != 0
+                || (Card.Location & CardLocation.Grave) != 0
+                || (Card.Location & CardLocation.Extra) != 0)
                 return false;
 
             var d = (int)ActivateDescription;
 
-            var equipLegal = BossEquipFromGraveAfterSpecialSummonLegal();
-            var negateLegal = !ChainIsEmpty() && IsLastChainFromOpponent() && CountFaceUpEquipsOnCard(Card) >= 5;
-
             if (MatchesCardEffectDesc(d, CardId.BossReassembled, 2))
-                return negateLegal;
-            if (MatchesCardEffectDescOrTrigger(d, CardId.BossReassembled, 1))
-                return equipLegal;
+            {
+                if ((Card.Location & CardLocation.MonsterZone) == 0)
+                    return false;
+                return !ChainIsEmpty() && IsLastChainFromOpponent() && CountFaceUpEquipsOnCard(Card) >= 5;
+            }
+
+            if (IsBossPostSummonEquipPrompt(d))
+                return BossEquipFromGraveAfterSpecialSummonLegal();
 
             return false;
         }

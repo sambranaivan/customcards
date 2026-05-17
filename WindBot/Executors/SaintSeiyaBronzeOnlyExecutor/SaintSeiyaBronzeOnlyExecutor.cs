@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Mu → Athena's Sanctuary (922100079); Sanctuary field ignition re-pairs Cloth only (c922100079).
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 56;
-        private const string BuildTag = "2026-05-16-v56-jabu-ss-cloth-trigger";
+        private const int BuildVersion = 57;
+        private const string BuildTag = "2026-05-16-v57-miracle-bonds-gy-equip-effectyn";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -544,10 +544,10 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectNextCard(cygTgt);
             }
 
-            // Miracle Bonds (922100303): post-Fusion GY equip — preselect before EffectYn/chain (desc often -1, not GetStringId hash).
+            // Miracle Bonds (922100303): post-Fusion GY equip — preselect before EffectYn (desc often -1).
             if (card != null
                 && card.IsCode(CardId.SeiyaMiracleBonds)
-                && (card.Location & CardLocation.MonsterZone) != 0
+                && IsMiracleBondsGyEquipPrompt((int)ActivateDescription)
                 && MiracleBondsGyEquipLegal())
                 PreselectMiracleBondsGyClothChain();
 
@@ -2353,9 +2353,17 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        /// <summary>c922100303 Stringid 1 — after Fusion Summon equip Cloths from GY (EffectYn).</summary>
+        private bool IsMiracleBondsGyEquipPrompt(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.SeiyaMiracleBonds, 0))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.SeiyaMiracleBonds, 1, 0);
+        }
+
         /// <summary>
-        /// <c>c922100303.lua</c> Stringid 1 (MMZ): optional equip all legal <see cref="Cloths"/> from GY after Fusion Summon.
-        /// Routed via <c>OnSelectEffectYn</c> / chain (desc often -1) — do not require exact <see cref="Util.GetStringId"/> match (custom DB).
+        /// <c>c922100303.lua</c> Stringid 1: optional equip all legal <see cref="Cloths"/> from GY after Fusion Summon.
+        /// Routed via <c>OnSelectEffectYn</c> (desc often -1) — do not gate on MMZ sync or Main Phase only.
         /// </summary>
         private bool ActivateSeiyaMiracleBonds()
         {
@@ -2366,19 +2374,17 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.Extra) != 0)
                 return false;
 
-            if ((Card.Location & CardLocation.MonsterZone) == 0)
+            if (Duel.Player != 0)
                 return false;
 
-            if (!IsOurPhaseForMiracleBondsGyEquip())
+            if ((Card.Location & CardLocation.Hand) != 0
+                || (Card.Location & CardLocation.Grave) != 0)
                 return false;
 
-            var d = (int)ActivateDescription;
-            if (MatchesCardEffectDesc(d, CardId.SeiyaMiracleBonds, 0))
-                return false;
-            if (!MatchesCardEffectDescOrTrigger(d, CardId.SeiyaMiracleBonds, 1))
-                return false;
+            if (IsMiracleBondsGyEquipPrompt((int)ActivateDescription))
+                return MiracleBondsGyEquipLegal();
 
-            return MiracleBondsGyEquipLegal();
+            return false;
         }
 
         /// <summary>Some WindBot builds route hand ignition SS through SpSummon.</summary>
