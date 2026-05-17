@@ -81,7 +81,7 @@ function s.eqop(e,tp,eg,ep,ev,re,r,rp)
 	local tc=g:GetFirst()
 	if tc and Duel.Equip(tp,tc,c,true) then
 		aux.DelayedOperation(tc,PHASE_END,id,e,tp,function(ag)
-			if ag and ag:IsOnField() then Duel.SendtoGrave(ag,REASON_EFFECT) end
+			if #ag>0 then Duel.SendtoGrave(ag,REASON_EFFECT) end
 		end,nil,0)
 	end
 end
