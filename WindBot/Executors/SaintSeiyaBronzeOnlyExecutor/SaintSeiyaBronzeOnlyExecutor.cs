@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Deck runs 2× Mu (922100010) + 2× Athena's Sanctuary (922100079): Mu MMZ ignition searches Sanctuary; backup copy in hand when Field is live.
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 62;
-        private const string BuildTag = "2026-05-16-v62-boss-always-atk-position";
+        private const int BuildVersion = 63;
+        private const string BuildTag = "2026-05-16-v63-ban-on-ss-saint-search";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -628,6 +628,17 @@ namespace WindBot.Game.AI.Decks
                 if (cloth != null)
                     AI.SelectCard(cloth);
                 PreselectDiscardSaintPriority();
+            }
+
+            // Ban (c922100008) Stringid 1: on SS add 1 Saint from GY (any turn; desc often -1/0).
+            if (card != null
+                && card.IsCode(CardId.Ban)
+                && IsBanOnSpecialSummonSaintSearchEffectYn((int)ActivateDescription)
+                && BanSpecialSummonSaintRecoveryLegal())
+            {
+                var saint = ChooseSaintClientCardFromGraveyard();
+                if (saint != null)
+                    AI.SelectCard(saint);
             }
 
             if (card != null
@@ -2683,34 +2694,68 @@ namespace WindBot.Game.AI.Decks
             return gySaints[0].Id;
         }
 
+        private ClientCard ChooseSaintClientCardFromGraveyard()
+        {
+            var id = ChooseSaintToAddFromGraveyard();
+            if (!id.HasValue)
+                return null;
+            return Bot.Graveyard.FirstOrDefault(c => c != null && c.IsCode(id.Value));
+        }
+
+        /// <summary>c922100008 Stringid 1 — on SS add Saint from GY (texts.str2); any turn/phase; not hand/GY prompts.</summary>
+        private bool IsBanOnSpecialSummonSaintSearchEffectYn(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.Ban, 0) || MatchesCardEffectDesc(desc, CardId.Ban, 2))
+                return false;
+            if (MatchesCardEffectDesc(desc, CardId.Ban, 1))
+                return true;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == 1)
+                    continue;
+                if (MatchesCardEffectDesc(desc, CardId.Ban, i))
+                    return false;
+            }
+            if (Card == null)
+                return false;
+            if ((Card.Location & CardLocation.Hand) != 0 || (Card.Location & CardLocation.Grave) != 0)
+                return false;
+            return true;
+        }
+
+        private bool BanSpecialSummonSaintRecoveryLegal()
+        {
+            return ChooseSaintClientCardFromGraveyard() != null;
+        }
+
         private bool ResolveBanActivate()
         {
             var d = (int)ActivateDescription;
 
-            // Hand: trigger on EVENT_BATTLE_DESTROYED -> Special Summon itself (hand-only in current script).
-            if ((Card.Location & CardLocation.Hand) != 0)
+            // On SS — Stringid 1: add Saint from GY (before hand path; EffectYn may predate MMZ sync).
+            if (IsBanOnSpecialSummonSaintSearchEffectYn(d))
             {
-                // Let engine legality decide (battle-destroyed event, once/turn, zone space).
+                if (!BanSpecialSummonSaintRecoveryLegal())
+                    return false;
+                var saint = ChooseSaintClientCardFromGraveyard();
+                if (saint == null)
+                    return false;
+                AI.SelectCard(saint);
                 return true;
             }
-            if ((Card.Location & CardLocation.Grave) != 0)
+
+            // Hand: EVENT_BATTLE_DESTROYED → SS self (Stringid 0 / str1).
+            if ((Card.Location & CardLocation.Hand) != 0)
             {
-                // Script was corrected to hand-only; never attempt SS from GY.
-                return false;
+                if (MatchesCardEffectDesc(d, CardId.Ban, 1) || MatchesCardEffectDesc(d, CardId.Ban, 2))
+                    return false;
+                return true;
             }
 
-            // After Special Summon -> add 1 Saint from GY (Stringid 1 / str2; EffectYn desc often -1/0).
-            if (MatchesCardEffectDesc(d, CardId.Ban, 2))
-                return false;
-            if (!IsOnSummonOptionalTriggerDesc(d, CardId.Ban, 1, 0, 2))
+            if ((Card.Location & CardLocation.Grave) != 0)
                 return false;
 
-            var pick = ChooseSaintToAddFromGraveyard();
-            if (!pick.HasValue)
-                return false;
-
-            AI.SelectCard(pick.Value);
-            return true;
+            return false;
         }
 
         /// <summary>Cloth value tier for discard/shuffle ordering (still used by Ichi/Nachi/etc.).</summary>
