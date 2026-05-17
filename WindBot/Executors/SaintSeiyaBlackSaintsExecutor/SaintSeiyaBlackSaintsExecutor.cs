@@ -71,23 +71,49 @@ namespace WindBot.Game.AI.Decks
         {
             if (MatchesCardEffectDesc(desc, cardId, summonStringIndex))
                 return true;
-            if (desc == -1 || desc == 0)
+            foreach (var ex in excludeOtherEffectIndices)
+            {
+                if (MatchesCardEffectDesc(desc, cardId, ex))
+                    return false;
+            }
+            if (desc != -1 && desc != 0)
+            {
+                for (var i = 0; i < 8; i++)
+                {
+                    if (i == summonStringIndex)
+                        continue;
+                    if (desc == cardId * 16 + i)
+                        return false;
+                }
+                return false;
+            }
+            return IsOurMonsterOptionalTriggerWindow();
+        }
+
+        /// <summary>Monster-zone optional trigger (e.g. Fragment sent to GY → draw).</summary>
+        private bool IsMonsterZoneOptionalTriggerDesc(int desc, int cardId, int triggerStringIndex, params int[] excludeOtherEffectIndices)
+        {
+            if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
                 return true;
             foreach (var ex in excludeOtherEffectIndices)
             {
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
-            if (!IsOurMonsterOptionalTriggerWindow())
-                return false;
-            for (var i = 0; i < 8; i++)
+            if (desc != -1 && desc != 0)
             {
-                if (i == summonStringIndex)
-                    continue;
-                if (desc == cardId * 16 + i)
-                    return false;
+                for (var i = 0; i < 8; i++)
+                {
+                    if (i == triggerStringIndex)
+                        continue;
+                    if (desc == cardId * 16 + i)
+                        return false;
+                }
+                return false;
             }
-            return true;
+            if (Card == null || IsOpponentTurn())
+                return false;
+            return (Card.Location & CardLocation.MonsterZone) != 0;
         }
 
         /// <summary>Continuous Spell field trigger (e.g. Fragment sent to GY → draw/discard).</summary>
@@ -95,26 +121,26 @@ namespace WindBot.Game.AI.Decks
         {
             if (MatchesCardEffectDesc(desc, cardId, triggerStringIndex))
                 return true;
-            if (desc == -1 || desc == 0)
-                return true;
             foreach (var ex in excludeOtherEffectIndices)
             {
                 if (MatchesCardEffectDesc(desc, cardId, ex))
                     return false;
             }
+            if (desc != -1 && desc != 0)
+            {
+                for (var i = 0; i < 8; i++)
+                {
+                    if (i == triggerStringIndex)
+                        continue;
+                    if (desc == cardId * 16 + i)
+                        return false;
+                }
+                return false;
+            }
             if (Card == null || IsOpponentTurn())
                 return false;
-            if ((Card.Location & CardLocation.SpellZone) == 0
-                && (Card.Location & CardLocation.FieldZone) == 0)
-                return false;
-            for (var i = 0; i < 8; i++)
-            {
-                if (i == triggerStringIndex)
-                    continue;
-                if (desc == cardId * 16 + i)
-                    return false;
-            }
-            return true;
+            return (Card.Location & CardLocation.SpellZone) != 0
+                || (Card.Location & CardLocation.FieldZone) != 0;
         }
 
         public class CardId
@@ -336,13 +362,12 @@ namespace WindBot.Game.AI.Decks
                         AI.SelectCard(picks[0]);
                     else if (picks.Count > 1)
                         AI.SelectCard(picks);
-                }
             }
 
             // Jango (c922100149) Stringid 0 / str1: send 1 Fragment from Deck to GY on summon.
             if (card != null
                 && card.IsCode(CardId.Jango)
-                && MatchesCardEffectDescOrTrigger((int)ActivateDescription, CardId.Jango, 0))
+                && IsOnSummonOptionalTriggerDesc((int)ActivateDescription, CardId.Jango, 0, 1))
             {
                 var fragId = ChooseFragmentIdForDeckMill();
                 if (fragId != 0)
@@ -1232,13 +1257,10 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateDeathQueenIsland()
         {
-            if (!IsMainPhase())
-                return false;
-
             var d = (int)ActivateDescription;
             var fromHand = (Card.Location & CardLocation.Hand) != 0;
 
-            // Field — Stringid 1 / str2 equip, or Stringid 2 / str3 Fragment-sent search.
+            // Field — Stringid 1 ignition equip, or Stringid 2 Fragment-sent search (not Main-Phase-only).
             if (!fromHand)
             {
                 if (!Bot.HasInSpellZone(CardId.DeathQueenIsland))
@@ -1247,13 +1269,19 @@ namespace WindBot.Game.AI.Decks
                 var equipLegal = DeathQueenIslandEquipFromGraveIgnitionLegal();
                 var searchLegal = DeathQueenIslandFragmentSentDeckSearchLegal();
 
-                if (MatchesCardEffectDesc(d, CardId.DeathQueenIsland, 1))
-                    return equipLegal;
-                if (MatchesCardEffectDescOrTrigger(d, CardId.DeathQueenIsland, 2))
+                if (IsFieldSpellOptionalTriggerDesc(d, CardId.DeathQueenIsland, 2, 0, 1))
                     return searchLegal;
+                if (MatchesCardEffectDesc(d, CardId.DeathQueenIsland, 1))
+                {
+                    if (!IsMainPhase())
+                        return false;
+                    return equipLegal;
+                }
                 return false;
             }
 
+            if (!IsMainPhase())
+                return false;
             if (Bot.HasInSpellZone(CardId.DeathQueenIsland))
                 return false;
             if (PursuingBossCombo() && CountMissingDistinctFragmentNames() > 0)
@@ -2146,8 +2174,7 @@ namespace WindBot.Game.AI.Decks
 
             var d = (int)ActivateDescription;
 
-            if ((Card.Location & CardLocation.MonsterZone) != 0
-                && MatchesCardEffectDescOrTrigger(d, CardId.DarkCygnus, 0))
+            if (IsOnSummonOptionalTriggerDesc(d, CardId.DarkCygnus, 0, 1))
                 return Enemy.GetMonsterCount() > 0;
 
             if ((Card.Location & CardLocation.MonsterZone) != 0
@@ -2182,7 +2209,7 @@ namespace WindBot.Game.AI.Decks
                     || Bot.Graveyard.IsExistingMatchingCard(c => c != null && IsFragmentId(c.Id));
             }
 
-            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkAndromeda, 1))
+            if (IsMonsterZoneOptionalTriggerDesc(d, CardId.DarkAndromeda, 1, 0))
                 return true;
 
             return false;
@@ -2197,7 +2224,7 @@ namespace WindBot.Game.AI.Decks
             if ((Card.Location & CardLocation.MonsterZone) == 0)
                 return false;
 
-            if (MatchesCardEffectDescOrTrigger(d, CardId.DarkPhoenix, 0))
+            if (IsOnSummonOptionalTriggerDesc(d, CardId.DarkPhoenix, 0, 1))
                 return ChooseFragmentIdForDeckMill() != 0;
 
             if (MatchesCardEffectDesc(d, CardId.DarkPhoenix, 1))
