@@ -29,8 +29,10 @@ function s.initial_effect(c)
 	e2:SetType(EFFECT_TYPE_FIELD+EFFECT_TYPE_CONTINUOUS)
 	e2:SetCode(EFFECT_DESTROY_REPLACE)
 	e2:SetRange(LOCATION_GRAVE)
+	e2:SetProperty(EFFECT_FLAG_DAMAGE_STEP+EFFECT_FLAG_DAMAGE_CAL)
 	e2:SetCountLimit(1,{id,1})
 	e2:SetTarget(s.reptg)
+	e2:SetValue(s.repval)
 	e2:SetOperation(s.repop)
 	c:RegisterEffect(e2)
 end
@@ -62,14 +64,15 @@ end
 
 function s.repfilter(c,tp)
 	return c:IsFaceup() and c:IsSetCard(SET_SAINT) and c:IsControler(tp)
-		and c:IsReason(REASON_BATTLE+REASON_EFFECT) and not c:IsStatus(STATUS_DESTROY_CONFIRMED)
+		and c:IsReason(REASON_BATTLE+REASON_EFFECT) and not c:IsReason(REASON_REPLACE)
+end
+function s.repval(e,c)
+	return s.repfilter(c,e:GetHandlerPlayer())
 end
 function s.reptg(e,tp,eg,ep,ev,re,r,rp,chk)
-	if chk==0 then return e:GetHandler():IsAbleToRemove() and eg:IsExists(s.repfilter,1,nil,tp) end
-	if Duel.SelectYesNo(tp,aux.Stringid(id,0)) then
-		return true
-	end
-	return false
+	local c=e:GetHandler()
+	if chk==0 then return c:IsAbleToRemove() and eg:IsExists(s.repfilter,1,nil,tp) end
+	return Duel.SelectYesNo(tp,aux.Stringid(id,0))
 end
 function s.repop(e,tp,eg,ep,ev,re,r,rp)
 	Duel.Remove(e:GetHandler(),POS_FACEUP,REASON_EFFECT+REASON_REPLACE)

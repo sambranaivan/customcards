@@ -170,8 +170,8 @@ namespace WindBot.Game.AI.Decks
         //   Deck runs 2× Mu (922100010) + 2× Athena's Sanctuary (922100079): Mu hand ignition searches Sanctuary; backup copy in hand when Field is live.
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 65;
-        private const string BuildTag = "2026-05-16-v65-mu-hand-sanctuary-search";
+        private const int BuildVersion = 67;
+        private const string BuildTag = "2026-05-16-v67-cygnus-negate-st-over-monster";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -565,6 +565,10 @@ namespace WindBot.Game.AI.Decks
         /// </summary>
         public override bool OnPreActivate(ClientCard card)
         {
+            // GY banish-replace (c922100086): queue Yes before MSG_SELECT_YESNO (plugin cannot override OnSelectYesNo).
+            if (HasAthenasShieldInGraveyard() && OpponentChainTargetsOurSaint())
+                AI.SelectYesNo(true);
+
             // If an upcoming effect will prompt "discard 1 card", bias the discard selection now.
             // This is necessary because this plugin build can't override OnSelectCard prompts directly.
             if (card != null
@@ -574,14 +578,13 @@ namespace WindBot.Game.AI.Decks
                 PreselectDiscardSaintPriority();
             }
 
-            // Cygnus (922100043) Stringid 1: negate 1 face-up opponent card (Lua accepts any; executor ranks S/T vs monster).
-            // Bias target selection — default AI tends to over-pick monsters.
+            // Cygnus (922100043) Stringid 1: prefer opponent face-up S/T; monsters only if equipped to Hyoga.
             if (card != null
                 && card.IsCode(CardId.ClothCygnus)
                 && (card.Location & CardLocation.SpellZone) != 0
                 && IsCygnusNegateIgnitionForCard(card))
             {
-                var cygTgt = ChooseCygnusNegateTarget();
+                var cygTgt = ChooseCygnusNegateTarget(card);
                 if (cygTgt != null)
                     AI.SelectNextCard(cygTgt);
             }
@@ -2024,6 +2027,23 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        public override bool OnPreBattleBetween(ClientCard attacker, ClientCard defender)
+        {
+            if (HasAthenasShieldInGraveyard()
+                && defender != null
+                && defender.Controller == 0
+                && defender.IsFaceup()
+                && Saints.Contains(defender.Id)
+                && attacker != null
+                && attacker.IsAttack())
+            {
+                int defValue = defender.IsAttack() ? defender.Attack : defender.Defense;
+                if (attacker.Attack >= defValue)
+                    AI.SelectYesNo(true);
+            }
+            return base.OnPreBattleBetween(attacker, defender);
+        }
+
         public override CardPosition OnSelectPosition(int cardId, IList<CardPosition> positions)
         {
             var named = YGOSharp.OCGWrapper.NamedCard.Get(cardId);
@@ -2153,9 +2173,19 @@ namespace WindBot.Game.AI.Decks
             return a + bonus;
         }
 
-        /// <summary>Negate target for Bronze Cloth - Cygnus (executor picks best face-up S/T vs monster).</summary>
-        private ClientCard ChooseCygnusNegateTarget()
+        private bool IsClothCygnusEquippedToHyoga(ClientCard cloth)
         {
+            if (cloth == null || !cloth.IsCode(CardId.ClothCygnus))
+                return false;
+            var host = cloth.EquipTarget;
+            return host != null && host.IsFaceup() && host.IsCode(CardId.Hyoga);
+        }
+
+        /// <summary>Negate target for Bronze Cloth - Cygnus: face-up opponent S/T first; MMZ only on Hyoga (c922100043.lua).</summary>
+        private ClientCard ChooseCygnusNegateTarget(ClientCard cloth = null)
+        {
+            cloth = cloth ?? Card;
+
             ClientCard bestSt = null;
             int bestStP = -1;
             var sz = Enemy.SpellZone;
@@ -2184,6 +2214,12 @@ namespace WindBot.Game.AI.Decks
                 }
             }
 
+            if (bestSt != null)
+                return bestSt;
+
+            if (!IsClothCygnusEquippedToHyoga(cloth))
+                return null;
+
             ClientCard bestM = null;
             int bestMP = -1;
             ClientCard preferredMon = null;
@@ -2206,21 +2242,13 @@ namespace WindBot.Game.AI.Decks
                 }
             }
 
-            if (bestSt == null)
-                return bestM;
-            if (bestM == null)
-                return bestSt;
-            if (bestStP < 220 && bestMP >= 2100)
-                return bestM;
-            if (bestMP >= bestStP + 900)
-                return bestM;
-            return bestSt;
+            return bestM;
         }
 
         /// <summary>
         /// Bronze Cloth effects (updated):
         /// - Hand: activate to equip to a face-up Saint (Stringid 0).
-        /// - S/T zone: Cygnus negate (Stringid 1) biases target in OnPreActivate; other on-field cloth effects — engine handles.
+        /// - S/T zone: Cygnus negate (Stringid 1) — S/T targets first; monsters only on Hyoga (OnPreActivate preselect).
         /// - GY trigger: add 1 Level 4 or lower "Bronze Saint" from Deck to hand (Deck only; Lua gythfilter).
         ///   Triggers from anywhere (not just S/T zone). OPYOT applies per cloth.
         /// </summary>
@@ -2250,8 +2278,13 @@ namespace WindBot.Game.AI.Decks
             // S/T zone: Cygnus negate needs a legal target; others (Wolf, etc.) — engine handles.
             if ((Card.Location & CardLocation.SpellZone) != 0)
             {
-                if (IsCygnusNegateIgnitionForCard(Card) && ChooseCygnusNegateTarget() == null)
-                    return false;
+                if (IsCygnusNegateIgnitionForCard(Card))
+                {
+                    var cygTgt = ChooseCygnusNegateTarget(Card);
+                    if (cygTgt == null)
+                        return false;
+                    AI.SelectCard(cygTgt);
+                }
                 return true;
             }
 
@@ -2969,6 +3002,43 @@ namespace WindBot.Game.AI.Decks
             return false;
         }
 
+        private bool HasAthenasShieldInGraveyard()
+        {
+            return Bot.Graveyard.IsExistingMatchingCard(c => c != null && c.IsCode(CardId.AthenasShield));
+        }
+
+        private bool OpponentChainTargetsOurSaint()
+        {
+            if (ChainIsEmpty() || !IsLastChainFromOpponent())
+                return false;
+            return Bot.MonsterZone.Any(m =>
+                m != null && m.IsFaceup() && Saints.Contains(m.Id) && Util.IsChainTarget(m));
+        }
+
+        private bool ShouldAcceptAthenasShieldGyBanishReplace()
+        {
+            if (!HasAthenasShieldInGraveyard())
+                return false;
+            if (OpponentChainTargetsOurSaint())
+                return true;
+            if (Duel.Player == 0)
+                return false;
+            switch (Duel.Phase)
+            {
+                case DuelPhase.BattleStart:
+                case DuelPhase.BattleStep:
+                case DuelPhase.Damage:
+                case DuelPhase.DamageCal:
+                case DuelPhase.Battle:
+                {
+                    var attacked = TryGetAttackedMonster();
+                    return attacked != null && attacked.IsFaceup() && Saints.Contains(attacked.Id);
+                }
+                default:
+                    return false;
+            }
+        }
+
         private ClientCard ChooseSaintToProtect()
         {
             // Prefer protecting the equipped Saint (keeps Pope's Verdict live) then the highest ATK Saint.
@@ -3025,8 +3095,8 @@ namespace WindBot.Game.AI.Decks
 
         private bool ActivateAthenasShield()
         {
-            // 922100086 updated: quick-play that targets 1 Saint you control; it can't be destroyed this turn.
-            // Also has a GY destroy-replacement that the engine handles (no executor action needed).
+            // 922100086: Quick-Play targets 1 Saint (indestructible this turn).
+            // GY banish-replace: AI.SelectYesNo when chain/battle threatens a Saint (plugin cannot override OnSelectYesNo).
             //
             // User intent: activate in two cases:
             // - Our turn: in response to an effect that would destroy a Saint (chain window).
