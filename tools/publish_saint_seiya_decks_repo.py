@@ -2,7 +2,7 @@
 """Build a distributable EDOPro content repo for Saint Seiya Bronze + Black Saints decks.
 
 Reads deck/*.ydk, exports a subset of expansions/saint-seiya.cdb, and copies scripts,
-pics, strings, init.lua, decks, and a compact lflist manifest.
+pics, strings, init.lua, decks, WindBot executors/decks/bots.json, and a compact lflist.
 """
 from __future__ import annotations
 
@@ -26,6 +26,16 @@ DEFAULT_DECKS = (
     ROOT / "deck" / "Saint Seiya - Bronze Only.ydk",
     ROOT / "deck" / "Saint Seiya - Black Saints.ydk",
 )
+WINDBOT_ROOT = ROOT / "WindBot"
+WINDBOT_EXECUTOR_DLLS = (
+    "SaintSeiyaBronzeOnlyExecutor.dll",
+    "SaintSeiyaBlackSaintsExecutor.dll",
+)
+WINDBOT_AI_DECKS = (
+    "AI_SaintSeiyaBronzeOnly.ydk",
+    "AI_SaintSeiyaBlackSaints.ydk",
+)
+WINDBOT_BOT_DECK_KEYS = frozenset({"SaintSeiyaBronzeOnly", "SaintSeiyaBlackSaints"})
 
 ARCHETYPE_INIT_START = "SET_SAINT"
 ARCHETYPE_INIT_END = "SET_BRONZE_CLOTH"
@@ -272,6 +282,16 @@ Import from `decks/`:
 
 Optional banlist: `lflists/saint-seiya-decks.lflist.conf` (whitelist mode).
 
+## WindBot
+
+Copy into your EDOPro `WindBot/` folder (see `windbot/README.txt`):
+
+- `windbot/Executors/*.dll` → `WindBot/Executors/`
+- `windbot/Decks/AI_*.ydk` → `WindBot/Decks/`
+- Merge `windbot/bots.json` entries into `WindBot/bots.json` (SSY Bronze Saints + SSY Black Saints)
+
+Requires a WindBot build that loads external executor plugins from `WindBot/Executors/`.
+
 ## Regenerate from ProjectIgnis source
 
 ```bash
@@ -283,6 +303,74 @@ python tools/publish_saint_seiya_decks_repo.py
 {id_block}
 """
     path.write_text(text, encoding="utf-8")
+
+
+def extract_windbot_bots_entries(source: Path) -> list[dict]:
+    data = json.loads(source.read_text(encoding="utf-8"))
+    if not isinstance(data, list):
+        raise RuntimeError(f"Expected bots.json array in {source}")
+    entries = [b for b in data if b.get("deck") in WINDBOT_BOT_DECK_KEYS]
+    if len(entries) != len(WINDBOT_BOT_DECK_KEYS):
+        found = {b.get("deck") for b in entries}
+        missing = sorted(WINDBOT_BOT_DECK_KEYS - found)
+        raise RuntimeError(f"Missing bots.json entries for deck keys: {', '.join(missing)}")
+    return entries
+
+
+def copy_windbot_bundle(out: Path) -> None:
+    """Copy plugin DLLs, AI decks, and Saint Seiya bots.json fragment into out/windbot/."""
+    windbot_out = out / "windbot"
+    executors_out = windbot_out / "Executors"
+    decks_out = windbot_out / "Decks"
+    executors_out.mkdir(parents=True, exist_ok=True)
+    decks_out.mkdir(parents=True, exist_ok=True)
+
+    src_executors = WINDBOT_ROOT / "Executors"
+    missing: list[str] = []
+    for name in WINDBOT_EXECUTOR_DLLS:
+        src = src_executors / name
+        if not src.is_file():
+            missing.append(name)
+            continue
+        shutil.copy2(src, executors_out / name)
+
+    src_decks = WINDBOT_ROOT / "Decks"
+    for name in WINDBOT_AI_DECKS:
+        src = src_decks / name
+        if not src.is_file():
+            missing.append(name)
+            continue
+        shutil.copy2(src, decks_out / name)
+
+    bots_src = WINDBOT_ROOT / "bots.json"
+    if not bots_src.is_file():
+        missing.append("bots.json")
+    else:
+        entries = extract_windbot_bots_entries(bots_src)
+        (windbot_out / "bots.json").write_text(
+            json.dumps(entries, indent=4) + "\n",
+            encoding="utf-8",
+        )
+
+    if missing:
+        raise FileNotFoundError(
+            "WindBot assets missing (build executors and ensure AI decks exist):\n  "
+            + "\n  ".join(missing)
+        )
+
+    (windbot_out / "README.txt").write_text(
+        "WindBot bundle for Saint Seiya (Bronze + Black Saints).\n\n"
+        "Requires ProjectIgnis/EDOPro WindBot with plugin support (ExecutorBase.dll).\n\n"
+        "Install into your game folder (merge, do not replace entire bots.json):\n\n"
+        "  1. Copy windbot/Executors/*.dll to WindBot/Executors/\n"
+        "  2. Copy windbot/Decks/*.ydk to WindBot/Decks/\n"
+        "  3. Merge windbot/bots.json entries into WindBot/bots.json\n"
+        "     (append the two objects before the closing ] of the array)\n"
+        "  4. Restart EDOPro / WindBot\n\n"
+        "Verify log: \"Decks initialized, N found\" increases by 2 and no\n"
+        "\"Deck not found\" for SaintSeiyaBronzeOnly / SaintSeiyaBlackSaints.\n",
+        encoding="utf-8",
+    )
 
 
 def write_repos_example(path: Path) -> None:
@@ -352,6 +440,11 @@ def main() -> int:
         type=Path,
         default=DEFAULT_CARDMAKER_DIR,
         help="Fallback art from sets/cardmaker_output/{id}.png",
+    )
+    p.add_argument(
+        "--skip-windbot",
+        action="store_true",
+        help="Do not copy WindBot DLLs, AI decks, or bots.json fragment",
     )
     args = p.parse_args()
 
@@ -445,6 +538,17 @@ def main() -> int:
         lflist_path = out / "lflists" / "saint-seiya-decks.lflist.conf"
         write_lflist(lflist_path, card_ids, ROOT)
         print(f"wrote: {lflist_path.relative_to(ROOT)}")
+
+    if not args.skip_windbot:
+        try:
+            copy_windbot_bundle(out)
+        except FileNotFoundError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        print(
+            f"copied: windbot/ ({len(WINDBOT_EXECUTOR_DLLS)} dlls, "
+            f"{len(WINDBOT_AI_DECKS)} AI decks, bots.json fragment)"
+        )
 
     write_readme(out / "README.md", card_ids, by_deck, out)
     write_repos_example(out / "user_configs.repos.example.json")
