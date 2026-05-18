@@ -20,8 +20,10 @@ DEFAULT_SCRIPT_DIR = ROOT / "script" / "unofficial"
 DEFAULT_PICS_DIR = ROOT / "pics"
 DEFAULT_CARDMAKER_DIR = ROOT / "sets" / "cardmaker_output"
 PUBLIC_REPO_URL = "https://github.com/sambranaivan/edopro_ssy_public.git"
-PUBLIC_REPO_PATH = "repositories/edopro_ssy_public"
-DEFAULT_OUTPUT = ROOT / "repositories" / "edopro_ssy_public"
+# Path in user_configs.json / EDOPro client (synced under ./repositories/)
+CLIENT_REPO_PATH = "repositories/edopro_ssy_public"
+# Local publish + git push target (not wiped when EDOPro clears ./repositories/)
+DEFAULT_OUTPUT = ROOT / "repositories_external" / "edopro_ssy_public"
 DEFAULT_DECKS = (
     ROOT / "deck" / "Saint Seiya - Bronze Only.ydk",
     ROOT / "deck" / "Saint Seiya - Black Saints.ydk",
@@ -257,7 +259,7 @@ Add to `config/user_configs.json` (merge with existing `repos`):
     {{
       "url": "{PUBLIC_REPO_URL}",
       "repo_name": "Saint Seiya (public)",
-      "repo_path": "{PUBLIC_REPO_PATH}",
+      "repo_path": "{CLIENT_REPO_PATH}",
       "data_path": "",
       "script_path": "script",
       "pics_path": "pics",
@@ -379,7 +381,7 @@ def write_repos_example(path: Path) -> None:
             {
                 "url": PUBLIC_REPO_URL,
                 "repo_name": "Saint Seiya (public)",
-                "repo_path": PUBLIC_REPO_PATH,
+                "repo_path": CLIENT_REPO_PATH,
                 "data_path": "",
                 "script_path": "script",
                 "pics_path": "pics",
