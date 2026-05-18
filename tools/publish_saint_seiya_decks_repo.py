@@ -19,7 +19,9 @@ DEFAULT_SOURCE_CDB = ROOT / "expansions" / "saint-seiya.cdb"
 DEFAULT_SCRIPT_DIR = ROOT / "script" / "unofficial"
 DEFAULT_PICS_DIR = ROOT / "pics"
 DEFAULT_CARDMAKER_DIR = ROOT / "sets" / "cardmaker_output"
-DEFAULT_OUTPUT = ROOT / "repositories" / "saint-seiya-decks"
+PUBLIC_REPO_URL = "https://github.com/sambranaivan/edopro_ssy_public.git"
+PUBLIC_REPO_PATH = "repositories/edopro_ssy_public"
+DEFAULT_OUTPUT = ROOT / "repositories" / "edopro_ssy_public"
 DEFAULT_DECKS = (
     ROOT / "deck" / "Saint Seiya - Bronze Only.ydk",
     ROOT / "deck" / "Saint Seiya - Black Saints.ydk",
@@ -243,9 +245,9 @@ Add to `config/user_configs.json` (merge with existing `repos`):
 {{
   "repos": [
     {{
-      "url": "https://github.com/YOUR_USER/ProjectIgnis-SaintSeiya-Decks.git",
-      "repo_name": "Saint Seiya Decks",
-      "repo_path": "repositories/saint-seiya-decks",
+      "url": "{PUBLIC_REPO_URL}",
+      "repo_name": "Saint Seiya (public)",
+      "repo_path": "{PUBLIC_REPO_PATH}",
       "data_path": "",
       "script_path": "script",
       "pics_path": "pics",
@@ -287,19 +289,37 @@ def write_repos_example(path: Path) -> None:
     example = {
         "repos": [
             {
-                "not_git_repo": True,
-                "repo_name": "Saint Seiya Decks (local)",
-                "repo_path": "repositories/saint-seiya-decks",
+                "url": PUBLIC_REPO_URL,
+                "repo_name": "Saint Seiya (public)",
+                "repo_path": PUBLIC_REPO_PATH,
                 "data_path": "",
                 "script_path": "script",
                 "pics_path": "pics",
                 "lflist_path": "lflists",
-                "should_update": False,
+                "should_update": True,
                 "should_read": True,
             }
         ]
     }
     path.write_text(json.dumps(example, indent="\t") + "\n", encoding="utf-8")
+
+
+def prepare_output_dir(out: Path) -> None:
+    """Clear publish artifacts; keep .git when output is a cloned repository."""
+    if not out.exists():
+        out.mkdir(parents=True)
+        return
+    if (out / ".git").exists():
+        for child in out.iterdir():
+            if child.name == ".git":
+                continue
+            if child.is_dir():
+                shutil.rmtree(child)
+            else:
+                child.unlink()
+        return
+    shutil.rmtree(out)
+    out.mkdir(parents=True)
 
 
 def main() -> int:
@@ -346,9 +366,7 @@ def main() -> int:
 
     card_ids, by_deck = collect_deck_ids(deck_paths)
     out = args.output
-    if out.exists():
-        shutil.rmtree(out)
-    out.mkdir(parents=True)
+    prepare_output_dir(out)
 
     print(f"cards: {len(card_ids)} unique ids from {len(deck_paths)} deck(s)")
 

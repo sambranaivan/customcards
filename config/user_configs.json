@@ -1,5 +1,16 @@
 {
 	"repos": [
+		{
+			"url": "https://github.com/sambranaivan/edopro_ssy_public.git",
+			"repo_name": "Saint Seiya (public)",
+			"repo_path": "repositories/edopro_ssy_public",
+			"data_path": "",
+			"script_path": "script",
+			"pics_path": "pics",
+			"lflist_path": "lflists",
+			"should_update": true,
+			"should_read": true
+		}
 	],
 	"urls": [
 	],
