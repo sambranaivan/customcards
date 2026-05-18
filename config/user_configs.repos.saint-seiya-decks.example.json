@@ -1,0 +1,15 @@
+{
+	"repos": [
+		{
+			"not_git_repo": true,
+			"repo_name": "Saint Seiya Decks (local)",
+			"repo_path": "repositories/saint-seiya-decks",
+			"data_path": "",
+			"script_path": "script",
+			"pics_path": "pics",
+			"lflist_path": "lflists",
+			"should_update": false,
+			"should_read": true
+		}
+	]
+}
