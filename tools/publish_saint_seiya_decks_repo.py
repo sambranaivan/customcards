@@ -40,7 +40,8 @@ WINDBOT_AI_DECKS = (
 WINDBOT_BOT_DECK_KEYS = frozenset({"SaintSeiyaBronzeOnly", "SaintSeiyaBlackSaints"})
 
 ARCHETYPE_INIT_START = "SET_SAINT"
-ARCHETYPE_INIT_END = "SET_BRONZE_CLOTH"
+ARCHETYPE_INIT_END = "SET_META                          = 0x1ea"
+CARDS_SPECIFIC_SAINT_START = "-- Bronze Saint - Seiya of the Miracle Bonds"
 STRINGS_MARKER_START = "# Saint Seiya custom archetypes"
 STRINGS_MARKER_END = "# Pokemon Archetypes"
 
@@ -72,7 +73,7 @@ def collect_deck_ids(deck_paths: list[Path]) -> tuple[set[int], dict[str, list[i
 def extract_archetype_init_lua(source: Path) -> str:
     text = source.read_text(encoding="utf-8")
     start = text.find(ARCHETYPE_INIT_START)
-    end = text.find(ARCHETYPE_INIT_END)
+    end = text.find(ARCHETYPE_INIT_END, start)
     if start == -1 or end == -1:
         raise RuntimeError("Could not locate Saint Seiya SET_* block in archetype_setcode_constants.lua")
     end = text.find("\n", end) + 1
@@ -80,6 +81,27 @@ def extract_archetype_init_lua(source: Path) -> str:
     return (
         "-- Saint Seiya setcodes (auto-generated; keep in sync with strings.conf)\n"
         f"{block}\n"
+    )
+
+
+def extract_cards_specific_init_lua(source: Path) -> str:
+    """Saint-only helpers from cards_specific_functions.lua (loaded after utility.lua)."""
+    text = source.read_text(encoding="utf-8")
+    start = text.find(CARDS_SPECIFIC_SAINT_START)
+    if start == -1:
+        raise RuntimeError(
+            f"Could not locate Saint Seiya block ({CARDS_SPECIFIC_SAINT_START!r}) in {source}"
+        )
+    block = text[start:].strip()
+    return (
+        "-- Saint Seiya shared helpers (from script/cards_specific_functions.lua)\n"
+        f"{block}\n"
+    )
+
+
+def build_init_lua(archetype_source: Path, cards_specific_source: Path) -> str:
+    return extract_archetype_init_lua(archetype_source) + extract_cards_specific_init_lua(
+        cards_specific_source
     )
 
 
@@ -510,7 +532,10 @@ def main() -> int:
     init_path = out / "script" / "init.lua"
     init_path.parent.mkdir(parents=True, exist_ok=True)
     init_path.write_text(
-        extract_archetype_init_lua(ROOT / "script" / "archetype_setcode_constants.lua"),
+        build_init_lua(
+            ROOT / "script" / "archetype_setcode_constants.lua",
+            ROOT / "script" / "cards_specific_functions.lua",
+        ),
         encoding="utf-8",
     )
     print(f"wrote: {init_path.relative_to(ROOT)}")

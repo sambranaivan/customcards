@@ -101,7 +101,7 @@ Andromeda (`922100044`): equipped monster can attack directly; if on Shun in DEF
 ### Extenders (increase bodies / unique names)
 - `922100005` **Jabu**: hand extender (SS if you control a Saint). On SS: add 1 Cloth from GY, then discard 1.
 - `922100004` **Ikki**: GY extender (revive by discarding 1 Saint).
-- `922100010` **Mu** (×2 in deck): on summon add up to 2 Cloth Equips from GY; MMZ ignition discards self to search **Athena's Sanctuary**.
+- `922100010` **Mu** (×2 in deck): on summon add up to 2 Cloth Equips from GY; hand ignition discards self to search **Athena's Sanctuary**.
 - `922100011` **Kiki**:
   - Quick effect from hand: discard → equip 1 Cloth Equip from **Deck or GY** to a Saint you control.
   - Next turn Standby: banish from GY → add up to 2 different-name Cloths from GY.
@@ -167,11 +167,11 @@ namespace WindBot.Game.AI.Decks
     {
         // Guide coverage notes (embedded MD is the full spec):
         // - Not modeled: full go-second macro loop, Battle-Phase Hyoga trigger, S/A "threat tier" without chain metadata,
-        //   Deck runs 2× Mu (922100010) + 2× Athena's Sanctuary (922100079): Mu MMZ ignition searches Sanctuary; backup copy in hand when Field is live.
+        //   Deck runs 2× Mu (922100010) + 2× Athena's Sanctuary (922100079): Mu hand ignition searches Sanctuary; backup copy in hand when Field is live.
         // - OnSelectHand stays go-first; counters still lean on engine legality + Util.IsChainTarget where applicable.
 
-        private const int BuildVersion = 63;
-        private const string BuildTag = "2026-05-16-v63-ban-on-ss-saint-search";
+        private const int BuildVersion = 65;
+        private const string BuildTag = "2026-05-16-v65-mu-hand-sanctuary-search";
 
         /// <summary>Alternate Fusion (c922100303) only when GY has enough Cloth value to justify the summon.</summary>
         private const int MinBronzeClothCardsInGyForMiracleBondsFusion = 2;
@@ -610,12 +610,12 @@ namespace WindBot.Game.AI.Decks
                     AI.SelectNextCard(tgt);
             }
 
-            // Mu Stringid 1: discard to add Athena's Sanctuary from Deck.
+            // Mu Stringid 1: hand ignition — discard self; add Athena's Sanctuary from Deck (c922100010.lua).
             if (card != null
                 && card.IsCode(CardId.Mu)
                 && (card.Location & CardLocation.Hand) != 0
-                && IsMuDiscardSearchSanctuaryDescription((int)ActivateDescription)
-                && Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) > 0)
+                && IsMuDiscardSearchSanctuaryHandIgnitionPrompt((int)ActivateDescription)
+                && MuSanctuarySearchFromDeckWorthActivating())
                 AI.SelectCard(CardId.AthenasSanctuary);
 
             // Jabu (c922100005) Stringid 1: on SS add Cloth from GY, then discard (EffectYn desc -1).
@@ -1710,12 +1710,34 @@ namespace WindBot.Game.AI.Decks
             return ChooseSanctuaryClothReturnTarget() != null;
         }
 
-        private bool IsMuDiscardSearchSanctuaryDescription(int d)
+        /// <summary>Mu Stringid 0 — on N/SS add Cloth Equips from GY (texts.str1).</summary>
+        private bool IsMuOnSummonClothRecoveryPrompt(int desc)
         {
-            return MatchesCardEffectDesc(d, CardId.Mu, 1);
+            if (MatchesCardEffectDesc(desc, CardId.Mu, 1))
+                return false;
+            return IsOnSummonOptionalTriggerDesc(desc, CardId.Mu, 0, 1);
         }
 
-        /// <summary>Mu ignition: search Sanctuary from Deck (first copy to Field, second as hand backup).</summary>
+        /// <summary>Mu Stringid 1 — hand ignition: discard; search Athena's Sanctuary (texts.str2). Idle cmd often sends desc -1/0.</summary>
+        private bool IsMuDiscardSearchSanctuaryHandIgnitionPrompt(int desc)
+        {
+            if (MatchesCardEffectDesc(desc, CardId.Mu, 0))
+                return false;
+            if (MatchesCardEffectDesc(desc, CardId.Mu, 1))
+                return true;
+            for (var i = 0; i < 8; i++)
+            {
+                if (i == 1)
+                    continue;
+                if (MatchesCardEffectDesc(desc, CardId.Mu, i))
+                    return false;
+            }
+            if (Card == null || (Card.Location & CardLocation.Hand) == 0)
+                return false;
+            return desc <= 0;
+        }
+
+        /// <summary>Mu hand search: Sanctuary from Deck (first copy to Field, second as hand backup).</summary>
         private bool MuSanctuarySearchFromDeckWorthActivating()
         {
             if (Bot.GetRemainingCount(CardId.AthenasSanctuary, (int)CardLocation.Deck) <= 0)
@@ -2441,20 +2463,23 @@ namespace WindBot.Game.AI.Decks
         {
             var d = (int)ActivateDescription;
 
-            // Stringid 1: discard Mu from MMZ; add "Athena's Sanctuary" (922100079) from Deck (c922100010.lua).
-            if ((Card.Location & CardLocation.MonsterZone) != 0
-                && IsMuDiscardSearchSanctuaryDescription(d))
-            {
-                if (!IsMainPhase())
-                    return false;
-                return MuSanctuarySearchFromDeckWorthActivating();
-            }
-
-            // Stringid 0 / str1: on N/SS — add Cloths from GY (EffectYn; not Main-Phase-only).
-            if (IsOnSummonOptionalTriggerDesc(d, CardId.Mu, 0, 1)
+            // Stringid 0: on N/SS — add Cloth Equips from GY (before ignition; desc -1 must not steal search).
+            if (IsMuOnSummonClothRecoveryPrompt(d)
                 && Bot.Graveyard.IsExistingMatchingCard(c => Cloths.Contains(c.Id)))
             {
                 AI.SelectCard(Cloths);
+                return true;
+            }
+
+            // Stringid 1: discard from hand; add "Athena's Sanctuary" (922100079) from Deck.
+            if ((Card.Location & CardLocation.Hand) != 0
+                && IsMuDiscardSearchSanctuaryHandIgnitionPrompt(d))
+            {
+                if (!IsMainPhase() || Duel.Player != 0)
+                    return false;
+                if (!MuSanctuarySearchFromDeckWorthActivating())
+                    return false;
+                AI.SelectCard(CardId.AthenasSanctuary);
                 return true;
             }
 
